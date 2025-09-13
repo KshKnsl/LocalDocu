@@ -21,28 +21,25 @@ type FileType =
   | 'pdf'
   | 'text'
   | 'image'
-  | 'video'
   | 'other';
 
 function getFileType(input: File | string): FileType {
   if (input instanceof File) {
     if (input.type.startsWith('image/')) return 'image';
-    if (input.type.startsWith('video/')) return 'video';
     if (input.type === 'application/pdf') return 'pdf';
     if (input.type.startsWith('text/')) return 'text';
   }
-  
   const fileName = typeof input === 'string' ? input : input.name;
   const extension = fileName.split('.').pop()?.toLowerCase();
-  
+
   if ([
+    'txt', 'md', 'csv', 'log',
     'js', 'jsx', 'ts', 'tsx', 'py', 'java', 'cpp', 'c', 'h', 'hpp', 'cs', 'php', 'rb',
     'html', 'css', 'scss', 'json', 'xml',
-    'yaml', 'yml', 'ini', 'conf', 'toml',
-    'txt', 'md', 'csv', 'log'
+    'yaml', 'yml', 'ini', 'conf', 'toml'
   ].includes(extension || '')) {
     return 'text';
-  }  
+  }
   return 'other';
 }
 export function FilePreview({ file, onClose, className }: FilePreviewProps) {
@@ -109,7 +106,7 @@ export function FilePreview({ file, onClose, className }: FilePreviewProps) {
     const fileName = typeof file === 'string' ? file.split('/').pop() : file.name;
 
     switch (fileType) {
-      case 'pdf':
+      case 'pdf': {
         const pdfUrl = typeof file === 'string' ? file : content;
         return (
           <div className="w-full h-[calc(100vh-10rem)] bg-white rounded-lg overflow-hidden">
@@ -125,9 +122,8 @@ export function FilePreview({ file, onClose, className }: FilePreviewProps) {
             </object>
           </div>
         );
-
+      }
       case 'text':
-        
         return (
           <Card className="bg-muted/50 h-full">
             <ScrollArea className="h-[calc(100vh-10rem)] w-full">
@@ -137,19 +133,7 @@ export function FilePreview({ file, onClose, className }: FilePreviewProps) {
             </ScrollArea>
           </Card>
         );
-
-      case 'video':
-        return (
-          <div className="flex items-center justify-center bg-black/10 rounded-lg p-2">
-            <video 
-              src={content} 
-              controls 
-              className="max-w-full max-h-[calc(100vh-12rem)]"
-            />
-          </div>
-        );
-
-      case 'image':
+      case 'image': {
         const imgSrc = typeof file === 'string' ? file : content;
         if (!imgSrc) return null;
         return (
@@ -165,7 +149,7 @@ export function FilePreview({ file, onClose, className }: FilePreviewProps) {
             </div>
           </div>
         );
-
+      }
       default:
         return (
           <div className="flex flex-col items-center justify-center gap-4 p-8 text-muted-foreground">

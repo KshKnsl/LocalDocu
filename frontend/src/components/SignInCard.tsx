@@ -2,6 +2,36 @@
 import { SignIn } from "@clerk/nextjs";
 import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
+import { FileText, MessageSquare, File } from "lucide-react";
+
+
+const features = [
+  {
+    title: "Quick Summaries",
+    description: "Get instant summaries of your documents, powered by advanced AI",
+    icon: FileText,
+  },
+  {
+    title: "Interactive Chat",
+    description: "Ask questions and get detailed insights about your documents",
+    icon: MessageSquare,
+  },
+  {
+    title: "Multiple Formats",
+    description: "Support for PDF, Word, and text documents",
+    icon: File,
+  },
+];
+
+function FeatureCard({ icon: Icon, title, description }: { icon: React.ElementType; title: string; description: string }) {
+  return (
+    <Card className="group p-6 backdrop-blur-sm bg-white/50 dark:bg-gray-800/50 border border-gray-200 dark:border-gray-800 hover:border-blue-200 dark:hover:border-blue-800 shadow-sm hover:shadow-md dark:shadow-gray-900/30 transition-all duration-300">
+      <Icon className="w-10 h-10 mb-4 mx-auto text-blue-500 dark:text-blue-400 group-hover:scale-110 transition-transform duration-300" />
+      <h3 className="text-lg font-semibold mb-2 text-gray-900 dark:text-white transition-colors duration-300">{title}</h3>
+      <p className="text-gray-600 dark:text-gray-300 transition-colors duration-300">{description}</p>
+    </Card>
+  );
+}
 import {
   Dialog,
   DialogContent,
@@ -39,40 +69,7 @@ export function SignInCard() {
 
           {/* Features */}
           <div className="grid grid-cols-1 gap-8 sm:grid-cols-2 lg:grid-cols-3 text-center">
-            {[
-              {
-                title: "Quick Summaries",
-                description:
-                  "Get instant summaries of your documents, powered by advanced AI",
-                icon: "📄",
-              },
-              {
-                title: "Interactive Chat",
-                description:
-                  "Ask questions and get detailed insights about your documents",
-                icon: "💬",
-              },
-              {
-                title: "Multiple Formats",
-                description: "Support for PDF, Word, and text documents",
-                icon: "📁",
-              },
-            ].map((feature) => (
-              <Card
-                key={feature.title}
-                className="group p-6 backdrop-blur-sm bg-white/50 dark:bg-gray-800/50 border border-gray-200 dark:border-gray-800 hover:border-blue-200 dark:hover:border-blue-800 shadow-sm hover:shadow-md dark:shadow-gray-900/30 transition-all duration-300"
-              >
-                <div className="text-4xl mb-4 transform group-hover:scale-110 transition-transform duration-300">
-                  {feature.icon}
-                </div>
-                <h3 className="text-lg font-semibold mb-2 text-gray-900 dark:text-white transition-colors duration-300">
-                  {feature.title}
-                </h3>
-                <p className="text-gray-600 dark:text-gray-300 transition-colors duration-300">
-                  {feature.description}
-                </p>
-              </Card>
-            ))}
+            {features.map((f) => <FeatureCard key={f.title} {...f} />)}
           </div>
 
           {/* CTA */}

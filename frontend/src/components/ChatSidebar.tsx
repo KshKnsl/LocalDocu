@@ -1,6 +1,7 @@
 "use client";
 
 import React, { useState } from "react";
+import { ChatSidebarItem } from "./ChatSidebarItem";
 import { Button } from "@/components/ui/button";
 import { ScrollArea } from "@/components/ui/scroll-area";
 import { cn } from "@/lib/utils";
@@ -40,8 +41,7 @@ export function ChatSidebar({
   onNewChatStart,
 }: ChatSidebarProps) {
   const [chats, setChats] = useState<Chat[]>(initialChats);
-  const [selectedChatId, setSelectedChatId] = useState<string | undefined>();
-  const [editingChatId, setEditingChatId] = useState<string | null>(null);
+  // Removed selectedChatId and editingChatId for simplicity
 
   const handleNewChat = () => {
     const newChat: Chat = {
@@ -51,12 +51,10 @@ export function ChatSidebar({
       preview: "Start a new conversation...",
     };
     setChats((prev) => [newChat, ...prev]);
-    setSelectedChatId(newChat.id);
     onNewChatStart?.();
   };
 
   const handleSelectChat = (chatId: string) => {
-    setSelectedChatId(chatId);
     onChatSelect?.(chatId);
   };
 
@@ -70,9 +68,6 @@ export function ChatSidebar({
 
   const handleDeleteChat = (chatId: string) => {
     setChats((prevChats) => prevChats.filter((chat) => chat.id !== chatId));
-    if (selectedChatId === chatId) {
-      handleNewChat();
-    }
   };
   return (
     <aside
@@ -115,141 +110,23 @@ export function ChatSidebar({
       <ScrollArea className="flex-1 overflow-y-auto">
         <div className="p-2 space-y-2">
           {chats.map((chat) => (
-            <div
+            <ChatSidebarItem
               key={chat.id}
-              onClick={() => handleSelectChat(chat.id)}
-              className={cn(
-                "w-full flex flex-col gap-1 rounded-lg border px-3 py-2 text-sm transition-colors hover:bg-accent text-left cursor-pointer",
-                selectedChatId === chat.id ? "bg-accent" : "transparent"
-              )}
-              role="button"
-              tabIndex={0}
-              onKeyDown={(e) => {
-                if (e.key === 'Enter' || e.key === ' ') {
-                  handleSelectChat(chat.id);
-                }
-              }}
-            >
-              {isSidebarOpen ? (
-                <>
-                  <div className="flex items-center gap-2 group">
-                    <MessageSquare className="h-4 w-4 shrink-0" />
-                    <div className="flex-1 min-w-0">
-                      <InputLabel
-                        value={chat.title}
-                        isEditing={editingChatId === chat.id}
-                        onEdit={() => setEditingChatId(chat.id)}
-                        onSave={(newTitle) => {
-                          handleRenameChat(chat.id, newTitle);
-                          setEditingChatId(null);
-                        }}
-                        onCancel={() => setEditingChatId(null)}
-                        onChange={() => {}}
-                        className="font-medium line-clamp-1 cursor-pointer hover:text-primary"
-                      />
-                    </div>
-                    {editingChatId !== chat.id && (
-                      <div className="flex gap-1 opacity-0 group-hover:opacity-100 transition-opacity">
-                        <div
-                          role="button"
-                          tabIndex={0}
-                          className="inline-flex items-center justify-center rounded-md h-6 w-6 text-sm font-medium ring-offset-background transition-colors hover:bg-accent hover:text-accent-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2"
-                          onClick={(e) => {
-                            e.stopPropagation();
-                            setEditingChatId(chat.id);
-                          }}
-                          onKeyDown={(e) => {
-                            if (e.key === 'Enter' || e.key === ' ') {
-                              e.stopPropagation();
-                              setEditingChatId(chat.id);
-                            }
-                          }}
-                        >
-                          <Pencil className="h-3 w-3" />
-                        </div>
-                        <div
-                          role="button"
-                          tabIndex={0}
-                          className="inline-flex items-center justify-center rounded-md h-6 w-6 text-sm font-medium ring-offset-background transition-colors hover:bg-accent hover:text-destructive focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2"
-                          onClick={(e) => {
-                            e.stopPropagation();
-                            handleDeleteChat(chat.id);
-                          }}
-                          onKeyDown={(e) => {
-                            if (e.key === 'Enter' || e.key === ' ') {
-                              e.stopPropagation();
-                              handleDeleteChat(chat.id);
-                            }
-                          }}
-                        >
-                          <Trash2 className="h-3 w-3" />
-                        </div>
-                      </div>
-                    )}
-                  </div>
-                  <span className="text-xs text-muted-foreground line-clamp-1">
-                    {chat.preview}
-                  </span>
-                  <span className="text-xs text-muted-foreground mt-1">
-                    {chat.timestamp.toLocaleDateString()}
-                  </span>
-                </>
-              ) : (
-                <div className="flex justify-center">
-                  <MessageSquare className="h-4 w-4" />
-                </div>
-              )}
-            </div>
+              chat={chat}
+              isSidebarOpen={isSidebarOpen}
+              onSelect={handleSelectChat}
+              onSave={handleRenameChat}
+              onDelete={handleDeleteChat}
+            />
           ))}
         </div>
       </ScrollArea>
 
       <div className="border-t bg-muted/50 p-4">
         {isSidebarOpen ? (
-          <div className="flex items-center justify-between gap-2">
-            <div className="flex items-center gap-2 min-w-0 group">
-              <div className="flex items-center gap-1 min-w-0">
-                {selectedChatId && editingChatId === selectedChatId ? (
-                  <InputLabel
-                    value={chats.find((chat) => chat.id === selectedChatId)?.title || ""}
-                    isEditing={true}
-                    onEdit={() => {}}
-                    onSave={(newTitle) => {
-                      handleRenameChat(selectedChatId, newTitle);
-                      setEditingChatId(null);
-                    }}
-                    onCancel={() => setEditingChatId(null)}
-                    onChange={() => {}}
-                    className="font-semibold"
-                  />
-                ) : (
-                  <h2 className="font-semibold truncate">
-                    {selectedChatId
-                      ? chats.find((chat) => chat.id === selectedChatId)?.title
-                      : "New Chat"}
-                  </h2>
-                )}
-                {selectedChatId && editingChatId !== selectedChatId && (
-                  <div
-                    role="button"
-                    tabIndex={0}
-                    className="inline-flex items-center justify-center rounded-md h-6 w-6 text-sm font-medium ring-offset-background transition-colors hover:bg-accent hover:text-accent-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 opacity-0 group-hover:opacity-100"
-                    onClick={() => setEditingChatId(selectedChatId)}
-                    onKeyDown={(e) => {
-                      if (e.key === 'Enter' || e.key === ' ') {
-                        setEditingChatId(selectedChatId);
-                      }
-                    }}
-                  >
-                    <Pencil className="h-3 w-3" />
-                  </div>
-                )}
-              </div>
-            </div>
-            <div className="flex items-center gap-2 shrink-0">
-              <ThemeSwitcher />
-              <UserButton afterSwitchSessionUrl="/" />
-            </div>
+          <div className="flex items-center justify-end gap-2">
+            <ThemeSwitcher />
+            <UserButton afterSwitchSessionUrl="/" />
           </div>
         ) : (
           <div className="flex flex-col items-center gap-2">

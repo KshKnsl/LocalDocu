@@ -1,5 +1,3 @@
-'use client';
-
 import { useUser } from '@clerk/nextjs';
 import { SignInCard } from '@/components/SignInCard';
 import { ChatInterface } from '@/components/ChatInterface';

@@ -5,8 +5,14 @@ import { Card } from "@/components/ui/card";
 import { ScrollArea } from "@/components/ui/scroll-area";
 import { FilePreview } from "./FilePreview";
 import { cn } from "@/lib/utils";
-import { Copy, Link2, MessageSquare, Bot, Eye } from "lucide-react";
-import { ProcessingResult, sendChatMessage, uploadDocument, processDocument } from "@/lib/api";
+import { Copy, Link2, MessageSquare, Bot } from "lucide-react";
+import { FileCard } from "@/components/ui/FileCard";
+import {
+  ProcessingResult,
+  sendChatMessage,
+  uploadDocument,
+  processDocument,
+} from "@/lib/api";
 import { useUser } from "@clerk/nextjs";
 import { NewChatFileUpload } from "./NewChatFileUpload";
 import { toast } from "sonner";
@@ -26,8 +32,8 @@ interface Message {
   type: "user" | "bot";
   content: string;
   timestamp: Date;
-  files?: File[]; 
-  processedFiles?: string[];  
+  files?: File[];
+  processedFiles?: string[];
 }
 
 // Chat interface moved to ChatSidebar component where it's used
@@ -36,11 +42,11 @@ interface ChatInterfaceProps {
   activeDocument?: ProcessingResult;
 }
 
+
 export function ChatInterface({ activeDocument }: ChatInterfaceProps) {
   const [messages, setMessages] = useState<Message[]>([]);
   const [input, setInput] = useState("");
   const [files, setFiles] = useState<File[]>([]);
-  const [loading, setLoading] = useState(false);
   const [previewFile, setPreviewFile] = useState<File | string | null>(null);
   const [showAttachments, setShowAttachments] = useState(false);
   const [isSidebarOpen, setIsSidebarOpen] = useState(true);
@@ -91,26 +97,26 @@ export function ChatInterface({ activeDocument }: ChatInterfaceProps) {
 
   const handleSubmit = async () => {
     if (!input.trim() && files.length === 0) return;
-    if (loading) return;
-
     const messageId = Math.random().toString(36).substring(7);
     const currentInput = input.trim();
     const currentFiles = [...files];
 
     if (currentInput || currentFiles.length > 0) {
-      setMessages(prev => [...prev, {
-        id: messageId,
-        type: "user",
-        content: currentInput,
-        files: currentFiles,
-        processedFiles: [],
-        timestamp: new Date(),
-      }]);
+      setMessages((prev) => [
+        ...prev,
+        {
+          id: messageId,
+          type: "user",
+          content: currentInput,
+          files: currentFiles,
+          processedFiles: [],
+          timestamp: new Date(),
+        },
+      ]);
     }
 
     setInput("");
     setFiles([]);
-    setLoading(true);
 
     try {
       if (currentFiles.length > 0) {
@@ -123,21 +129,23 @@ export function ChatInterface({ activeDocument }: ChatInterfaceProps) {
 
         const uploadedUrls = uploadResults
           .filter((result): result is PromiseFulfilledResult<string> => result.status === "fulfilled")
-          .map(result => result.value);
+          .map((result) => result.value);
 
         const processResults = await Promise.allSettled(
-          uploadedUrls.map(url => processDocument(url))
+          uploadedUrls.map((url) => processDocument(url))
         );
 
         const processedFiles = processResults
           .filter((result): result is PromiseFulfilledResult<ProcessingResult> => result.status === "fulfilled")
-          .map(result => result.value);
+          .map((result) => result.value);
 
-        setMessages(prev => prev.map(msg => 
-          msg.id === messageId 
-            ? { ...msg, files: currentFiles, processedFiles: uploadedUrls }
-            : msg
-        ));
+        setMessages((prev) =>
+          prev.map((msg) =>
+            msg.id === messageId
+              ? { ...msg, files: currentFiles, processedFiles: uploadedUrls }
+              : msg
+          )
+        );
 
         processResults.forEach((result, index) => {
           if (result.status === "rejected") {
@@ -147,36 +155,40 @@ export function ChatInterface({ activeDocument }: ChatInterfaceProps) {
 
         if (processedFiles.length > 0) {
           const filesSummary = processedFiles
-            .map(result => `- ${result.documentId}: ${result.summary} (${result.chunkCount} chunks)`)
+            .map((result) => `- ${result.documentId}: ${result.summary} (${result.chunkCount} chunks)`)
             .join("\n");
 
-          setMessages(prev => [...prev, {
-            id: Math.random().toString(36).substring(7),
-            type: "bot",
-            content: `Successfully processed ${processedFiles.length} file(s):\n\n${filesSummary}\n\nYou can now ask questions about these documents.`,
-            timestamp: new Date()
-          }]);
+          setMessages((prev) => [
+            ...prev,
+            {
+              id: Math.random().toString(36).substring(7),
+              type: "bot",
+              content: `Successfully processed ${processedFiles.length} file(s):\n\n${filesSummary}\n\nYou can now ask questions about these documents.`,
+              timestamp: new Date(),
+            },
+          ]);
         }
       }
 
       if (currentInput.trim()) {
-        const chatResponse = await sendChatMessage({ 
+        const chatResponse = await sendChatMessage({
           message: currentInput,
-          documentId: activeDocument?.documentId
+          documentId: activeDocument?.documentId,
         });
 
-        setMessages(prev => [...prev, {
-          id: Math.random().toString(36).substring(7),
-          type: "bot",
-          content: chatResponse.response,
-          timestamp: new Date()
-        }]);
+        setMessages((prev) => [
+          ...prev,
+          {
+            id: Math.random().toString(36).substring(7),
+            type: "bot",
+            content: chatResponse.response,
+            timestamp: new Date(),
+          },
+        ]);
       }
     } catch (error) {
       toast.error(error instanceof Error ? error.message : "Something went wrong");
-      if (currentInput) setMessages(prev => prev.slice(0, -1));
-    } finally {
-      setLoading(false);
+      if (currentInput) setMessages((prev) => prev.slice(0, -1));
     }
   };
 
@@ -225,7 +237,7 @@ export function ChatInterface({ activeDocument }: ChatInterfaceProps) {
                               id: Math.random().toString(36).substring(7),
                               type: "bot",
                               content: `Document processed successfully! You can now ask questions about "${result.documentId}". The document has been split into ${result.chunkCount} chunks for efficient processing.`,
-                              timestamp: new Date()
+                              timestamp: new Date(),
                             },
                           ]);
                         }}
@@ -299,23 +311,16 @@ export function ChatInterface({ activeDocument }: ChatInterfaceProps) {
                           )}
                         >
                           <div className="space-y-2 overflow-hidden">
-                            {((message.processedFiles && message.processedFiles.length > 0) || (message.files && message.files.length > 0)) && (
+                            {((message.processedFiles &&
+                              message.processedFiles.length > 0) ||
+                              (message.files && message.files.length > 0)) && (
                               <div className="flex flex-wrap gap-2 mb-2">
                                 {message.files?.map((file, index) => (
-                                  <div
+                                  <FileCard
                                     key={`file-${index}`}
-                                    className="flex items-center gap-1 bg-background/10 rounded px-2 py-1 text-sm"
-                                  >
-                                    <span className="truncate max-w-[120px]">
-                                      {file.name}
-                                    </span>
-                                    <button
-                                      onClick={() => setPreviewFile(file)}
-                                      className="p-1 opacity-60 hover:opacity-100"
-                                    >
-                                      <Eye className="h-4 w-4" />
-                                    </button>
-                                  </div>
+                                    file={file}
+                                    onPreview={setPreviewFile}
+                                  />
                                 ))}
                               </div>
                             )}
@@ -370,17 +375,6 @@ export function ChatInterface({ activeDocument }: ChatInterfaceProps) {
                     </div>
                   ))
                 )}
-                {loading && (
-                  <div className="flex justify-start">
-                    <Card className="max-w-[80%] p-4 bg-muted">
-                      <div className="flex items-center gap-2">
-                        <div className="w-2 h-2 bg-primary rounded-full animate-bounce [animation-delay:-0.3s]"></div>
-                        <div className="w-2 h-2 bg-primary rounded-full animate-bounce [animation-delay:-0.15s]"></div>
-                        <div className="w-2 h-2 bg-primary rounded-full animate-bounce"></div>
-                      </div>
-                    </Card>
-                  </div>
-                )}
                 <div ref={messagesEndRef} />
               </div>
             </ScrollArea>
@@ -397,14 +391,13 @@ export function ChatInterface({ activeDocument }: ChatInterfaceProps) {
           onSubmit={handleSubmit}
           onPreviewFile={setPreviewFile}
           onShowAttachments={() => setShowAttachments(true)}
-          loading={loading}
         />
       </main>
 
       {previewFile && (
-        <FilePreview 
-          file={previewFile}  // Pass the File object directly to FilePreview
-          onClose={() => setPreviewFile(null)} 
+        <FilePreview
+          file={previewFile} // Pass the File object directly to FilePreview
+          onClose={() => setPreviewFile(null)}
         />
       )}
 
@@ -416,11 +409,7 @@ export function ChatInterface({ activeDocument }: ChatInterfaceProps) {
           <div className="max-h-[60vh] overflow-y-auto px-1">
             <FileList
               files={getAllAttachedFiles()}
-              onRemove={() => {
-                toast.info(
-                  "Files can't be removed once they're part of the chat"
-                );
-              }}
+              onRemove={() => {}}
               previewFile={setPreviewFile}
             />
           </div>

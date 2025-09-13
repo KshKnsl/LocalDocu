@@ -16,23 +16,16 @@ export function NewChatFileUpload({ onProcessingComplete }: NewChatFileUploadPro
   const [loading, setLoading] = useState(false);
 
   const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    if (e.target.files) {
-      setFiles(Array.from(e.target.files));
-    }
+    if (e.target.files) setFiles(Array.from(e.target.files));
   };
 
   const handleProcess = async () => {
     if (!files.length) return;
     setLoading(true);
-    try {
-      const results = await Promise.all(files.map(uploadAndProcessDocument));
-      results.forEach(result => onProcessingComplete?.(result));
-      setFiles([]);
-    } catch (error) {
-      console.error("Error processing files:", error);
-    } finally {
-      setLoading(false);
-    }
+    const results = await Promise.all(files.map(uploadAndProcessDocument));
+    results.forEach(result => onProcessingComplete?.(result));
+    setFiles([]);
+    setLoading(false);
   };
 
   return (
@@ -44,10 +37,9 @@ export function NewChatFileUpload({ onProcessingComplete }: NewChatFileUploadPro
         accept=".pdf,.doc,.docx,.txt"
         id="new-chat-file-upload"
       />
-
       {files.length > 0 && (
         <div className="space-y-3">
-          <FileList files={files} onRemove={(i) => setFiles(f => f.filter((_, idx) => idx !== i))} />
+          <FileList files={files} onRemove={i => setFiles(f => f.filter((_, idx) => idx !== i))} />
           <Button onClick={handleProcess} disabled={loading} className="w-full">
             {loading ? (
               <>

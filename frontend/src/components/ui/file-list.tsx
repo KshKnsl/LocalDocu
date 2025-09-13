@@ -1,8 +1,7 @@
 'use client';
 
-import { Button } from './button';
 import { cn } from '@/lib/utils';
-import { FileText, X, Eye } from 'lucide-react';
+import { FileCard } from './FileCard';
 
 interface FileListProps {
   files: File[];
@@ -20,33 +19,12 @@ export function FileList({ files, onRemove, previewFile }: FileListProps) {
       )}
     >
       {files.map((file, index) => (
-        <div
+        <FileCard
           key={index}
-          className="flex items-center gap-2 p-2 pr-3 bg-muted/50 rounded-lg text-sm"
-        >
-          <FileText className="w-4 h-4 text-muted-foreground" />
-          <span className="flex-1 truncate">{file.name}</span>
-          <div className="flex gap-1">
-            {previewFile && (
-              <Button
-                variant="ghost"
-                size="icon"
-                className="h-6 w-6"
-                onClick={() => previewFile(file)}
-              >
-                <Eye className="h-4 w-4" />
-              </Button>
-            )}
-            <Button
-              variant="ghost"
-              size="icon"
-              className="h-6 w-6"
-              onClick={() => onRemove(index)}
-            >
-              <X className="h-4 w-4" />
-            </Button>
-          </div>
-        </div>
+          file={file}
+          onPreview={previewFile}
+          onRemove={() => onRemove(index)}
+        />
       ))}
     </div>
   );
