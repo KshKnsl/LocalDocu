@@ -30,7 +30,7 @@ export async function uploadAndProcessDocument(file: File): Promise<ProcessingRe
 }
 
 export async function sendChatMessage({ message, documentId }: ChatMessage): Promise<ChatResponse> {
-  const res = await fetch("/api/chat", {
+  const res = await fetch("https://6e43d38dae22.ngrok-free.app/api/generate", {
     method: "POST",
     headers: { "Content-Type": "application/json" },
     body: JSON.stringify({ message, documentId }),
