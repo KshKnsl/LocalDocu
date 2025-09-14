@@ -25,6 +25,7 @@ export async function processDocument(url: string): Promise<ProcessingResult> {
 
 export async function uploadAndProcessDocument(file: File): Promise<ProcessingResult> {
   const { url } = await uploadDocument(file);
+  console.log(url);
   return processDocument(url);
 }
 

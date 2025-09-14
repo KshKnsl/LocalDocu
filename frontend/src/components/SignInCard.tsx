@@ -1,5 +1,5 @@
 "use client";
-import { SignIn } from "@clerk/nextjs";
+import { SignIn, SignUp } from "@clerk/nextjs";
 import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
 import { FileText, MessageSquare, File } from "lucide-react";
@@ -73,24 +73,62 @@ export function SignInCard() {
           </div>
 
           {/* CTA */}
-          <div className="text-center">
+          <div className="text-center flex flex-col sm:flex-row gap-4 justify-center">
             <Dialog>
               <DialogTrigger asChild>
                 <Button
                   size="lg"
                   className="font-semibold px-8 py-6 text-lg bg-gradient-to-r from-blue-500 to-blue-600 dark:from-blue-600 dark:to-blue-500 hover:from-blue-600 hover:to-blue-700 dark:hover:from-blue-500 dark:hover:to-blue-400 shadow-lg hover:shadow-xl dark:shadow-blue-950/20 transition-all duration-300 transform hover:scale-[1.02] active:scale-[0.98]"
                 >
-                  Get Started Now
+                  Sign In
                 </Button>
               </DialogTrigger>
               <DialogContent className="sm:max-w-[435px] p-0 bg-white dark:bg-gray-900 border-gray-200 dark:border-gray-800 shadow-xl dark:shadow-gray-950/50">
                 <DialogHeader className="border-b border-gray-200 dark:border-gray-800">
                   <DialogTitle className="px-4 pt-4 text-gray-900 dark:text-white">
-                    Welcome to AI Summarizer
+                    Welcome Back
                   </DialogTitle>
                 </DialogHeader>
                 <div className="px-4 pb-4">
                   <SignIn
+                    appearance={{
+                      elements: {
+                        rootBox: "w-full",
+                        card: "w-full shadow-none p-0 bg-transparent",
+                        headerTitle: "text-gray-900 dark:text-white",
+                        headerSubtitle: "text-gray-500 dark:text-gray-400",
+                        formButtonPrimary:
+                          "bg-blue-500 dark:bg-blue-600 hover:bg-blue-600 dark:hover:bg-blue-500 text-white",
+                        formFieldInput:
+                          "bg-white dark:bg-gray-800 border-gray-200 dark:border-gray-700",
+                        formFieldLabel: "text-gray-700 dark:text-gray-300",
+                        footer: "text-gray-600 dark:text-gray-400",
+                        footerActionLink:
+                          "text-blue-500 dark:text-blue-400 hover:text-blue-600 dark:hover:text-blue-300",
+                      },
+                    }}
+                  />
+                </div>
+              </DialogContent>
+            </Dialog>
+            <Dialog>
+              <DialogTrigger asChild>
+                <Button
+                  size="lg"
+                  variant="outline"
+                  className="font-semibold px-8 py-6 text-lg border-blue-500 dark:border-blue-400 text-blue-600 dark:text-blue-300 hover:bg-blue-50 dark:hover:bg-blue-900/20 shadow-lg hover:shadow-xl dark:shadow-blue-950/20 transition-all duration-300 transform hover:scale-[1.02] active:scale-[0.98]"
+                >
+                  Create Account
+                </Button>
+              </DialogTrigger>
+              <DialogContent className="sm:max-w-[435px] p-0 bg-white dark:bg-gray-900 border-gray-200 dark:border-gray-800 shadow-xl dark:shadow-gray-950/50">
+                <DialogHeader className="border-b border-gray-200 dark:border-gray-800">
+                  <DialogTitle className="px-4 pt-4 text-gray-900 dark:text-white">
+                    Create Your Account
+                  </DialogTitle>
+                </DialogHeader>
+                <div className="px-4 pb-4">
+                  <SignUp
                     appearance={{
                       elements: {
                         rootBox: "w-full",
