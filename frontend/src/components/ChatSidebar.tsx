@@ -1,22 +1,18 @@
 "use client";
 
 import React, { useState } from "react";
+import { Switch } from "@/components/ui/switch";
 import { ChatSidebarItem } from "./ChatSidebarItem";
 import { Button } from "@/components/ui/button";
 import { ScrollArea } from "@/components/ui/scroll-area";
 import { cn } from "@/lib/utils";
 import { UserButton } from "@clerk/nextjs";
 import {
-  MessageSquare,
   Plus,
   ChevronLeft,
   ChevronRight,
-  Pencil,
-  Trash2,
 } from "lucide-react";
 import ThemeSwitcher from "./Theme-switcher";
-import { InputLabel } from "./ui/input-label";
-
 
 interface Chat {
   id: string;
@@ -31,6 +27,8 @@ interface ChatSidebarProps {
   initialChats?: Chat[];
   onChatSelect?: (chatId: string) => void;
   onNewChatStart?: () => void;
+  stream?: boolean;
+  setStream?: (v: boolean) => void;
 }
 
 export function ChatSidebar({
@@ -39,6 +37,8 @@ export function ChatSidebar({
   initialChats = [],
   onChatSelect,
   onNewChatStart,
+  stream = false,
+  setStream,
 }: ChatSidebarProps) {
   const [chats, setChats] = useState<Chat[]>(initialChats);
   // Removed selectedChatId and editingChatId for simplicity
@@ -124,12 +124,30 @@ export function ChatSidebar({
 
       <div className="border-t bg-muted/50 p-4">
         {isSidebarOpen ? (
-          <div className="flex items-center justify-end gap-2">
-            <ThemeSwitcher />
-            <UserButton afterSwitchSessionUrl="/" />
+          <div className="flex items-center justify-between gap-2">
+            <div className="flex items-center gap-2">
+              <Switch
+                checked={stream}
+                onCheckedChange={setStream}
+                id="stream-toggle"
+                className="mr-2"
+              />
+              <label htmlFor="stream-toggle" className="text-xs text-muted-foreground select-none">Stream</label>
+            </div>
+            <div className="flex items-center gap-2">
+              <ThemeSwitcher />
+              <UserButton afterSwitchSessionUrl="/" />
+            </div>
           </div>
         ) : (
           <div className="flex flex-col items-center gap-2">
+            <Switch
+              checked={stream}
+              onCheckedChange={setStream}
+              id="stream-toggle"
+              className="mb-2"
+              title="Stream"
+            />
             <UserButton afterSwitchSessionUrl="/" />
             <ThemeSwitcher />
           </div>
