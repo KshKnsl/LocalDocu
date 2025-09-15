@@ -24,7 +24,6 @@ def proxy(path):
         "User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36"
     }
     
-    # Do NOT forward Origin or Referer (these can cause 403 with ngrok/Ollama)
     if "Authorization" in request.headers:
         headers["Authorization"] = request.headers["Authorization"]
     if "Content-Type" in request.headers:
@@ -38,12 +37,17 @@ def proxy(path):
     else:
         resp = requests.get(url, params=request.args, headers=headers, stream=True)
 
+    def generate():
+        for chunk in resp.iter_content(chunk_size=4096):
+            if chunk:
+                yield chunk
+
     response_headers = dict(resp.headers)
     response_headers["Access-Control-Allow-Origin"] = "*"
     response_headers["Access-Control-Allow-Methods"] = "GET,POST,OPTIONS"
     response_headers["Access-Control-Allow-Headers"] = "Content-Type,Authorization"
 
-    return Response(resp.content, status=resp.status_code, headers=response_headers)
+    return Response(generate(), status=resp.status_code, headers=response_headers)
 
 @app.route('/')
 def home():

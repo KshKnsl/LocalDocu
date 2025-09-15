@@ -53,7 +53,20 @@ export function ChatInterface({ activeDocument }: ChatInterfaceProps) {
   const [files, setFiles] = useState<FileWithUrl[]>([]);
   const [previewFile, setPreviewFile] = useState<FileWithUrl | string | null>(null);
   const [showAttachments, setShowAttachments] = useState(false);
-  const [isSidebarOpen, setIsSidebarOpen] = useState(true);
+  const [isSidebarOpen, setIsSidebarOpen] = useState(() => {
+    if (typeof window !== "undefined") {
+      return window.innerWidth >= 640; // open by default on desktop, collapsed on small screens
+    }
+    return true;
+  });
+
+  useEffect(() => {
+    const handleResize = () => {
+      setIsSidebarOpen(window.innerWidth >= 640);
+    };
+    window.addEventListener("resize", handleResize);
+    return () => window.removeEventListener("resize", handleResize);
+  }, []);
 
   const [currentChatId, setCurrentChatId] = useState<string | undefined>();
   const [chatMessages, setChatMessages] = useState<Record<string, Message[]>>(
@@ -63,9 +76,9 @@ export function ChatInterface({ activeDocument }: ChatInterfaceProps) {
   const [stream, setStreamState] = useState(() => {
     if (typeof window !== "undefined") {
       const stored = localStorage.getItem("chat_stream_toggle");
-      return stored === null ? true : stored === "true";
+      return stored === null ? false : stored === "true";
     }
-    return true;
+    return false;
   });
   useEffect(() => {
     localStorage.setItem("chat_stream_toggle", String(stream));
