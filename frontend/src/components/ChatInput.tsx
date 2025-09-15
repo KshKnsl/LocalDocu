@@ -7,15 +7,16 @@ import { Select, SelectTrigger, SelectValue, SelectContent, SelectItem } from "@
 import { Button } from "@/components/ui/button";
 import { Paperclip, Send, Link2 } from "lucide-react";
 import { FileCard } from "@/components/ui/FileCard";
+import type { FileWithUrl } from "@/components/ui/FileWithUrl";
 
 interface ChatInputProps {
   input: string;
   setInput: (value: string) => void;
-  files: File[];
+  files: FileWithUrl[];
   onFileSelect: (e: React.ChangeEvent<HTMLInputElement>) => void;
   onRemoveFile: (index: number) => void;
   onSubmit: () => void;
-  onPreviewFile: (file: File) => void;
+  onPreviewFile: (file: FileWithUrl) => void;
   onShowAttachments: () => void;
   model: string;
   setModel: (model: string) => void;

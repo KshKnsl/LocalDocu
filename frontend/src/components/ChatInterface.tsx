@@ -10,6 +10,7 @@ import { cn } from "@/lib/utils";
 import { Copy, Link2, MessageSquare, Bot } from "lucide-react";
 import { MarkdownRenderer } from "./MarkdownRenderer";
 import { FileCard } from "@/components/ui/FileCard";
+import type { FileWithUrl } from "@/components/ui/FileWithUrl";
 import {
   ProcessingResult,
   sendExternalChatMessage,
@@ -35,7 +36,7 @@ interface Message {
   type: "user" | "bot";
   content: string;
   timestamp: Date;
-  files?: File[];
+  files?: FileWithUrl[];
   processedFiles?: string[];
 }
 
@@ -49,10 +50,23 @@ export function ChatInterface({ activeDocument }: ChatInterfaceProps) {
   const [messages, setMessages] = useState<Message[]>([]);
   const [model, setModel] = useState(OLLAMA_MODELS[0]);
   const [input, setInput] = useState("");
-  const [files, setFiles] = useState<File[]>([]);
-  const [previewFile, setPreviewFile] = useState<File | string | null>(null);
+  const [files, setFiles] = useState<FileWithUrl[]>([]);
+  const [previewFile, setPreviewFile] = useState<FileWithUrl | string | null>(null);
   const [showAttachments, setShowAttachments] = useState(false);
-  const [isSidebarOpen, setIsSidebarOpen] = useState(true);
+  const [isSidebarOpen, setIsSidebarOpen] = useState(() => {
+    if (typeof window !== "undefined") {
+      return window.innerWidth >= 640; // open by default on desktop, collapsed on small screens
+    }
+    return true;
+  });
+
+  useEffect(() => {
+    const handleResize = () => {
+      setIsSidebarOpen(window.innerWidth >= 640);
+    };
+    window.addEventListener("resize", handleResize);
+    return () => window.removeEventListener("resize", handleResize);
+  }, []);
 
   const [currentChatId, setCurrentChatId] = useState<string | undefined>();
   const [chatMessages, setChatMessages] = useState<Record<string, Message[]>>(
@@ -62,9 +76,9 @@ export function ChatInterface({ activeDocument }: ChatInterfaceProps) {
   const [stream, setStreamState] = useState(() => {
     if (typeof window !== "undefined") {
       const stored = localStorage.getItem("chat_stream_toggle");
-      return stored === null ? true : stored === "true";
+      return stored === null ? false : stored === "true";
     }
-    return true;
+    return false;
   });
   useEffect(() => {
     localStorage.setItem("chat_stream_toggle", String(stream));
@@ -78,10 +92,22 @@ export function ChatInterface({ activeDocument }: ChatInterfaceProps) {
     messagesEndRef.current?.scrollIntoView({ behavior: "smooth" });
   }, [messages]);
 
-  const handleFileSelect = (e: React.ChangeEvent<HTMLInputElement>) => {
+  const handleFileSelect = async (e: React.ChangeEvent<HTMLInputElement>) => {
     if (e.target.files) {
-      const newFiles = Array.from(e.target.files);
-      setFiles((prev) => [...prev, ...newFiles]);
+      const fileArray = Array.from(e.target.files);
+      // Upload all files and get their S3 URLs
+      const uploaded: FileWithUrl[] = await Promise.all(
+        fileArray.map(async (file) => {
+          const { url } = await uploadDocument(file);
+          return {
+            name: file.name,
+            url,
+            type: file.type,
+            size: file.size,
+          };
+        })
+      );
+      setFiles((prev) => [...prev, ...uploaded]);
     }
   };
 
@@ -114,7 +140,7 @@ export function ChatInterface({ activeDocument }: ChatInterfaceProps) {
     if (!input.trim() && files.length === 0) return;
     const messageId = Math.random().toString(36).substring(7);
     const currentInput = input.trim();
-    const currentFiles = [...files];
+  const currentFiles = [...files];
 
     if (currentInput || currentFiles.length > 0) {
       setMessages((prev) => [
@@ -134,56 +160,6 @@ export function ChatInterface({ activeDocument }: ChatInterfaceProps) {
     setFiles([]);
 
     try {
-      if (currentFiles.length > 0) {
-        const uploadResults = await Promise.allSettled(
-          currentFiles.map(async (file) => {
-            const { url } = await uploadDocument(file);
-            return url;
-          })
-        );
-
-        const uploadedUrls = uploadResults
-          .filter((result): result is PromiseFulfilledResult<string> => result.status === "fulfilled")
-          .map((result) => result.value);
-
-        const processResults = await Promise.allSettled(
-          uploadedUrls.map((url) => processDocument(url))
-        );
-
-        const processedFiles = processResults
-          .filter((result): result is PromiseFulfilledResult<ProcessingResult> => result.status === "fulfilled")
-          .map((result) => result.value);
-
-        setMessages((prev) =>
-          prev.map((msg) =>
-            msg.id === messageId
-              ? { ...msg, files: currentFiles, processedFiles: uploadedUrls }
-              : msg
-          )
-        );
-
-        processResults.forEach((result, index) => {
-          if (result.status === "rejected") {
-            toast.error(`Failed to process file: ${currentFiles[index].name}`);
-          }
-        });
-
-        if (processedFiles.length > 0) {
-          const filesSummary = processedFiles
-            .map((result) => `- ${result.documentId}: ${result.summary} (${result.chunkCount} chunks)`)
-            .join("\n");
-
-          setMessages((prev) => [
-            ...prev,
-            {
-              id: Math.random().toString(36).substring(7),
-              type: "bot",
-              content: `Successfully processed ${processedFiles.length} file(s):\n\n${filesSummary}\n\nYou can now ask questions about these documents.`,
-              timestamp: new Date(),
-            },
-          ]);
-        }
-      }
 
       if (currentInput.trim()) {
         const botMsgId = Math.random().toString(36).substring(7);
@@ -237,7 +213,7 @@ export function ChatInterface({ activeDocument }: ChatInterfaceProps) {
   };
 
   const getAllAttachedFiles = () => {
-    return messages.reduce((acc: File[], msg) => {
+    return messages.reduce((acc: FileWithUrl[], msg) => {
       if (msg.files) {
         acc.push(...msg.files);
       }
@@ -467,7 +443,7 @@ export function ChatInterface({ activeDocument }: ChatInterfaceProps) {
 
       {previewFile && (
         <FilePreview
-          file={previewFile} // Pass the File object directly to FilePreview
+          file={previewFile}
           onClose={() => setPreviewFile(null)}
         />
       )}
