@@ -1,4 +1,4 @@
-const NGROK_URL = process.env.NEXT_PUBLIC_NGROK_URL;
+const NGROK_URL = process.env.NEXT_PUBLIC_BACKEND_URL;
 
 export async function loadModel(modelName: string): Promise<{ status: string }> {
   const res = await fetch(`${NGROK_URL}/api/pull`, {
@@ -60,7 +60,6 @@ export async function sendExternalChatMessage({ prompt, model = "gemma3", stream
 export type UploadResult = { url: string; filename: string; key: string };
 export type ProcessingResult = { documentId: string; status: string; chunkCount: number; summary: string };
 export type ChatResponse = { response: string };
-export type ChatMessage = { message: string; documentId?: string };
 
 export async function uploadDocument(file: File): Promise<UploadResult> {
   const formData = new FormData();
@@ -85,13 +84,4 @@ export async function uploadAndProcessDocument(file: File): Promise<ProcessingRe
   const { url } = await uploadDocument(file);
   console.log(url);
   return processDocument(url);
-}
-
-export async function sendChatMessage({ message, documentId }: ChatMessage): Promise<ChatResponse> {
-  const res = await fetch("https://6e43d38dae22.ngrok-free.app/api/generate", {
-    method: "POST",
-    headers: { "Content-Type": "application/json" },
-    body: JSON.stringify({ message, documentId }),
-  });
-  return res.json();
 }

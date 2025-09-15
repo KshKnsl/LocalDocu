@@ -3,13 +3,17 @@
 import { cn } from '@/lib/utils';
 import { FileCard } from './FileCard';
 
+import type { FileWithUrl } from "./FileWithUrl";
+
+
 interface FileListProps {
-  files: File[];
+  files: FileWithUrl[];
   onRemove: (index: number) => void;
-  previewFile?: (file: File) => void;
+  previewFile?: (file: FileWithUrl) => void;
 }
 
 export function FileList({ files, onRemove, previewFile }: FileListProps) {
+
   return (
     <div
       className={cn(

@@ -11,35 +11,30 @@ import {
 } from "@/components/ui/collapsible";
 import { ScrollArea } from '@radix-ui/react-scroll-area';
 
+import type { FileWithUrl } from "./ui/FileWithUrl";
+
 interface FilePreviewProps {
-  file: File | string | null; 
+  file: FileWithUrl | string | null;
   onClose: () => void;
   className?: string;
 }
 
-type FileType = 
-  | 'pdf'
-  | 'text'
-  | 'image'
-  | 'other';
+type FileType = 'pdf' | 'text' | 'image' | 'other';
 
-function getFileType(input: File | string): FileType {
-  if (input instanceof File) {
-    if (input.type.startsWith('image/')) return 'image';
-    if (input.type === 'application/pdf') return 'pdf';
-    if (input.type.startsWith('text/')) return 'text';
-  }
+function getFileType(input: FileWithUrl | string): FileType {
   const fileName = typeof input === 'string' ? input : input.name;
   const extension = fileName.split('.').pop()?.toLowerCase();
-
+  if (!extension) return 'other';
+  if ([
+    'jpg', 'jpeg', 'png', 'gif', 'bmp', 'webp', 'svg', 'ico'
+  ].includes(extension)) return 'image';
+  if (extension === 'pdf') return 'pdf';
   if ([
     'txt', 'md', 'csv', 'log',
     'js', 'jsx', 'ts', 'tsx', 'py', 'java', 'cpp', 'c', 'h', 'hpp', 'cs', 'php', 'rb',
     'html', 'css', 'scss', 'json', 'xml',
     'yaml', 'yml', 'ini', 'conf', 'toml'
-  ].includes(extension || '')) {
-    return 'text';
-  }
+  ].includes(extension)) return 'text';
   return 'other';
 }
 export function FilePreview({ file, onClose, className }: FilePreviewProps) {
@@ -59,20 +54,17 @@ export function FilePreview({ file, onClose, className }: FilePreviewProps) {
       try {
         setLoading(true);
         setError(null);
-        
-        if (file instanceof File) {
-          // Handle File object
+        if (typeof file === 'string') {
+          setContent(file);
+        } else if (file.url) {
+          // For text files, fetch content; otherwise, just use the URL
           if (getFileType(file) === 'text') {
-            const text = await file.text();
+            const res = await fetch(file.url);
+            const text = await res.text();
             setContent(text);
           } else {
-            const url = URL.createObjectURL(file);
-            setContent(url);
-            return () => URL.revokeObjectURL(url);
+            setContent(file.url);
           }
-        } else if (typeof file === 'string') {
-          // Handle file path/URL
-          setContent(file);
         } else {
           throw new Error('Invalid file input');
         }
@@ -101,13 +93,13 @@ export function FilePreview({ file, onClose, className }: FilePreviewProps) {
       );
     }
 
-    const fileType = getFileType(file);
-    const FileIcon = FileText;
-    const fileName = typeof file === 'string' ? file.split('/').pop() : file.name;
+  const fileType = getFileType(file);
+  const FileIcon = FileText;
+  const fileName = typeof file === 'string' ? file.split('/').pop() : file.name;
 
     switch (fileType) {
       case 'pdf': {
-        const pdfUrl = typeof file === 'string' ? file : content;
+        const pdfUrl = typeof file === 'string' ? file : file.url;
         return (
           <div className="w-full h-[calc(100vh-10rem)] bg-white rounded-lg overflow-hidden">
             <object
@@ -134,7 +126,7 @@ export function FilePreview({ file, onClose, className }: FilePreviewProps) {
           </Card>
         );
       case 'image': {
-        const imgSrc = typeof file === 'string' ? file : content;
+        const imgSrc = typeof file === 'string' ? file : file.url;
         if (!imgSrc) return null;
         return (
           <div className="w-full h-[calc(100vh-10rem)] bg-white/5 dark:bg-black/20 rounded-lg overflow-auto">
@@ -178,50 +170,39 @@ export function FilePreview({ file, onClose, className }: FilePreviewProps) {
             </span>
           </div>
           <div className="flex items-center gap-2">
-            <Button
-              variant="ghost"
-              size="icon"
-              onClick={() => {
-                if (file instanceof File) {
-                  const url = URL.createObjectURL(file);
-                  window.open(url, '_blank');
-                  URL.revokeObjectURL(url);
-                } else if (typeof file === 'string') {
-                  window.open(file, '_blank');
-                }
-              }}
-              className="h-7 w-7"
-              title="Open in new tab"
-            >
-              <ExternalLink className="h-4 w-4" />
-            </Button>
-            <Button
-              variant="ghost"
-              size="icon"
-              onClick={() => {
-                if (file instanceof File) {
-                  const url = URL.createObjectURL(file);
-                  const a = document.createElement('a');
-                  a.href = url;
-                  a.download = file.name;
-                  document.body.appendChild(a);
-                  a.click();
-                  document.body.removeChild(a);
-                  URL.revokeObjectURL(url);
-                } else if (typeof file === 'string') {
-                  const a = document.createElement('a');
-                  a.href = file;
-                  a.download = file.split('/').pop() || 'download';
-                  document.body.appendChild(a);
-                  a.click();
-                  document.body.removeChild(a);
-                }
-              }}
-              className="h-7 w-7"
-              title="Download"
-            >
-              <Download className="h-4 w-4" />
-            </Button>
+            {file && (
+              <>
+                <Button
+                  variant="ghost"
+                  size="icon"
+                  onClick={() => {
+                    const url = typeof file === 'string' ? file : file.url;
+                    window.open(url, '_blank');
+                  }}
+                  className="h-7 w-7"
+                  title="Open in new tab"
+                >
+                  <ExternalLink className="h-4 w-4" />
+                </Button>
+                <Button
+                  variant="ghost"
+                  size="icon"
+                  onClick={() => {
+                    const url = typeof file === 'string' ? file : file.url;
+                    const a = document.createElement('a');
+                    a.href = url;
+                    a.download = (typeof file === 'string' ? file.split('/').pop() : file.name) || 'download';
+                    document.body.appendChild(a);
+                    a.click();
+                    document.body.removeChild(a);
+                  }}
+                  className="h-7 w-7"
+                  title="Download"
+                >
+                  <Download className="h-4 w-4" />
+                </Button>
+              </>
+            )}
             <Button
               variant="ghost"
               size="icon"
