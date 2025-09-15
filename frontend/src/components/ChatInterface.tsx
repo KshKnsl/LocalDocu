@@ -3,6 +3,15 @@
 import { OLLAMA_MODELS } from "@/lib/ollamaModels";
 
 import React, { useState, useRef, useEffect } from "react";
+import {
+  getAllChats,
+  getChatById,
+  addChat,
+  updateChat,
+  ChatDocument,
+  MessageObject
+} from "@/lib/chatStorage";
+
 import { Card } from "@/components/ui/card";
 import { ScrollArea } from "@/components/ui/scroll-area";
 import { FilePreview } from "./FilePreview";
@@ -30,35 +39,51 @@ import {
 import { ChatSidebar } from "./ChatSidebar";
 import { ChatInput } from "./ChatInput";
 import { FileList } from "./ui/file-list";
-
-interface Message {
-  id: string;
-  type: "user" | "bot";
-  content: string;
-  timestamp: Date;
-  files?: FileWithUrl[];
-  processedFiles?: string[];
-}
-
-// Chat interface moved to ChatSidebar component where it's used
+import { cloneChatFolderToLocal } from "@/lib/localFiles";
 
 interface ChatInterfaceProps {
   activeDocument?: ProcessingResult;
 }
 
 export function ChatInterface({ activeDocument }: ChatInterfaceProps) {
-  const [messages, setMessages] = useState<Message[]>([]);
-  const [model, setModel] = useState(OLLAMA_MODELS[0]);
+  const [currentChatId, setCurrentChatId] = useState<string | undefined>();
   const [input, setInput] = useState("");
   const [files, setFiles] = useState<FileWithUrl[]>([]);
+  const [model, setModel] = useState(OLLAMA_MODELS[0]);
   const [previewFile, setPreviewFile] = useState<FileWithUrl | string | null>(null);
   const [showAttachments, setShowAttachments] = useState(false);
+  const [chats, setChats] = useState<ChatDocument[]>(() => getAllChats());
   const [isSidebarOpen, setIsSidebarOpen] = useState(() => {
     if (typeof window !== "undefined") {
-      return window.innerWidth >= 640; // open by default on desktop, collapsed on small screens
+      return window.innerWidth >= 640;
     }
     return true;
   });
+
+  useEffect(() => {
+    setChats(getAllChats());
+  }, []);
+
+  useEffect(() => {
+    const run = async () => {
+      if (!currentChatId) return;
+      const chat = getChatById(currentChatId);
+      if (!chat) return;
+      const filesForChat = chat.fileWithUrl || [];
+      if (filesForChat.length === 0) return;
+      const mapping = await cloneChatFolderToLocal(currentChatId, filesForChat);
+      const updated = getChatById(currentChatId);
+      if (!updated) return;
+      updated.fileWithUrl = (updated.fileWithUrl || []).map(f => ({ ...f, localUrl: mapping[f.name] || f.localUrl }));
+      updated.message_objects = updated.message_objects.map(m => ({
+        ...m,
+        files: (m.files || []).map(f => ({ ...f, localUrl: mapping[f.name] || f.localUrl }))
+      }));
+      updateChat(updated);
+      setChats(getAllChats());
+    };
+    run();
+  }, [currentChatId]);
 
   useEffect(() => {
     const handleResize = () => {
@@ -67,11 +92,6 @@ export function ChatInterface({ activeDocument }: ChatInterfaceProps) {
     window.addEventListener("resize", handleResize);
     return () => window.removeEventListener("resize", handleResize);
   }, []);
-
-  const [currentChatId, setCurrentChatId] = useState<string | undefined>();
-  const [chatMessages, setChatMessages] = useState<Record<string, Message[]>>(
-    {}
-  );
 
   const [stream, setStreamState] = useState(() => {
     if (typeof window !== "undefined") {
@@ -88,6 +108,8 @@ export function ChatInterface({ activeDocument }: ChatInterfaceProps) {
   const messagesEndRef = useRef<HTMLDivElement>(null);
   const { user } = useUser();
 
+  const messages = currentChatId ? getChatById(currentChatId)?.message_objects || [] : [];
+
   useEffect(() => {
     messagesEndRef.current?.scrollIntoView({ behavior: "smooth" });
   }, [messages]);
@@ -95,19 +117,46 @@ export function ChatInterface({ activeDocument }: ChatInterfaceProps) {
   const handleFileSelect = async (e: React.ChangeEvent<HTMLInputElement>) => {
     if (e.target.files) {
       const fileArray = Array.from(e.target.files);
-      // Upload all files and get their S3 URLs
+      let chatId = currentChatId;
+      if (!chatId) {
+        const newChatId = Math.random().toString(36).substring(7);
+        const now = new Date().toISOString();
+        const newChat: ChatDocument = {
+          chat_id: newChatId,
+          title: "New Chat",
+          created_at: now,
+          fileWithUrl: [],
+          message_objects: [],
+        };
+        addChat(newChat);
+        setChats(getAllChats());
+        setCurrentChatId(newChatId);
+        chatId = newChatId;
+      }
+      const chatFolder = `chats/${chatId}`;
       const uploaded: FileWithUrl[] = await Promise.all(
         fileArray.map(async (file) => {
-          const { url } = await uploadDocument(file);
+          const { url, key, filename } = await uploadDocument(file, { chatFolder });
           return {
-            name: file.name,
+            name: filename || file.name,
             url,
+            key,
             type: file.type,
             size: file.size,
+            chatId,
           };
         })
       );
-      setFiles((prev) => [...prev, ...uploaded]);
+      try {
+        const mapping = await cloneChatFolderToLocal(
+          chatId,
+          uploaded.map(f => ({ name: f.name, type: f.type, key: f.key }))
+        );
+        const withLocal = uploaded.map(f => ({ ...f, localUrl: mapping[f.name] || f.localUrl }));
+        setFiles((prev) => [...prev, ...withLocal]);
+      } catch {
+        setFiles((prev) => [...prev, ...uploaded]);
+      }
     }
   };
 
@@ -115,105 +164,144 @@ export function ChatInterface({ activeDocument }: ChatInterfaceProps) {
     setFiles((prev) => prev.filter((_, i) => i !== index));
   };
 
-  const handleSidebarChatSelect = (chatId: string) => {
-    setCurrentChatId(chatId);
-    setMessages(chatMessages[chatId] || []);
+  const handleSidebarChatSelect = (chatId?: string) => {
+    if (chatId) {
+      setCurrentChatId(chatId);
+      setInput("");
+      setFiles([]);
+    }
   };
 
   const handleSidebarNewChat = () => {
-    setCurrentChatId(undefined);
-    setMessages([]);
+    const newChatId = Math.random().toString(36).substring(7);
+    const now = new Date().toISOString();
+    const newChat: ChatDocument = {
+      chat_id: newChatId,
+      title: "New Chat",
+      created_at: now,
+      fileWithUrl: [],
+      message_objects: [],
+    };
+    addChat(newChat);
+    setChats(getAllChats());
+    setCurrentChatId(newChatId);
     setInput("");
     setFiles([]);
   };
 
-  useEffect(() => {
-    if (currentChatId) {
-      setChatMessages((prev) => ({
-        ...prev,
-        [currentChatId]: messages,
-      }));
-    }
-  }, [messages, currentChatId]);
-
   const handleSubmit = async () => {
     if (!input.trim() && files.length === 0) return;
-    const messageId = Math.random().toString(36).substring(7);
-    const currentInput = input.trim();
-  const currentFiles = [...files];
-
-    if (currentInput || currentFiles.length > 0) {
-      setMessages((prev) => [
-        ...prev,
-        {
-          id: messageId,
-          type: "user",
-          content: currentInput,
-          files: currentFiles,
-          processedFiles: [],
-          timestamp: new Date(),
-        },
-      ]);
+    let chatId = currentChatId;
+    let chat = chatId ? getChatById(chatId) : undefined;
+    if (!chat) {
+      // Create a new chat if it doesn't exist
+      const newChatId = Math.random().toString(36).substring(7);
+      const now = new Date().toISOString();
+      chat = {
+        chat_id: newChatId,
+        title: "New Chat",
+        created_at: now,
+        fileWithUrl: [],
+        message_objects: [],
+      };
+      addChat(chat);
+      setChats(getAllChats());
+      setCurrentChatId(newChatId);
+      chatId = newChatId;
     }
+    const messageId = Math.random().toString(36).substring(7);
+    const now = new Date().toISOString();
+    const currentInput = input.trim();
+    const currentFiles = [...files];
 
+    // Cloned-file workflow: no remote URLs in prompt
+    const promptWithFiles = currentInput;
+
+    const userMsg: MessageObject = {
+      message_id: messageId,
+      author: "user",
+      content: currentInput,
+      created_at: now,
+      files: currentFiles,
+    };
+    chat.message_objects.push(userMsg);
+    // Keep chat-level file list in sync (unique by key+name)
+    const existing = chat.fileWithUrl || [];
+    const seen = new Set(existing.map(f => `${f.key || ''}|${f.name}`));
+    for (const f of currentFiles) {
+      const uniq = `${f.key || ''}|${f.name}`;
+      if (!seen.has(uniq)) {
+        existing.push(f);
+        seen.add(uniq);
+      }
+    }
+    chat.fileWithUrl = existing;
+    updateChat(chat);
+    setChats(getAllChats());
     setInput("");
     setFiles([]);
 
     try {
-
       if (currentInput.trim()) {
         const botMsgId = Math.random().toString(36).substring(7);
+        const botMsg: MessageObject = {
+          message_id: botMsgId,
+          author: "ai",
+          content: "",
+          created_at: new Date().toISOString(),
+          files: [],
+        };
+        chat.message_objects.push(botMsg);
+        updateChat(chat);
+        setChats(getAllChats());
         if (stream) {
-          // Streaming chat response
-          setMessages((prev) => [
-            ...prev,
-            {
-              id: botMsgId,
-              type: "bot",
-              content: "",
-              timestamp: new Date(),
-            },
-          ]);
           let fullResponse = "";
           await sendExternalChatMessage({
-            prompt: currentInput,
+            prompt: promptWithFiles,
             model,
             stream: true,
             onStreamChunk: (chunk) => {
               fullResponse += chunk;
-              setMessages((prev) =>
-                prev.map((msg) =>
-                  msg.id === botMsgId ? { ...msg, content: fullResponse } : msg
-                )
-              );
+              // Update bot message in chat
+              const updatedChat = getChatById(chatId!);
+              if (!updatedChat) return;
+              const msgIdx = updatedChat.message_objects.findIndex(m => m.message_id === botMsgId);
+              if (msgIdx !== -1) {
+                updatedChat.message_objects[msgIdx].content = fullResponse;
+                updateChat(updatedChat);
+                setChats(getAllChats());
+              }
             },
           });
         } else {
-          // Non-streaming chat response
           const chatResponse = await sendExternalChatMessage({
-            prompt: currentInput,
+            prompt: promptWithFiles,
             model,
             stream: false,
           });
-          setMessages((prev) => [
-            ...prev,
-            {
-              id: botMsgId,
-              type: "bot",
-              content: chatResponse.response,
-              timestamp: new Date(),
-            },
-          ]);
+          // Update bot message in chat
+          const updatedChat = getChatById(chatId!);
+          if (updatedChat) {
+            const msgIdx = updatedChat.message_objects.findIndex(m => m.message_id === botMsgId);
+            if (msgIdx !== -1) {
+              updatedChat.message_objects[msgIdx].content = chatResponse.response;
+              updateChat(updatedChat);
+              setChats(getAllChats());
+            }
+          }
         }
       }
     } catch (error) {
       toast.error(error instanceof Error ? error.message : "Something went wrong");
-      if (currentInput) setMessages((prev) => prev.slice(0, -1));
+      // Optionally remove last user message on error
     }
   };
 
   const getAllAttachedFiles = () => {
-    return messages.reduce((acc: FileWithUrl[], msg) => {
+    if (!currentChatId) return [];
+    const chat = getChatById(currentChatId);
+    if (!chat) return [];
+    return chat.message_objects.reduce((acc: FileWithUrl[], msg) => {
       if (msg.files) {
         acc.push(...msg.files);
       }
@@ -225,8 +313,11 @@ export function ChatInterface({ activeDocument }: ChatInterfaceProps) {
       <ChatSidebar
         isSidebarOpen={isSidebarOpen}
         setIsSidebarOpen={setIsSidebarOpen}
+        chats={chats}
+        currentChatId={currentChatId}
         onChatSelect={handleSidebarChatSelect}
         onNewChatStart={handleSidebarNewChat}
+        onChatsUpdate={() => setChats(getAllChats())}
         stream={stream}
         setStream={setStream}
       />
@@ -238,7 +329,7 @@ export function ChatInterface({ activeDocument }: ChatInterfaceProps) {
           <div className="h-[calc(100vh-10rem)] w-full pt-5">
             <ScrollArea className="h-full w-full">
               <div className="space-y-6 p-4 pt-5 max-w-full">
-                {messages.length === 0 ? (
+                {!currentChatId || !getChatById(currentChatId) || getChatById(currentChatId)!.message_objects.length === 0 ? (
                   <div className="flex flex-col items-center justify-center h-[calc(100vh-10rem)] p-4">
                     <div className="max-w-2xl w-full space-y-6">
                       <div className="text-center space-y-2">
@@ -247,65 +338,30 @@ export function ChatInterface({ activeDocument }: ChatInterfaceProps) {
                           Start a New Conversation
                         </h2>
                         <p className="text-sm text-muted-foreground">
-                          Upload documents to analyze or ask questions directly
-                        </p>
-                      </div>
-
-                      <NewChatFileUpload
-                        onProcessingComplete={(result) => {
-                          setMessages((prev) => [
-                            ...prev,
-                            {
-                              id: Math.random().toString(36).substring(7),
-                              type: "bot",
-                              content: `Document processed successfully! You can now ask questions about "${result.documentId}". The document has been split into ${result.chunkCount} chunks for efficient processing.`,
-                              timestamp: new Date(),
-                            },
-                          ]);
-                        }}
-                      />
-
-                      <div className="relative">
-                        <div className="absolute inset-0 flex items-center">
-                          <div className="w-full border-t"></div>
-                        </div>
-                        <div className="relative flex justify-center text-xs uppercase">
-                          <span className="bg-background px-2 text-muted-foreground">
-                            or
-                          </span>
-                        </div>
-                      </div>
-
-                      <div className="text-center space-y-2">
-                        <p className="text-sm font-medium">
-                          Start typing your question
-                        </p>
-                        <p className="text-xs text-muted-foreground">
-                          The AI will assist you based on your query
+                          Upload documents or start typing to begin chatting with AI.
                         </p>
                       </div>
                     </div>
                   </div>
                 ) : (
-                  messages.map((message, idx) => {
-                    // Pulse animation if streaming, last message, bot, and content is empty
-                    const isLast = idx === messages.length - 1;
+                  messages.map((message, idx, arr) => {
+                    const isLast = idx === arr.length - 1;
                     const showPulse =
                       stream &&
                       isLast &&
-                      message.type === "bot" &&
+                      message.author === "ai" &&
                       !message.content;
                     return (
                       <div
-                        key={message.id}
+                        key={message.message_id}
                         className={`flex items-start gap-3 w-full ${
-                          message.type === "user"
+                          message.author === "user"
                             ? "flex-row-reverse"
                             : "flex-row"
                         }`}
                       >
                         {/* Avatar */}
-                        {message.type === "user" ? (
+                        {message.author === "user" ? (
                           user?.imageUrl ? (
                             /* eslint-disable-next-line @next/next/no-img-element */
                             <img
@@ -316,9 +372,7 @@ export function ChatInterface({ activeDocument }: ChatInterfaceProps) {
                           ) : (
                             <div className="h-8 w-8 rounded-full bg-primary/10 flex items-center justify-center">
                               <span className="text-sm font-medium">
-                                {(user?.fullName ||
-                                  user?.username ||
-                                  "U")[0].toUpperCase()}
+                                {(user?.fullName || user?.username || "U")[0].toUpperCase()}
                               </span>
                             </div>
                           )
@@ -335,18 +389,16 @@ export function ChatInterface({ activeDocument }: ChatInterfaceProps) {
                           <Card
                             className={cn(
                               "p-4 w-full max-w-3xl overflow-x-auto scrollbar-thin scrollbar-thumb-muted-foreground/30",
-                              message.type === "user"
+                              message.author === "user"
                                 ? "bg-primary text-primary-foreground ml-auto"
                                 : "bg-muted"
                             )}
                             style={{ wordBreak: 'break-word', whiteSpace: 'pre-wrap' }}
                           >
                             <div className="space-y-2 overflow-hidden">
-                              {((message.processedFiles &&
-                                message.processedFiles.length > 0) ||
-                                (message.files && message.files.length > 0)) && (
+                              {(message.files && message.files.length > 0) && (
                                 <div className="flex flex-wrap gap-2 mb-2">
-                                  {message.files?.map((file, index) => (
+                                  {message.files.map((file, index) => (
                                     <FileCard
                                       key={`file-${index}`}
                                       file={file}
@@ -365,7 +417,7 @@ export function ChatInterface({ activeDocument }: ChatInterfaceProps) {
                                     {/* @ts-ignore */}
                                     {React.createElement(require("./ui/pulse").PulseLoader)}
                                   </span>
-                                ) : message.type === "bot" ? (
+                                ) : message.author === "ai" ? (
                                   <MarkdownRenderer content={message.content} />
                                 ) : (
                                   message.content
@@ -375,7 +427,7 @@ export function ChatInterface({ activeDocument }: ChatInterfaceProps) {
                           </Card>
                           <div
                             className={`flex gap-2 ${
-                              message.type === "user"
+                              message.author === "user"
                                 ? "justify-end"
                                 : "justify-start"
                             }`}
@@ -396,7 +448,7 @@ export function ChatInterface({ activeDocument }: ChatInterfaceProps) {
                             >
                               <Copy className="h-4 w-4" />
                             </Button>
-                            {message.type === "bot" && (
+                            {message.author === "ai" && (
                               <Button
                                 variant="ghost"
                                 size="icon"
@@ -455,7 +507,9 @@ export function ChatInterface({ activeDocument }: ChatInterfaceProps) {
           </DialogHeader>
           <div className="max-h-[60vh] overflow-y-auto px-1">
             <FileList
-              files={getAllAttachedFiles()}
+              files={(currentChatId && getChatById(currentChatId)?.fileWithUrl?.length)
+                ? (getChatById(currentChatId)!.fileWithUrl)
+                : getAllAttachedFiles()}
               onRemove={() => {}}
               previewFile={setPreviewFile}
             />

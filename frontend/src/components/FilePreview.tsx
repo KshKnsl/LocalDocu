@@ -12,6 +12,7 @@ import {
 import { ScrollArea } from '@radix-ui/react-scroll-area';
 
 import type { FileWithUrl } from "./ui/FileWithUrl";
+import { getChatFileLocalUrl, cloneChatFolderToLocal } from "@/lib/localFiles";
 
 interface FilePreviewProps {
   file: FileWithUrl | string | null;
@@ -51,30 +52,33 @@ export function FilePreview({ file, onClose, className }: FilePreviewProps) {
     }
 
     const loadFileContent = async () => {
+      setLoading(true);
+      setError(null);
       try {
-        setLoading(true);
-        setError(null);
         if (typeof file === 'string') {
           setContent(file);
-        } else if (file.url) {
-          // For text files, fetch content; otherwise, just use the URL
-          if (getFileType(file) === 'text') {
-            const res = await fetch(file.url);
-            const text = await res.text();
-            setContent(text);
-          } else {
-            setContent(file.url);
-          }
         } else {
-          throw new Error('Invalid file input');
+          let useUrl = file.localUrl;
+          if (file.chatId && file.name) {
+            useUrl = await getChatFileLocalUrl(file.chatId, file.name) || useUrl;
+            if (!useUrl && file.key) {
+              // Use cloneChatFolderToLocal to fetch and store the file locally
+              const mapping = await cloneChatFolderToLocal(file.chatId, [{ name: file.name, type: file.type, key: file.key }]);
+              useUrl = mapping[file.name];
+            }
+          }
+          if (!useUrl) throw new Error('Local file not available yet');
+          if (getFileType(file) === 'text') {
+            const res = await fetch(useUrl);
+            setContent(await res.text());
+          } else {
+            setContent(useUrl);
+          }
         }
       } catch (err) {
-        const errorMessage = err instanceof Error ? err.message : 'Error loading file preview';
-        setError(errorMessage);
-        console.error('Error loading file:', err);
-      } finally {
-        setLoading(false);
+        setError('Error loading file preview');
       }
+      setLoading(false);
     };
 
     loadFileContent();
@@ -99,7 +103,7 @@ export function FilePreview({ file, onClose, className }: FilePreviewProps) {
 
     switch (fileType) {
       case 'pdf': {
-        const pdfUrl = typeof file === 'string' ? file : file.url;
+        const pdfUrl = typeof file === 'string' ? file : content;
         return (
           <div className="w-full h-[calc(100vh-10rem)] bg-white rounded-lg overflow-hidden">
             <object
@@ -126,7 +130,7 @@ export function FilePreview({ file, onClose, className }: FilePreviewProps) {
           </Card>
         );
       case 'image': {
-        const imgSrc = typeof file === 'string' ? file : file.url;
+        const imgSrc = typeof file === 'string' ? file : content;
         if (!imgSrc) return null;
         return (
           <div className="w-full h-[calc(100vh-10rem)] bg-white/5 dark:bg-black/20 rounded-lg overflow-auto">
@@ -176,7 +180,7 @@ export function FilePreview({ file, onClose, className }: FilePreviewProps) {
                   variant="ghost"
                   size="icon"
                   onClick={() => {
-                    const url = typeof file === 'string' ? file : file.url;
+                    const url = typeof file === 'string' ? file : content;
                     window.open(url, '_blank');
                   }}
                   className="h-7 w-7"
@@ -188,7 +192,7 @@ export function FilePreview({ file, onClose, className }: FilePreviewProps) {
                   variant="ghost"
                   size="icon"
                   onClick={() => {
-                    const url = typeof file === 'string' ? file : file.url;
+                    const url = typeof file === 'string' ? file : content;
                     const a = document.createElement('a');
                     a.href = url;
                     a.download = (typeof file === 'string' ? file.split('/').pop() : file.name) || 'download';

@@ -9,5 +9,16 @@ export const OLLAMA_MODELS = [
   "mixtral",
   "qwen2",
   "starcoder2",
-  "gpt-oss"
+  "gpt-oss",
+  "dolphin-mixtral",
+  "openhermes",
+  "vicuna",
+  "zephyr",
+  "orca-mini",
+  "nous-hermes",
+  "wizardlm",
+  "deepseek-coder",
+  "deepseek-llm",
+  "stablelm-2",
+  "yi-34b"
 ];

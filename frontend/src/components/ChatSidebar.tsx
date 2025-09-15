@@ -1,6 +1,13 @@
 "use client";
 
 import React, { useState } from "react";
+import {
+  getAllChats,
+  updateChat,
+  deleteChat,
+  ChatDocument
+} from "@/lib/chatStorage";
+import { toast } from "sonner";
 import { Switch } from "@/components/ui/switch";
 import { ChatSidebarItem } from "./ChatSidebarItem";
 import { Button } from "@/components/ui/button";
@@ -14,61 +21,71 @@ import {
 } from "lucide-react";
 import ThemeSwitcher from "./Theme-switcher";
 
-interface Chat {
-  id: string;
-  title: string;
-  timestamp: Date;
-  preview: string;
-}
 
 interface ChatSidebarProps {
   isSidebarOpen: boolean;
   setIsSidebarOpen: (open: boolean) => void;
-  initialChats?: Chat[];
-  onChatSelect?: (chatId: string) => void;
+  chats: ChatDocument[];
+  currentChatId?: string;
+  onChatSelect?: (chatId?: string) => void;
   onNewChatStart?: () => void;
+  onChatsUpdate?: () => void;
   stream?: boolean;
   setStream?: (v: boolean) => void;
 }
 
+
 export function ChatSidebar({
   isSidebarOpen,
   setIsSidebarOpen,
-  initialChats = [],
+  chats,
+  currentChatId,
   onChatSelect,
   onNewChatStart,
+  onChatsUpdate,
   stream = false,
   setStream,
 }: ChatSidebarProps) {
-  const [chats, setChats] = useState<Chat[]>(initialChats);
-  // Removed selectedChatId and editingChatId for simplicity
-
-  const handleNewChat = () => {
-    const newChat: Chat = {
-      id: Math.random().toString(36).substring(7),
-      title: "New Chat",
-      timestamp: new Date(),
-      preview: "Start a new conversation...",
-    };
-    setChats((prev) => [newChat, ...prev]);
-    onNewChatStart?.();
-  };
+  const [search, setSearch] = useState("");
 
   const handleSelectChat = (chatId: string) => {
     onChatSelect?.(chatId);
   };
 
   const handleRenameChat = (chatId: string, newTitle: string) => {
-    setChats((prevChats) =>
-      prevChats.map((chat) =>
-        chat.id === chatId ? { ...chat, title: newTitle } : chat
-      )
-    );
+    const chat = getAllChats().find((c) => c.chat_id === chatId);
+    if (chat) {
+      chat.title = newTitle;
+      updateChat(chat);
+      onChatsUpdate?.();
+    }
   };
 
   const handleDeleteChat = (chatId: string) => {
-    setChats((prevChats) => prevChats.filter((chat) => chat.id !== chatId));
+    deleteChat(chatId);
+    onChatSelect?.(undefined);
+    onChatsUpdate?.();
   };
+  const isVercel = typeof window !== "undefined" && window.location.hostname.endsWith("vercel.app");
+
+  // Handler for stream toggle
+  const handleStreamToggle = (v: boolean) => {
+    if (v && isVercel) {
+      toast.error("Vercel does not support streaming. Stream has been turned off.");
+      setStream?.(false);
+    } else {
+      setStream?.(v);
+    }
+  };
+
+  const filteredChats = chats.filter(chat => {
+    const term = search.toLowerCase();
+    return (
+      chat.title.toLowerCase().includes(term) ||
+      chat.message_objects.some(m => m.content.toLowerCase().includes(term))
+    );
+  });
+
   return (
     <aside
       className={cn(
@@ -79,14 +96,14 @@ export function ChatSidebar({
       <div className="p-2 border-b relative">
         {isSidebarOpen ? (
           <Button
-            onClick={handleNewChat}
+            onClick={onNewChatStart}
             className="w-full justify-start gap-2"
           >
             <Plus className="h-4 w-4" />
             New Chat
           </Button>
         ) : (
-          <Button size="icon" onClick={handleNewChat} className="w-full">
+          <Button size="icon" onClick={onNewChatStart} className="w-full">
             <Plus className="h-4 w-4" />
           </Button>
         )}
@@ -105,15 +122,25 @@ export function ChatSidebar({
             )}
           </Button>
         </div>
+        {isSidebarOpen && (
+          <input
+            type="text"
+            value={search}
+            onChange={e => setSearch(e.target.value)}
+            placeholder="Search chats..."
+            className="mt-2 w-full px-2 py-1 rounded border bg-background text-sm focus:outline-none focus:ring"
+          />
+        )}
       </div>
 
       <ScrollArea className="flex-1 overflow-y-auto">
         <div className="p-2 space-y-2">
-          {chats.map((chat) => (
+          {filteredChats.map((chat) => (
             <ChatSidebarItem
-              key={chat.id}
+              key={chat.chat_id}
               chat={chat}
               isSidebarOpen={isSidebarOpen}
+              isSelected={chat.chat_id === currentChatId}
               onSelect={handleSelectChat}
               onSave={handleRenameChat}
               onDelete={handleDeleteChat}
@@ -128,7 +155,7 @@ export function ChatSidebar({
             <div className="flex items-center gap-2">
               <Switch
                 checked={stream}
-                onCheckedChange={setStream}
+                onCheckedChange={handleStreamToggle}
                 id="stream-toggle"
                 className="mr-2"
               />
@@ -143,7 +170,7 @@ export function ChatSidebar({
           <div className="flex flex-col items-center gap-2">
             <Switch
               checked={stream}
-              onCheckedChange={setStream}
+              onCheckedChange={handleStreamToggle}
               id="stream-toggle"
               className="mb-2"
               title="Stream"

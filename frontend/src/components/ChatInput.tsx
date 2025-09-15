@@ -3,6 +3,8 @@
 
 import React, { useRef } from "react";
 import { OLLAMA_MODELS } from "@/lib/ollamaModels";
+import { LOCAL_MODELS } from "@/lib/localModels";
+import { Tooltip, TooltipTrigger, TooltipContent } from "@/components/ui/tooltip";
 import { Select, SelectTrigger, SelectValue, SelectContent, SelectItem } from "@/components/ui/select";
 import { Button } from "@/components/ui/button";
 import { Paperclip, Send, Link2 } from "lucide-react";
@@ -45,11 +47,21 @@ export function ChatInput({
               <SelectValue placeholder="Select model" />
             </SelectTrigger>
             <SelectContent>
-              {OLLAMA_MODELS.map((m) => (
-                <SelectItem key={m} value={m}>
-                  {m}
-                </SelectItem>
-              ))}
+              {OLLAMA_MODELS.map((m) => {
+                const info = LOCAL_MODELS.find(lm => lm.name === m);
+                return (
+                  <Tooltip key={m}>
+                    <TooltipTrigger asChild>
+                      <SelectItem value={m}>{m}</SelectItem>
+                    </TooltipTrigger>
+                    <TooltipContent sideOffset={8}>
+                      <div style={{ whiteSpace: "pre-line" }}>
+                        {info ? `${info.name}\n${info.company}\nBest at: ${info.bestAt}` : m}
+                      </div>
+                    </TooltipContent>
+                  </Tooltip>
+                );
+              })}
             </SelectContent>
           </Select>
         </div>

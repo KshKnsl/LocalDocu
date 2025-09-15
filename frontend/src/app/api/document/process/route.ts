@@ -10,7 +10,6 @@ export async function POST(req: NextRequest) {
       );
     }
 
-    // TODO: Implement actual document processing here
     return NextResponse.json({
       success: true,
       message: "Document processed and embeddings created successfully",

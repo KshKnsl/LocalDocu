@@ -61,10 +61,13 @@ export type UploadResult = { url: string; filename: string; key: string };
 export type ProcessingResult = { documentId: string; status: string; chunkCount: number; summary: string };
 export type ChatResponse = { response: string };
 
-export async function uploadDocument(file: File): Promise<UploadResult> {
+export async function uploadDocument(file: File, opts?: { chatFolder?: string }): Promise<UploadResult> {
   const formData = new FormData();
   formData.append("file", file);
   formData.append("contentType", file.type);
+  if (opts?.chatFolder) {
+    formData.append("folder", opts.chatFolder);
+  }
   const res = await fetch("/api/document/upload", { method: "POST", body: formData });
   if (!res.ok) throw new Error(await res.text() || "Failed to upload document");
   return res.json();
