@@ -24,10 +24,7 @@ def proxy(path):
         "User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36"
     }
     
-    if "Origin" in request.headers:
-        headers["Origin"] = request.headers["Origin"]
-    if "Referer" in request.headers:
-        headers["Referer"] = request.headers["Referer"]
+    # Do NOT forward Origin or Referer (these can cause 403 with ngrok/Ollama)
     if "Authorization" in request.headers:
         headers["Authorization"] = request.headers["Authorization"]
     if "Content-Type" in request.headers:
