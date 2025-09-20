@@ -1,6 +1,6 @@
 "use client";
 
-import { OLLAMA_MODELS } from "@/lib/ollamaModels";
+import { LOCAL_MODELS } from "@/lib/localModels";
 
 import React, { useState, useRef, useEffect } from "react";
 import {
@@ -15,6 +15,7 @@ import {
 import { Card } from "@/components/ui/card";
 import { ScrollArea } from "@/components/ui/scroll-area";
 import { FilePreview } from "./FilePreview";
+import { FlowArea } from "./FlowArea";
 import { cn } from "@/lib/utils";
 import { Copy, Link2, MessageSquare, Bot } from "lucide-react";
 import { MarkdownRenderer } from "./MarkdownRenderer";
@@ -27,7 +28,6 @@ import {
   processDocument,
 } from "@/lib/api";
 import { useUser } from "@clerk/nextjs";
-import { NewChatFileUpload } from "./NewChatFileUpload";
 import { toast } from "sonner";
 import { Button } from "@/components/ui/button";
 import {
@@ -49,7 +49,7 @@ export function ChatInterface({ activeDocument }: ChatInterfaceProps) {
   const [currentChatId, setCurrentChatId] = useState<string | undefined>();
   const [input, setInput] = useState("");
   const [files, setFiles] = useState<FileWithUrl[]>([]);
-  const [model, setModel] = useState(OLLAMA_MODELS[0]);
+  const [model, setModel] = useState(LOCAL_MODELS[0].name);
   const [previewFile, setPreviewFile] = useState<FileWithUrl | string | null>(null);
   const [showAttachments, setShowAttachments] = useState(false);
   const [chats, setChats] = useState<ChatDocument[]>(() => getAllChats());
@@ -147,6 +147,20 @@ export function ChatInterface({ activeDocument }: ChatInterfaceProps) {
           };
         })
       );
+      for (const uploadedFile of uploaded) {
+        try {
+          if (uploadedFile.key) {
+            await processDocument(uploadedFile.key);
+          } else {
+            throw new Error(`Uploaded file key is undefined for ${uploadedFile.name}`);
+          }
+          toast.success(`Document ${uploadedFile.name} processed for RAG`, {
+            duration: 2000,
+          });
+        } catch (error) {
+          toast.error(`Failed to process ${uploadedFile.name}: ${error instanceof Error ? error.message : 'Unknown error'}`);
+        }
+      }
       try {
         const mapping = await cloneChatFolderToLocal(
           chatId,
@@ -194,7 +208,6 @@ export function ChatInterface({ activeDocument }: ChatInterfaceProps) {
     let chatId = currentChatId;
     let chat = chatId ? getChatById(chatId) : undefined;
     if (!chat) {
-      // Create a new chat if it doesn't exist
       const newChatId = Math.random().toString(36).substring(7);
       const now = new Date().toISOString();
       chat = {
@@ -323,174 +336,176 @@ export function ChatInterface({ activeDocument }: ChatInterfaceProps) {
       />
 
       <main className="flex-1 flex flex-col h-screen overflow-hidden">
-        {/* Main chat section */}
-        <div className="flex-1 flex flex-col min-h-0">
+        <div className="flex-1 flex flex-col min-h-0 relative">
           {/* Chat messages area */}
-          <div className="h-[calc(100vh-10rem)] w-full pt-5">
-            <ScrollArea className="h-full w-full">
-              <div className="space-y-6 p-4 pt-5 max-w-full">
-                {!currentChatId || !getChatById(currentChatId) || getChatById(currentChatId)!.message_objects.length === 0 ? (
-                  <div className="flex flex-col items-center justify-center h-[calc(100vh-10rem)] p-4">
-                    <div className="max-w-2xl w-full space-y-6">
-                      <div className="text-center space-y-2">
-                        <MessageSquare className="h-12 w-12 text-primary mx-auto mb-2" />
-                        <h2 className="text-2xl font-semibold">
-                          Start a New Conversation
-                        </h2>
-                        <p className="text-sm text-muted-foreground">
-                          Upload documents or start typing to begin chatting with AI.
-                        </p>
+          <FlowArea />
+          <div className="flex-1 flex flex-col">
+            <div className="h-[calc(100vh-10rem)] w-full pt-5">
+              <ScrollArea className="h-full w-full">
+                <div className="space-y-6 p-4 pt-5 max-w-full">
+                  {/* ...existing chat message rendering logic... */}
+                  {!currentChatId || !getChatById(currentChatId) || getChatById(currentChatId)!.message_objects.length === 0 ? (
+                    <div className="flex flex-col items-center justify-center h-[calc(100vh-10rem)] p-4">
+                      <div className="max-w-2xl w-full space-y-6">
+                        <div className="text-center space-y-2">
+                          <MessageSquare className="h-12 w-12 text-primary mx-auto mb-2" />
+                          <h2 className="text-2xl font-semibold">
+                            Document Summarizer
+                          </h2>
+                          <p className="text-sm text-muted-foreground">
+                            Upload documents and get intelligent summaries, analysis, and answers to your questions. Perfect for research assistance and beyond.
+                          </p>
+                        </div>
                       </div>
                     </div>
-                  </div>
-                ) : (
-                  messages.map((message, idx, arr) => {
-                    const isLast = idx === arr.length - 1;
-                    const showPulse =
-                      stream &&
-                      isLast &&
-                      message.author === "ai" &&
-                      !message.content;
-                    return (
-                      <div
-                        key={message.message_id}
-                        className={`flex items-start gap-3 w-full ${
-                          message.author === "user"
-                            ? "flex-row-reverse"
-                            : "flex-row"
-                        }`}
-                      >
-                        {/* Avatar */}
-                        {message.author === "user" ? (
-                          user?.imageUrl ? (
-                            /* eslint-disable-next-line @next/next/no-img-element */
-                            <img
-                              src={user.imageUrl}
-                              alt={user.fullName || user.username || "User"}
-                              className="h-8 w-8 rounded-full object-cover"
-                            />
+                  ) : (
+                    messages.map((message, idx, arr) => {
+                      const isLast = idx === arr.length - 1;
+                      const showPulse =
+                        stream &&
+                        isLast &&
+                        message.author === "ai" &&
+                        !message.content;
+                      return (
+                        <div
+                          key={message.message_id}
+                          className={`flex items-start gap-3 w-full ${
+                            message.author === "user"
+                              ? "flex-row-reverse"
+                              : "flex-row"
+                          }`}
+                        >
+                          {/* Avatar */}
+                          {message.author === "user" ? (
+                            user?.imageUrl ? (
+                              /* eslint-disable-next-line @next/next/no-img-element */
+                              <img
+                                src={user.imageUrl}
+                                alt={user.fullName || user.username || "User"}
+                                className="h-8 w-8 rounded-full object-cover"
+                              />
+                            ) : (
+                              <div className="h-8 w-8 rounded-full bg-primary/10 flex items-center justify-center">
+                                <span className="text-sm font-medium">
+                                  {(user?.fullName || user?.username || "U")[0].toUpperCase()}
+                                </span>
+                              </div>
+                            )
                           ) : (
                             <div className="h-8 w-8 rounded-full bg-primary/10 flex items-center justify-center">
-                              <span className="text-sm font-medium">
-                                {(user?.fullName || user?.username || "U")[0].toUpperCase()}
-                              </span>
+                              <Bot className="h-5 w-5 text-primary" />
                             </div>
-                          )
-                        ) : (
-                          <div className="h-8 w-8 rounded-full bg-primary/10 flex items-center justify-center">
-                            <Bot className="h-5 w-5 text-primary" />
-                          </div>
-                        )}
+                          )}
 
-                        {/* Message Content */}
-                        <div
-                          className={`flex flex-col gap-2 max-w-[75%] overflow-hidden`}
-                        >
-                          <Card
-                            className={cn(
-                              "p-4 w-full max-w-3xl overflow-x-auto scrollbar-thin scrollbar-thumb-muted-foreground/30",
-                              message.author === "user"
-                                ? "bg-primary text-primary-foreground ml-auto"
-                                : "bg-muted"
-                            )}
-                            style={{ wordBreak: 'break-word', whiteSpace: 'pre-wrap' }}
-                          >
-                            <div className="space-y-2 overflow-hidden">
-                              {(message.files && message.files.length > 0) && (
-                                <div className="flex flex-wrap gap-2 mb-2">
-                                  {message.files.map((file, index) => (
-                                    <FileCard
-                                      key={`file-${index}`}
-                                      file={file}
-                                      onPreview={setPreviewFile}
-                                    />
-                                  ))}
-                                </div>
-                              )}
-                              <div
-                                className="overflow-x-auto max-w-full"
-                                style={{ wordBreak: 'break-word', whiteSpace: 'pre-wrap' }}
-                              >
-                                {showPulse ? (
-                                  <span className="flex items-center gap-2">
-                                    <span className="text-xs text-muted-foreground">Waiting for response</span>
-                                    {/* @ts-ignore */}
-                                    {React.createElement(require("./ui/pulse").PulseLoader)}
-                                  </span>
-                                ) : message.author === "ai" ? (
-                                  <MarkdownRenderer content={message.content} />
-                                ) : (
-                                  message.content
-                                )}
-                              </div>
-                            </div>
-                          </Card>
+                          {/* Message Content */}
                           <div
-                            className={`flex gap-2 ${
-                              message.author === "user"
-                                ? "justify-end"
-                                : "justify-start"
-                            }`}
+                            className={`flex flex-col gap-2 max-w-[75%] overflow-hidden`}
                           >
-                            <Button
-                              variant="ghost"
-                              size="icon"
-                              className="h-6 w-6 text-muted-foreground hover:text-foreground"
-                              onClick={async () => {
-                                await navigator.clipboard.writeText(
-                                  message.content
-                                );
-                                toast.success("Message copied to clipboard", {
-                                  duration: 2000,
-                                  position: "bottom-right",
-                                });
-                              }}
+                            <Card
+                              className={cn(
+                                "p-4 w-full max-w-3xl overflow-x-auto scrollbar-thin scrollbar-thumb-muted-foreground/30",
+                                message.author === "user"
+                                  ? "bg-primary text-primary-foreground ml-auto"
+                                  : "bg-muted"
+                              )}
+                              style={{ wordBreak: 'break-word', whiteSpace: 'pre-wrap' }}
                             >
-                              <Copy className="h-4 w-4" />
-                            </Button>
-                            {message.author === "ai" && (
+                              <div className="space-y-2 overflow-hidden">
+                                {(message.files && message.files.length > 0) && (
+                                  <div className="flex flex-wrap gap-2 mb-2">
+                                    {message.files.map((file, index) => (
+                                      <FileCard
+                                        key={`file-${index}`}
+                                        file={file}
+                                        onPreview={setPreviewFile}
+                                      />
+                                    ))}
+                                  </div>
+                                )}
+                                <div
+                                  className="overflow-x-auto max-w-full"
+                                  style={{ wordBreak: 'break-word', whiteSpace: 'pre-wrap' }}
+                                >
+                                  {showPulse ? (
+                                    <span className="flex items-center gap-2">
+                                      <span className="text-xs text-muted-foreground">Waiting for response</span>
+                                      {/* @ts-ignore */}
+                                      {React.createElement(require("./ui/pulse").PulseLoader)}
+                                    </span>
+                                  ) : message.author === "ai" ? (
+                                    <MarkdownRenderer content={message.content} />
+                                  ) : (
+                                    message.content
+                                  )}
+                                </div>
+                              </div>
+                            </Card>
+                            <div
+                              className={`flex gap-2 ${
+                                message.author === "user"
+                                  ? "justify-end"
+                                  : "justify-start"
+                              }`}
+                            >
                               <Button
                                 variant="ghost"
                                 size="icon"
                                 className="h-6 w-6 text-muted-foreground hover:text-foreground"
                                 onClick={async () => {
                                   await navigator.clipboard.writeText(
-                                    window.location.href
+                                    message.content
                                   );
-                                  toast.success("Link copied to clipboard", {
+                                  toast.success("Message copied to clipboard", {
                                     duration: 2000,
                                     position: "bottom-right",
                                   });
                                 }}
                               >
-                                <Link2 className="h-4 w-4" />
+                                <Copy className="h-4 w-4" />
                               </Button>
-                            )}
+                              {message.author === "ai" && (
+                                <Button
+                                  variant="ghost"
+                                  size="icon"
+                                  className="h-6 w-6 text-muted-foreground hover:text-foreground"
+                                  onClick={async () => {
+                                    await navigator.clipboard.writeText(
+                                      window.location.href
+                                    );
+                                    toast.success("Link copied to clipboard", {
+                                      duration: 2000,
+                                      position: "bottom-right",
+                                    });
+                                  }}
+                                >
+                                  <Link2 className="h-4 w-4" />
+                                </Button>
+                              )}
+                            </div>
                           </div>
                         </div>
-                      </div>
-                    );
-                  })
-                )}
-                <div ref={messagesEndRef} />
-              </div>
-            </ScrollArea>
+                      );
+                    })
+                  )}
+                  <div ref={messagesEndRef} />
+                </div>
+              </ScrollArea>
+            </div>
+            {/* Chat Input */}
+            <ChatInput
+              input={input}
+              setInput={setInput}
+              files={files}
+              onFileSelect={handleFileSelect}
+              onRemoveFile={handleRemoveFile}
+              onSubmit={handleSubmit}
+              onPreviewFile={setPreviewFile}
+              onShowAttachments={() => setShowAttachments(true)}
+              model={model}
+              setModel={setModel}
+            />
           </div>
         </div>
-
-        {/* Chat Input */}
-        <ChatInput
-          input={input}
-          setInput={setInput}
-          files={files}
-          onFileSelect={handleFileSelect}
-          onRemoveFile={handleRemoveFile}
-          onSubmit={handleSubmit}
-          onPreviewFile={setPreviewFile}
-          onShowAttachments={() => setShowAttachments(true)}
-          model={model}
-          setModel={setModel}
-        />
       </main>
 
       {previewFile && (

@@ -2,7 +2,6 @@
 
 
 import React, { useRef } from "react";
-import { OLLAMA_MODELS } from "@/lib/ollamaModels";
 import { LOCAL_MODELS } from "@/lib/localModels";
 import { Tooltip, TooltipTrigger, TooltipContent } from "@/components/ui/tooltip";
 import { Select, SelectTrigger, SelectValue, SelectContent, SelectItem } from "@/components/ui/select";
@@ -47,16 +46,15 @@ export function ChatInput({
               <SelectValue placeholder="Select model" />
             </SelectTrigger>
             <SelectContent>
-              {OLLAMA_MODELS.map((m) => {
-                const info = LOCAL_MODELS.find(lm => lm.name === m);
+              {LOCAL_MODELS.map((model) => {
                 return (
-                  <Tooltip key={m}>
+                  <Tooltip key={model.name}>
                     <TooltipTrigger asChild>
-                      <SelectItem value={m}>{m}</SelectItem>
+                      <SelectItem value={model.name}>{model.name}</SelectItem>
                     </TooltipTrigger>
                     <TooltipContent sideOffset={8}>
                       <div style={{ whiteSpace: "pre-line" }}>
-                        {info ? `${info.name}\n${info.company}\nBest at: ${info.bestAt}` : m}
+                        {`${model.name}\n${model.company}\nBest at: ${model.bestAt}`}
                       </div>
                     </TooltipContent>
                   </Tooltip>

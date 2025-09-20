@@ -18,41 +18,23 @@ def proxy(path):
             },
         )
 
-
     url = f"{OLLAMA_URL}/{path}"
-    headers = {
-        "User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36"
-    }
-    
-    if "Authorization" in request.headers:
-        headers["Authorization"] = request.headers["Authorization"]
-    if "Content-Type" in request.headers:
-        headers["Content-Type"] = request.headers["Content-Type"]
+    headers = {"User-Agent": "Mozilla/5.0"}
+    headers.update({k: v for k, v in request.headers.items() if k in ["Authorization", "Content-Type"]})
 
     if request.method == "POST":
-        if request.is_json:
-            resp = requests.post(url, json=request.get_json(), headers=headers, stream=True)
-        else:
-            resp = requests.post(url, data=request.get_data(), headers=headers, stream=True)
+        data = request.get_json() if request.is_json else request.get_data()
+        resp = requests.post(url, json=data if request.is_json else None, data=None if request.is_json else data, headers=headers)
     else:
-        resp = requests.get(url, params=request.args, headers=headers, stream=True)
+        resp = requests.get(url, params=request.args, headers=headers)
 
-    def generate():
-        for chunk in resp.iter_content(chunk_size=4096):
-            if chunk:
-                yield chunk
-
-    response_headers = dict(resp.headers)
-    response_headers["Access-Control-Allow-Origin"] = "*"
-    response_headers["Access-Control-Allow-Methods"] = "GET,POST,OPTIONS"
-    response_headers["Access-Control-Allow-Headers"] = "Content-Type,Authorization"
-
-    return Response(generate(), status=resp.status_code, headers=response_headers)
+    response_headers = {**resp.headers,
+        "Access-Control-Allow-Origin": "*",
+        "Access-Control-Allow-Methods": "GET,POST,OPTIONS",
+        "Access-Control-Allow-Headers": "Content-Type,Authorization"
+    }
+    return Response(resp.content, status=resp.status_code, headers=response_headers)
 
 @app.route('/')
 def home():
     return 'Hello, World!'
-
-@app.route('/about')
-def about():
-    return 'About'

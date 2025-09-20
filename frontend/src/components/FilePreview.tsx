@@ -3,7 +3,7 @@
 import React, { useEffect, useState } from 'react';
 import { Card } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
-import { ExternalLink, FileText, X, FileQuestion, Download } from 'lucide-react';
+import { ExternalLink, FileText, X, FileQuestion, Download, FileSearch } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import {
   Collapsible,
@@ -12,6 +12,8 @@ import {
 import { ScrollArea } from '@radix-ui/react-scroll-area';
 
 import type { FileWithUrl } from "./ui/FileWithUrl";
+import { summarizePaper } from "@/lib/api";
+import { toast } from "sonner";
 import { getChatFileLocalUrl, cloneChatFolderToLocal } from "@/lib/localFiles";
 
 interface FilePreviewProps {
@@ -176,6 +178,31 @@ export function FilePreview({ file, onClose, className }: FilePreviewProps) {
           <div className="flex items-center gap-2">
             {file && (
               <>
+                {getFileType(file) === 'pdf' && typeof file !== 'string' && file.key && (
+                  <Button
+                    variant="ghost"
+                    size="icon"
+                    onClick={async () => {
+                      if (!file.key) return;
+                      try {
+                        const summary = await summarizePaper(file.key);
+                        toast.success('Paper summarized!', {
+                          description: 'Summary generated successfully',
+                          duration: 3000,
+                        });
+                        alert(`Paper Summary:\n\n${summary.summary}`);
+                      } catch (error) {
+                        toast.error('Failed to summarize paper', {
+                          description: error instanceof Error ? error.message : 'Unknown error',
+                        });
+                      }
+                    }}
+                    className="h-7 w-7"
+                    title="Summarize Research Paper"
+                  >
+                    <FileSearch className="h-4 w-4" />
+                  </Button>
+                )}
                 <Button
                   variant="ghost"
                   size="icon"

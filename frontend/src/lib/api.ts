@@ -73,18 +73,37 @@ export async function uploadDocument(file: File, opts?: { chatFolder?: string })
   return res.json();
 }
 
-export async function processDocument(url: string): Promise<ProcessingResult> {
-  const res = await fetch("/api/document/process", {
-    method: "POST",
-    headers: { "Content-Type": "application/json" },
-    body: JSON.stringify({ url }),
-  });
+export async function processDocument(key?: string, file?: File): Promise<ProcessingResult> {
+  let requestConfig: RequestInit;
+  
+  if (file) {
+    const formData = new FormData();
+    formData.append("file", file);
+    requestConfig = {
+      method: "POST",
+      body: formData,
+    };
+  } else if (key) {
+    requestConfig = {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ key }),
+    };
+  } else {
+    throw new Error("Either key or file must be provided");
+  }
+
+  const res = await fetch(`${NGROK_URL}/api/document/process`, requestConfig);
   if (!res.ok) throw new Error("Failed to process document");
   return res.json();
 }
 
-export async function uploadAndProcessDocument(file: File): Promise<ProcessingResult> {
-  const { url } = await uploadDocument(file);
-  console.log(url);
-  return processDocument(url);
+export async function summarizePaper(key: string): Promise<{ summary: string; paper_length: number }> {
+  const res = await fetch(`${NGROK_URL}/api/summarize`, {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify({ key }),
+  });
+  if (!res.ok) throw new Error("Failed to summarize paper");
+  return res.json();
 }
