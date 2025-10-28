@@ -1,7 +1,7 @@
 const NGROK_URL = process.env.NEXT_PUBLIC_BACKEND_URL;
 
 export async function loadModel(modelName: string): Promise<{ status: string }> {
-  const res = await fetch(`${NGROK_URL}/api/pull`, {
+  const res = await fetch(`${NGROK_URL}/pull`, {
     method: "POST",
     headers: { "Content-Type": "application/json" },
     body: JSON.stringify({ name: modelName, stream: false }),
@@ -12,7 +12,7 @@ export async function loadModel(modelName: string): Promise<{ status: string }> 
 
 export async function sendExternalChatMessage({ prompt, model = "gemma3", stream = false, onStreamChunk }: { prompt: string; model?: string; stream?: boolean; onStreamChunk?: (chunk: string) => void }): Promise<{ response: string }> {
   await loadModel(model);
-  const res = await fetch(`${NGROK_URL}/api/generate`, {
+  const res = await fetch(`${NGROK_URL}/generate`, {
     method: "POST",
     headers: { "Content-Type": "application/json" },
     body: JSON.stringify({ model, prompt, stream }),
