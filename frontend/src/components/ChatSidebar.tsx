@@ -1,6 +1,6 @@
 "use client";
 
-import React, { useState } from "react";
+import React, { useMemo, useState } from "react";
 import {
   getAllChats,
   updateChat,
@@ -18,8 +18,11 @@ import {
   Plus,
   ChevronLeft,
   ChevronRight,
+  Eye,
 } from "lucide-react";
 import ThemeSwitcher from "./Theme-switcher";
+import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
+import type { FileWithUrl } from "@/components/ui/FileWithUrl";
 
 
 interface ChatSidebarProps {
@@ -32,6 +35,7 @@ interface ChatSidebarProps {
   onChatsUpdate?: () => void;
   stream?: boolean;
   setStream?: (v: boolean) => void;
+  onPreviewFile?: (file: FileWithUrl) => void;
 }
 
 
@@ -45,8 +49,10 @@ export function ChatSidebar({
   onChatsUpdate,
   stream = false,
   setStream,
+  onPreviewFile,
 }: ChatSidebarProps) {
   const [search, setSearch] = useState("");
+  const [filesOpen, setFilesOpen] = useState(false);
 
   const handleSelectChat = (chatId: string) => {
     onChatSelect?.(chatId);
@@ -85,6 +91,23 @@ export function ChatSidebar({
       chat.message_objects.some(m => m.content.toLowerCase().includes(term))
     );
   });
+
+  const allFiles = useMemo(() => {
+    const map = new Map<string, FileWithUrl>();
+    for (const chat of chats) {
+      for (const f of (chat.fileWithUrl || [])) {
+        const key = `${f.key || ''}|${f.name}`;
+        if (!map.has(key)) map.set(key, { ...f, chatId: f.chatId || chat.chat_id });
+      }
+      for (const m of (chat.message_objects || [])) {
+        for (const f of (m.files || [])) {
+          const key = `${f.key || ''}|${f.name}`;
+          if (!map.has(key)) map.set(key, { ...f, chatId: f.chatId || chat.chat_id });
+        }
+      }
+    }
+    return Array.from(map.values());
+  }, [chats]);
 
   return (
     <aside
@@ -130,6 +153,20 @@ export function ChatSidebar({
             placeholder="Search chats..."
             className="mt-2 w-full px-2 py-1 rounded border bg-background text-sm focus:outline-none focus:ring"
           />
+        )}
+        {isSidebarOpen && (
+          <div className="mt-2">
+            <Button
+              variant="outline"
+              size="sm"
+              onClick={() => setFilesOpen(true)}
+              title="View all files"
+              className="w-full justify-start gap-2"
+            >
+              <Eye className="h-4 w-4" />
+              All files
+            </Button>
+          </div>
         )}
       </div>
 
@@ -180,6 +217,30 @@ export function ChatSidebar({
           </div>
         )}
       </div>
+
+      <Dialog open={filesOpen} onOpenChange={setFilesOpen}>
+        <DialogContent className="max-w-lg">
+          <DialogHeader>
+            <DialogTitle>All files</DialogTitle>
+          </DialogHeader>
+          <div className="max-h-[60vh] overflow-y-auto space-y-2">
+            {allFiles.length === 0 ? (
+              <div className="text-sm text-muted-foreground">No files yet</div>
+            ) : (
+              allFiles.map((file, idx) => (
+                <div key={`${file.key || file.name}-${idx}`} className="flex items-center justify-between gap-2 border rounded-md px-2 py-1 bg-background">
+                  <div className="truncate text-sm" title={file.name}>{file.name}</div>
+                  <div className="flex items-center gap-2">
+                    <Button size="icon" variant="ghost" title="Preview" onClick={() => { setFilesOpen(false); onPreviewFile?.(file); }}>
+                      <Eye className="h-4 w-4" />
+                    </Button>
+                  </div>
+                </div>
+              ))
+            )}
+          </div>
+        </DialogContent>
+      </Dialog>
 
     </aside>
   );

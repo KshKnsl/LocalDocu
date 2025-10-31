@@ -21,6 +21,8 @@ import { Copy, Link2, MessageSquare, Bot } from "lucide-react";
 import { MarkdownRenderer } from "./MarkdownRenderer";
 import { FileCard } from "@/components/ui/FileCard";
 import type { FileWithUrl } from "@/components/ui/FileWithUrl";
+import { PulseLoader } from "./ui/pulse";
+import { CitationCard } from "./CitationCard";
 import {
   ProcessingResult,
   sendExternalChatMessage,
@@ -53,6 +55,7 @@ export function ChatInterface({ activeDocument }: ChatInterfaceProps) {
   const [previewFile, setPreviewFile] = useState<FileWithUrl | string | null>(null);
   const [showAttachments, setShowAttachments] = useState(false);
   const [chats, setChats] = useState<ChatDocument[]>(() => getAllChats());
+  const [useAgentTools, setUseAgentTools] = useState(false);
   const [isSidebarOpen, setIsSidebarOpen] = useState(() => {
     if (typeof window !== "undefined") {
       return window.innerWidth >= 640;
@@ -134,30 +137,72 @@ export function ChatInterface({ activeDocument }: ChatInterfaceProps) {
         chatId = newChatId;
       }
       const chatFolder = `chats/${chatId}`;
+      const placeholders: FileWithUrl[] = fileArray.map((file) => ({
+        name: file.name,
+        type: file.type,
+        size: file.size,
+        chatId,
+        uploadStatus: 'uploading',
+        processingStatus: 'idle',
+        downloadStatus: 'idle',
+        statusMessage: 'Uploading',
+      }));
+      setFiles((prev) => [...prev, ...placeholders]);
+
       const uploaded: FileWithUrl[] = await Promise.all(
-        fileArray.map(async (file) => {
-          const { url, key, filename } = await uploadDocument(file, { chatFolder });
-          return {
-            name: filename || file.name,
-            url,
-            key,
-            type: file.type,
-            size: file.size,
-            chatId,
-          };
+        fileArray.map(async (file, idx) => {
+          try {
+            const { url, key, filename } = await uploadDocument(file, { chatFolder });
+            setFiles((prev) => prev.map(f => (f.name === file.name && f.chatId === chatId ? {
+              ...f,
+              url,
+              key,
+              name: filename || f.name,
+              uploadStatus: 'uploaded',
+              statusMessage: 'Uploaded',
+            } : f)));
+            return {
+              name: filename || file.name,
+              url,
+              key,
+              type: file.type,
+              size: file.size,
+              chatId,
+              uploadStatus: 'uploaded',
+              statusMessage: 'Uploaded',
+            } as FileWithUrl;
+          } catch (err) {
+            setFiles((prev) => prev.map(f => (f.name === file.name && f.chatId === chatId ? { ...f, uploadStatus: 'failed', statusMessage: 'Upload failed' } : f)));
+            return {
+              name: file.name,
+              type: file.type,
+              size: file.size,
+              chatId,
+              uploadStatus: 'failed',
+              statusMessage: 'Upload failed',
+            } as FileWithUrl;
+          }
         })
       );
+      const documentIdByKey = new Map<string, string>();
       for (const uploadedFile of uploaded) {
+        if (!uploadedFile.key) {
+          setFiles((prev) => prev.map(f => (f.name === uploadedFile.name && f.chatId === chatId ? { ...f, processingStatus: 'failed', statusMessage: 'Missing key' } : f)));
+          continue;
+        }
+        setFiles((prev) => prev.map(f => (f.key === uploadedFile.key && f.chatId === chatId ? { ...f, processingStatus: 'processing', statusMessage: 'Processing' } : f)));
         try {
-          if (uploadedFile.key) {
-            await processDocument(uploadedFile.key);
+          const result = await processDocument(uploadedFile.key);
+          if (result?.documentId) {
+            documentIdByKey.set(uploadedFile.key, result.documentId);
+            setFiles((prev) => prev.map(f => (f.key === uploadedFile.key && f.chatId === chatId ? { ...f, documentId: result.documentId, processingStatus: 'done', statusMessage: 'Processed' } : f)));
+            toast.success(`Document ${uploadedFile.name} processed for RAG`, { duration: 2000 });
           } else {
-            throw new Error(`Uploaded file key is undefined for ${uploadedFile.name}`);
+            setFiles((prev) => prev.map(f => (f.key === uploadedFile.key && f.chatId === chatId ? { ...f, processingStatus: 'failed', statusMessage: 'Processing failed' } : f)));
+            toast.error(`Failed to process ${uploadedFile.name}`);
           }
-          toast.success(`Document ${uploadedFile.name} processed for RAG`, {
-            duration: 2000,
-          });
         } catch (error) {
+          setFiles((prev) => prev.map(f => (f.key === uploadedFile.key && f.chatId === chatId ? { ...f, processingStatus: 'failed', statusMessage: 'Processing error' } : f)));
           toast.error(`Failed to process ${uploadedFile.name}: ${error instanceof Error ? error.message : 'Unknown error'}`);
         }
       }
@@ -166,10 +211,24 @@ export function ChatInterface({ activeDocument }: ChatInterfaceProps) {
           chatId,
           uploaded.map(f => ({ name: f.name, type: f.type, key: f.key }))
         );
-        const withLocal = uploaded.map(f => ({ ...f, localUrl: mapping[f.name] || f.localUrl }));
+        const withLocal = uploaded.map(f => ({
+          ...f,
+          localUrl: mapping[f.name] || f.localUrl,
+          documentId: f.key ? documentIdByKey.get(f.key) : f.documentId,
+          downloadStatus: mapping[f.name] ? 'done' : 'failed',
+          statusMessage: mapping[f.name] ? 'Available' : 'Download failed',
+        })) as FileWithUrl[];
         setFiles((prev) => [...prev, ...withLocal]);
       } catch {
-        setFiles((prev) => [...prev, ...uploaded]);
+        setFiles((prev) => [
+          ...prev,
+          ...uploaded.map(f => ({
+            ...f,
+            documentId: f.key ? documentIdByKey.get(f.key) : f.documentId,
+            downloadStatus: 'failed',
+            statusMessage: 'Local copy not available',
+          })) as FileWithUrl[],
+        ]);
       }
     }
   };
@@ -267,12 +326,22 @@ export function ChatInterface({ activeDocument }: ChatInterfaceProps) {
         chat.message_objects.push(botMsg);
         updateChat(chat);
         setChats(getAllChats());
+        const fileDocIds = Array.from(new Set(
+          currentFiles.map(f => f.documentId).filter((id): id is string => !!id)
+        ));
+        const chatLevelDocIds = Array.from(new Set(
+          (chat.fileWithUrl || []).map(f => f.documentId).filter((id): id is string => !!id)
+        ));
+        const documentIds = fileDocIds.length > 0 ? fileDocIds : chatLevelDocIds;
+
         if (stream) {
           let fullResponse = "";
           await sendExternalChatMessage({
             prompt: promptWithFiles,
             model,
             stream: true,
+            documentIds,
+            useAgentTools,
             onStreamChunk: (chunk) => {
               fullResponse += chunk;
               // Update bot message in chat
@@ -285,12 +354,35 @@ export function ChatInterface({ activeDocument }: ChatInterfaceProps) {
                 setChats(getAllChats());
               }
             },
+            onStatusChange: (status) => {
+              const updatedChat = getChatById(chatId!);
+              if (!updatedChat) return;
+              const msgIdx = updatedChat.message_objects.findIndex(m => m.message_id === botMsgId);
+              if (msgIdx !== -1) {
+                updatedChat.message_objects[msgIdx].content = `__STATUS__:${status}`;
+                updateChat(updatedChat);
+                setChats(getAllChats());
+              }
+            },
           });
         } else {
           const chatResponse = await sendExternalChatMessage({
             prompt: promptWithFiles,
             model,
             stream: false,
+            documentIds,
+            useAgentTools,
+            onStatusChange: (status) => {
+              // Update bot message with status
+              const updatedChat = getChatById(chatId!);
+              if (!updatedChat) return;
+              const msgIdx = updatedChat.message_objects.findIndex(m => m.message_id === botMsgId);
+              if (msgIdx !== -1) {
+                updatedChat.message_objects[msgIdx].content = `__STATUS__:${status}`;
+                updateChat(updatedChat);
+                setChats(getAllChats());
+              }
+            },
           });
           // Update bot message in chat
           const updatedChat = getChatById(chatId!);
@@ -298,6 +390,7 @@ export function ChatInterface({ activeDocument }: ChatInterfaceProps) {
             const msgIdx = updatedChat.message_objects.findIndex(m => m.message_id === botMsgId);
             if (msgIdx !== -1) {
               updatedChat.message_objects[msgIdx].content = chatResponse.response;
+              updatedChat.message_objects[msgIdx].citations = chatResponse.citations || [];
               updateChat(updatedChat);
               setChats(getAllChats());
             }
@@ -333,6 +426,7 @@ export function ChatInterface({ activeDocument }: ChatInterfaceProps) {
         onChatsUpdate={() => setChats(getAllChats())}
         stream={stream}
         setStream={setStream}
+        onPreviewFile={(f) => setPreviewFile(f)}
       />
 
       <main className="flex-1 flex flex-col h-screen overflow-hidden">
@@ -429,8 +523,14 @@ export function ChatInterface({ activeDocument }: ChatInterfaceProps) {
                                   {showPulse ? (
                                     <span className="flex items-center gap-2">
                                       <span className="text-xs text-muted-foreground">Waiting for response</span>
-                                      {/* @ts-ignore */}
-                                      {React.createElement(require("./ui/pulse").PulseLoader)}
+                                      <PulseLoader />
+                                    </span>
+                                  ) : message.author === "ai" && message.content.startsWith("__STATUS__:") ? (
+                                    <span className="flex items-center gap-2">
+                                      <PulseLoader />
+                                      <span className="text-sm text-muted-foreground">
+                                        {message.content.replace("__STATUS__:", "")}
+                                      </span>
                                     </span>
                                   ) : message.author === "ai" ? (
                                     <MarkdownRenderer content={message.content} />
@@ -438,6 +538,16 @@ export function ChatInterface({ activeDocument }: ChatInterfaceProps) {
                                     message.content
                                   )}
                                 </div>
+                                {message.author === "ai" && message.citations && message.citations.length > 0 && (
+                                  <div className="mt-3 pt-3 border-t border-border/40">
+                                    <div className="text-xs text-muted-foreground mb-2">Sources used:</div>
+                                    <div className="flex flex-wrap gap-2">
+                                      {message.citations.map((citation, idx) => (
+                                        <CitationCard key={idx} citation={citation} />
+                                      ))}
+                                    </div>
+                                  </div>
+                                )}
                               </div>
                             </Card>
                             <div
@@ -503,6 +613,8 @@ export function ChatInterface({ activeDocument }: ChatInterfaceProps) {
               onShowAttachments={() => setShowAttachments(true)}
               model={model}
               setModel={setModel}
+              useAgentTools={useAgentTools}
+              setUseAgentTools={setUseAgentTools}
             />
           </div>
         </div>

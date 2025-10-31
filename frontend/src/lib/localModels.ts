@@ -5,6 +5,7 @@ export interface LocalModelInfo {
 }
 
 export const LOCAL_MODELS: LocalModelInfo[] = [
+    { name: "remote", company: "Custom", bestAt: "Use our remote backend" },
     { name: "llava", company: "Llava.ai", bestAt: "Image understanding" },
     { name: "llama2", company: "Meta", bestAt: "General purpose" },
     { name: "llama3", company: "Meta", bestAt: "General purpose" },

@@ -6,9 +6,10 @@ import { LOCAL_MODELS } from "@/lib/localModels";
 import { Tooltip, TooltipTrigger, TooltipContent } from "@/components/ui/tooltip";
 import { Select, SelectTrigger, SelectValue, SelectContent, SelectItem } from "@/components/ui/select";
 import { Button } from "@/components/ui/button";
-import { Paperclip, Send, Link2 } from "lucide-react";
+import { Paperclip, Send, Link2, Bot } from "lucide-react";
 import { FileCard } from "@/components/ui/FileCard";
 import type { FileWithUrl } from "@/components/ui/FileWithUrl";
+import { Switch } from "@/components/ui/switch";
 
 interface ChatInputProps {
   input: string;
@@ -21,6 +22,8 @@ interface ChatInputProps {
   onShowAttachments: () => void;
   model: string;
   setModel: (model: string) => void;
+  useAgentTools?: boolean;
+  setUseAgentTools?: (value: boolean) => void;
 }
 
 export function ChatInput({
@@ -34,6 +37,8 @@ export function ChatInput({
   onShowAttachments,
   model,
   setModel,
+  useAgentTools = false,
+  setUseAgentTools,
 }: ChatInputProps) {
   const fileInputRef = useRef<HTMLInputElement>(null);
   return (
@@ -138,6 +143,19 @@ export function ChatInput({
             </Button>
           </div>
         </div>
+        {setUseAgentTools && (
+          <div className="flex items-center gap-2 px-3 py-1.5 rounded-lg border bg-muted/30">
+            <Bot className="h-4 w-4 text-muted-foreground" />
+            <label htmlFor="agent-toggle" className="text-xs font-medium cursor-pointer">
+              Agent Tools
+            </label>
+            <Switch
+              id="agent-toggle"
+              checked={useAgentTools}
+              onCheckedChange={setUseAgentTools}
+            />
+          </div>
+        )}
       </div>
     </div>
   );

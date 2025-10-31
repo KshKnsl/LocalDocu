@@ -10,11 +10,13 @@ import {
   CollapsibleContent,
 } from "@/components/ui/collapsible";
 import { ScrollArea } from '@radix-ui/react-scroll-area';
+import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 
 import type { FileWithUrl } from "./ui/FileWithUrl";
-import { summarizePaper } from "@/lib/api";
+import { summarizeByDocumentId, processDocument } from "@/lib/api";
 import { toast } from "sonner";
 import { getChatFileLocalUrl, cloneChatFolderToLocal } from "@/lib/localFiles";
+import { getChatById, updateChat } from "@/lib/chatStorage";
 
 interface FilePreviewProps {
   file: FileWithUrl | string | null;
@@ -45,6 +47,9 @@ export function FilePreview({ file, onClose, className }: FilePreviewProps) {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [isOpen, setIsOpen] = useState(true);
+  const [summary, setSummary] = useState<string>("");
+  const [isSummarizing, setIsSummarizing] = useState<boolean>(false);
+  const [isSummaryOpen, setIsSummaryOpen] = useState<boolean>(false);
 
   useEffect(() => {
     if (!file) {
@@ -60,6 +65,11 @@ export function FilePreview({ file, onClose, className }: FilePreviewProps) {
         if (typeof file === 'string') {
           setContent(file);
         } else {
+          if (file.summary) {
+            setSummary(file.summary);
+          } else {
+            setSummary("");
+          }
           let useUrl = file.localUrl;
           if (file.chatId && file.name) {
             useUrl = await getChatFileLocalUrl(file.chatId, file.name) || useUrl;
@@ -178,29 +188,68 @@ export function FilePreview({ file, onClose, className }: FilePreviewProps) {
           <div className="flex items-center gap-2">
             {file && (
               <>
-                {getFileType(file) === 'pdf' && typeof file !== 'string' && file.key && (
+                {getFileType(file) === 'pdf' && typeof file !== 'string' && (file.key || file.documentId) && (
                   <Button
                     variant="ghost"
                     size="icon"
                     onClick={async () => {
-                      if (!file.key) return;
+                      if (typeof file === 'string') return;
+                      setIsSummarizing(true);
                       try {
-                        const summary = await summarizePaper(file.key);
-                        toast.success('Paper summarized!', {
-                          description: 'Summary generated successfully',
-                          duration: 3000,
-                        });
-                        alert(`Paper Summary:\n\n${summary.summary}`);
+                        let out: { summary: string } | undefined;
+                        if (file.documentId) {
+                          out = await summarizeByDocumentId(file.documentId);
+                        } else if (file.key) {
+                          const proc = await processDocument(file.key);
+                          if (proc?.documentId) {
+                            out = await summarizeByDocumentId(proc.documentId);
+                          } else {
+                            throw new Error('Failed to process document before summarization');
+                          }
+                        }
+                        if (out?.summary) {
+                          setSummary(out.summary);
+                          if (file.chatId) {
+                            const chat = getChatById(file.chatId);
+                            if (chat) {
+                              chat.fileWithUrl = (chat.fileWithUrl || []).map(f => {
+                                if ((file.key && f.key === file.key) || (!file.key && f.name === file.name)) {
+                                  return { ...f, summary: out!.summary };
+                                }
+                                return f;
+                              });
+                              chat.message_objects = chat.message_objects.map(m => ({
+                                ...m,
+                                files: (m.files || []).map(f => {
+                                  if ((file.key && f.key === file.key) || (!file.key && f.name === file.name)) {
+                                    return { ...f, summary: out!.summary };
+                                  }
+                                  return f;
+                                })
+                              }));
+                              updateChat(chat);
+                            }
+                          }
+                          toast.success('Paper summarized!', { description: 'Summary saved with file', duration: 2500 });
+                        } else {
+                          toast.error('No summary returned');
+                        }
                       } catch (error) {
-                        toast.error('Failed to summarize paper', {
-                          description: error instanceof Error ? error.message : 'Unknown error',
-                        });
+                        toast.error('Failed to summarize paper', { description: error instanceof Error ? error.message : 'Unknown error' });
+                      } finally {
+                        setIsSummarizing(false);
                       }
                     }}
                     className="h-7 w-7"
                     title="Summarize Research Paper"
                   >
-                    <FileSearch className="h-4 w-4" />
+                    {isSummarizing ? (
+                      <span className="inline-flex items-center justify-center h-4 w-4">
+                        <span className="animate-ping inline-flex h-3 w-3 rounded-full bg-primary opacity-75" />
+                      </span>
+                    ) : (
+                      <FileSearch className="h-4 w-4" />
+                    )}
                   </Button>
                 )}
                 <Button
@@ -248,8 +297,37 @@ export function FilePreview({ file, onClose, className }: FilePreviewProps) {
       </div>
 
       <CollapsibleContent className="overflow-auto p-4 max-h-[calc(100vh-4rem)]">
+        {typeof file !== 'string' && summary && (
+          <Card
+            className="mb-4 p-3 bg-muted/40 cursor-pointer hover:bg-muted/60 transition-colors"
+            onClick={() => setIsSummaryOpen(true)}
+            role="button"
+            aria-label="Open full summary"
+            tabIndex={0}
+          >
+            <div className="text-xs uppercase text-muted-foreground mb-1">Summary</div>
+            <div className="whitespace-pre-wrap break-words text-sm">
+              {summary.length > 200 ? `${summary.slice(0, 200)}...` : summary}
+            </div>
+            {summary.length > 200 && (
+              <div className="mt-1 text-xs text-primary/80">Click to view full summary</div>
+            )}
+          </Card>
+        )}
         {renderPreview()}
       </CollapsibleContent>
+
+      {/* Full Summary Dialog */}
+      <Dialog open={isSummaryOpen} onOpenChange={setIsSummaryOpen}>
+        <DialogContent className="max-w-2xl">
+          <DialogHeader>
+            <DialogTitle>Document Summary</DialogTitle>
+          </DialogHeader>
+          <div className="max-h-[60vh] overflow-y-auto whitespace-pre-wrap break-words text-sm">
+            {summary}
+          </div>
+        </DialogContent>
+      </Dialog>
     </Collapsible>
   );
 }

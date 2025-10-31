@@ -1,4 +1,5 @@
 import { FileWithUrl } from "@/components/ui/FileWithUrl";
+import type { Citation } from "./api";
 
 
 export interface MessageObject {
@@ -7,6 +8,7 @@ export interface MessageObject {
   content: string;
   created_at: string; // ISO string
   files: FileWithUrl[];
+  citations?: Citation[];
 }
 
 
