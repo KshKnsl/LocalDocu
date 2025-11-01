@@ -18,6 +18,9 @@ from langchain_huggingface import HuggingFaceEmbeddings
 from langchain_chroma import Chroma
 from langchain_community.document_loaders import PyMuPDFLoader
 from langchain_community.tools import DuckDuckGoSearchRun
+from langchain.agents import Tool, AgentExecutor, create_react_agent
+from langchain.prompts import PromptTemplate
+from langchain.memory import ConversationBufferMemory
 from langchain_ollama.llms import OllamaLLM
 from uuid import uuid4
 import uvicorn, sys
@@ -78,7 +81,7 @@ def create_persistent_vectorstore(chunks, persist_dir: str):
 def generate_with_llm(prompt: str, model_name: str):
     """Unified LLM generation for both Gemini and Ollama"""
     if model_name.lower() == "remote":
-        llm = ChatGoogleGenerativeAI(model="gemini-2.5-flash")
+        llm = ChatGoogleGenerativeAI(model="gemini-2.5-flash",api_key=GOOGLE_API_KEY)
         resp = llm.invoke(prompt)
         return getattr(resp, "content", str(resp))
     else:
@@ -239,33 +242,90 @@ async def generate_text(request: Request):
     print(f"🎯 /generate → model={model}, mcp_tools={use_mcp_tools}, docs={len(document_ids)}")
     citations = []
     
-    # === MCP TOOLS MODE ===
+    # === MCP TOOLS MODE (Agent-driven) ===
     if use_mcp_tools:
         try:
             ddg = DuckDuckGoSearchRun()
-            tools_info = "You have access to:\n"
-            tools_info += "1. web_search: Search the web using DuckDuckGo for current information\n"
-            try:
-                search_query = prompt
-                ddg_results = ddg.run(search_query)
-            except Exception as e:
-                ddg_results = f"DuckDuckGo search failed: {e}"
+            tool_calls = []
+            def _ddg_run_wrapper(q: str):
+                try:
+                    res = ddg.run(q)
+                except Exception as e:
+                    res = f"DuckDuckGo run failed: {e}"
+                tool_calls.append({"tool": "Search", "input": q, "output": res})
+                return res
 
-            if document_ids:
-                doc_content = get_document_content(document_ids)
-                tools_info += "2. Uploaded research documents content (provided below)\n"
-                enhanced_prompt = (
-                    f"{tools_info}\n\nDuckDuckGo results:\n{ddg_results}\n\nDocument Content:\n{doc_content}\n\nUser Question: {prompt}\n\nPlease answer the question using the documents and web search if needed."
+            tools = [
+                Tool(
+                    name="Search",
+                    func=_ddg_run_wrapper,
+                    description="Search the web using DuckDuckGo for current information."
                 )
+            ]
+            if model.lower() == "remote" and GOOGLE_API_KEY:
+                llm = ChatGoogleGenerativeAI(model="gemini-2.5-flash",api_key=GOOGLE_API_KEY)
             else:
-                enhanced_prompt = (
-                    f"{tools_info}\n\nDuckDuckGo results:\n{ddg_results}\n\nUser Question: {prompt}\n\nPlease use the web results to provide a comprehensive answer."
-                )
-            response_text = generate_with_llm(enhanced_prompt, "remote" if model.lower() == "remote" else model)
+                llm = OllamaLLM(model=model)
+                        template = """You are an autonomous agent. You have access to the following tools:
+
+{tools}
+
+Follow this process:
+- Use the Thought/Action/Action Input/Observation loop while you need to call tools.
+- After collecting enough information, produce the final answer in STRICT JSON (no explanatory text before or after).
+
+Intermediate format example (repeat as needed):
+Question: the input question you must answer
+Thought: think about the action to take
+Action: the action to take, must be one of [{tool_names}]
+Action Input: the input to the action
+Observation: the result of the action
+
+When you are finished, output EXACTLY one JSON object (single line is fine) with this schema:
+{{
+    "answer": "<final plain-text answer>",
+    "sources": [
+        {{"tool": "Search", "query": "<query>", "output": "<short excerpt from the result>"}}
+    ]
+}}
+
+Important: Do not print any additional text before or after the JSON. If you cannot answer, set "answer" to "I don't know" and keep "sources" empty.
+
+Begin!
+
+Question: {input}
+Thought: {agent_scratchpad}"""
+
+            agent = create_react_agent(
+                llm=llm,
+                tools=tools,
+                prompt=PromptTemplate.from_template(template)
+            )
+            agent_executor = AgentExecutor.from_agent_and_tools(
+                agent=agent,
+                tools=tools,
+                verbose=True,
+                memory=ConversationBufferMemory(memory_key="chat_history"),
+                handle_parsing_errors=True,
+            )
+            try:
+                result_obj = agent_executor.invoke({"input": prompt})
+                if isinstance(result_obj, dict):
+                    result = result_obj.get("output") or result_obj.get("response") or str(result_obj)
+                else:
+                    result = str(result_obj)
+            except Exception as e:
+                print(f"❌ Agent execution error: {e}")
+                return JSONResponse(content={
+                    "error": "Agent execution failed",
+                    "details": str(e),
+                    "hint": "If this is an output parsing error, try increasing model temperature or inspect the tool outputs. AgentExecutor was created with handle_parsing_errors=True."
+                }, status_code=500)
+
             return JSONResponse(content={
-                "response": response_text,
+                "response": result,
                 "citations": citations,
-                "toolCalls": []
+                "toolCalls": tool_calls
             })
 
         except Exception as e:
