@@ -9,6 +9,7 @@ export interface MessageObject {
   created_at: string; // ISO string
   files: FileWithUrl[];
   citations?: Citation[];
+  model?: string;
 }
 
 

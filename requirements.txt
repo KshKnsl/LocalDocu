@@ -1,0 +1,16 @@
+fastapi
+uvicorn
+pyngrok
+requests
+boto3
+python-multipart
+aiofiles
+langchain
+langchain-community
+chromadb
+sentence-transformers
+PyMuPDF
+langchain-huggingface
+langchain-chroma
+langchain-google-genai
+langchain-ollama

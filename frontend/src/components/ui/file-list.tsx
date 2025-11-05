@@ -10,9 +10,10 @@ interface FileListProps {
   files: FileWithUrl[];
   onRemove: (index: number) => void;
   previewFile?: (file: FileWithUrl) => void;
+  onToggleEnabled?: (index: number, enabled: boolean) => void;
 }
 
-export function FileList({ files, onRemove, previewFile }: FileListProps) {
+export function FileList({ files, onRemove, previewFile, onToggleEnabled }: FileListProps) {
 
   return (
     <div
@@ -28,6 +29,7 @@ export function FileList({ files, onRemove, previewFile }: FileListProps) {
           file={file}
           onPreview={previewFile}
           onRemove={() => onRemove(index)}
+          onToggleEnabled={onToggleEnabled ? (enabled: boolean) => onToggleEnabled(index, enabled) : undefined}
         />
       ))}
     </div>

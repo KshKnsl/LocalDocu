@@ -19,10 +19,12 @@ import {
   ChevronLeft,
   ChevronRight,
   Eye,
+  Trash2,
 } from "lucide-react";
 import ThemeSwitcher from "./Theme-switcher";
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import type { FileWithUrl } from "@/components/ui/FileWithUrl";
+import { BackendConfigDialog } from "./BackendConfig";
 
 
 interface ChatSidebarProps {
@@ -188,19 +190,22 @@ export function ChatSidebar({
 
       <div className="border-t bg-muted/50 p-4">
         {isSidebarOpen ? (
-          <div className="flex items-center justify-between gap-2">
-            <div className="flex items-center gap-2">
-              <Switch
-                checked={stream}
-                onCheckedChange={handleStreamToggle}
-                id="stream-toggle"
-                className="mr-2"
-              />
-              <label htmlFor="stream-toggle" className="text-xs text-muted-foreground select-none">Stream</label>
-            </div>
-            <div className="flex items-center gap-2">
-              <ThemeSwitcher />
-              <UserButton afterSwitchSessionUrl="/" />
+          <div className="space-y-3">
+            <BackendConfigDialog />
+             <div className="flex items-center justify-between gap-2">
+              <div className="flex items-center gap-2">
+                <Switch
+                  checked={stream}
+                  onCheckedChange={handleStreamToggle}
+                  id="stream-toggle"
+                  className="mr-2"
+                />
+                <label htmlFor="stream-toggle" className="text-xs text-muted-foreground select-none">Stream</label>
+              </div>
+              <div className="flex items-center gap-2">
+                <ThemeSwitcher />
+                <UserButton afterSwitchSessionUrl="/" />
+              </div>
             </div>
           </div>
         ) : (
@@ -233,6 +238,33 @@ export function ChatSidebar({
                   <div className="flex items-center gap-2">
                     <Button size="icon" variant="ghost" title="Preview" onClick={() => { setFilesOpen(false); onPreviewFile?.(file); }}>
                       <Eye className="h-4 w-4" />
+                    </Button>
+                    <Button 
+                      size="icon" 
+                      variant="ghost" 
+                      title="Delete" 
+                      className="text-destructive hover:text-destructive hover:bg-destructive/10"
+                      onClick={() => {
+                        if (file.chatId) {
+                          const chat = chats.find(c => c.chat_id === file.chatId);
+                          if (chat) {
+                            chat.fileWithUrl = (chat.fileWithUrl || []).filter(f => 
+                              !((file.key && f.key === file.key) || (!file.key && f.name === file.name))
+                            );
+                            chat.message_objects = chat.message_objects.map(m => ({
+                              ...m,
+                              files: (m.files || []).filter(f => 
+                                !((file.key && f.key === file.key) || (!file.key && f.name === file.name))
+                              )
+                            }));
+                            updateChat(chat);
+                            onChatsUpdate?.();
+                            toast.success("File deleted");
+                          }
+                        }
+                      }}
+                    >
+                      <Trash2 className="h-4 w-4" />
                     </Button>
                   </div>
                 </div>

@@ -6,6 +6,7 @@ import { LOCAL_MODELS } from "@/lib/localModels";
 import { Tooltip, TooltipTrigger, TooltipContent } from "@/components/ui/tooltip";
 import { Select, SelectTrigger, SelectValue, SelectContent, SelectItem } from "@/components/ui/select";
 import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
 import { Paperclip, Send, Link2, Bot } from "lucide-react";
 import { FileCard } from "@/components/ui/FileCard";
 import type { FileWithUrl } from "@/components/ui/FileWithUrl";
@@ -41,32 +42,49 @@ export function ChatInput({
   setUseAgentTools,
 }: ChatInputProps) {
   const fileInputRef = useRef<HTMLInputElement>(null);
+  const isCustomModel = !LOCAL_MODELS.some(m => m.name === model);
+
   return (
     <div className="border-t bg-background p-2 w-full">
       <div className="mx-auto flex gap-2 items-center mb-2">
         <div className="flex items-center gap-2">
           <span className="text-xs text-muted-foreground">Model:</span>
-          <Select value={model} onValueChange={setModel}>
-            <SelectTrigger className="w-[140px] h-8">
+          <Select value={isCustomModel ? "custom" : model} onValueChange={setModel}>
+            <SelectTrigger className="w-[180px] h-8">
               <SelectValue placeholder="Select model" />
             </SelectTrigger>
             <SelectContent>
-              {LOCAL_MODELS.map((model) => {
-                return (
-                  <Tooltip key={model.name}>
-                    <TooltipTrigger asChild>
-                      <SelectItem value={model.name}>{model.name}</SelectItem>
-                    </TooltipTrigger>
-                    <TooltipContent sideOffset={8}>
-                      <div style={{ whiteSpace: "pre-line" }}>
-                        {`${model.name}\n${model.company}\nBest at: ${model.bestAt}`}
-                      </div>
-                    </TooltipContent>
-                  </Tooltip>
-                );
-              })}
+              <div className="px-2 py-1.5 border-b mb-1">
+                <Input
+                  type="text"
+                  value={model}
+                  onChange={(e) => setModel(e.target.value)}
+                  placeholder="Type custom model..."
+                  className="h-8 text-sm"
+                  onClick={(e) => e.stopPropagation()}
+                  onKeyDown={(e) => e.stopPropagation()}
+                />
+              </div>
+              {LOCAL_MODELS.map((m) => (
+                <Tooltip key={m.name}>
+                  <TooltipTrigger asChild>
+                    <SelectItem value={m.name}>{m.name}</SelectItem>
+                  </TooltipTrigger>
+                  <TooltipContent sideOffset={8}>
+                    <div style={{ whiteSpace: "pre-line" }}>
+                      {`${m.name}\n${m.company}\nBest at: ${m.bestAt}`}
+                    </div>
+                  </TooltipContent>
+                </Tooltip>
+              ))}
+              <SelectItem value="custom" className="hidden">custom</SelectItem>
             </SelectContent>
           </Select>
+          {isCustomModel && (
+            <span className="text-xs text-muted-foreground px-2 py-1 rounded bg-muted">
+              {model}
+            </span>
+          )}
         </div>
         <div className="border rounded-lg bg-muted/30 px-3 py-2 flex items-center w-full overflow-hidden">
           <div className="text-sm font-medium flex items-center gap-2 shrink-0">

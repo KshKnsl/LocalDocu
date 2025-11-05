@@ -1,5 +1,6 @@
 import React from "react";
 import { Eye, X } from "lucide-react";
+import { Switch } from "./switch";
 import type { FileWithUrl } from "./FileWithUrl";
 
 function StatusDot({ status }: { status?: string }) {
@@ -17,9 +18,10 @@ interface FileCardProps {
   file: FileWithUrl;
   onPreview?: (file: FileWithUrl) => void;
   onRemove?: () => void;
+  onToggleEnabled?: (enabled: boolean) => void;
 }
 
-export const FileCard: React.FC<FileCardProps> = ({ file, onPreview, onRemove }) => (
+export const FileCard: React.FC<FileCardProps> = ({ file, onPreview, onRemove, onToggleEnabled }) => (
   <div className="flex items-center gap-1 bg-background/50 border rounded-lg px-2 py-1 text-sm shrink-0 hover:bg-accent/50 transition-colors">
     <div className="flex items-center truncate max-w-[120px]">
       <StatusDot status={file.processingStatus || file.uploadStatus || file.downloadStatus} />
@@ -27,9 +29,18 @@ export const FileCard: React.FC<FileCardProps> = ({ file, onPreview, onRemove })
         {file.name}
       </a>
     </div>
-    <div className="flex items-center">
+    <div className="flex items-center gap-1">
       {file.statusMessage && (
         <div className="text-xs text-muted-foreground mr-2">{file.statusMessage}</div>
+      )}
+      {onToggleEnabled && file.processingStatus === 'done' && (
+        <div className="flex items-center gap-1 mr-1" title={file.enabled !== false ? "Enabled for context" : "Disabled"}>
+          <Switch 
+            checked={file.enabled !== false} 
+            onCheckedChange={onToggleEnabled}
+            className="scale-75"
+          />
+        </div>
       )}
       {onPreview && file.processingStatus === 'done' && (
         <button

@@ -1,7 +1,4 @@
 "use client";
-
-import { LOCAL_MODELS } from "@/lib/localModels";
-
 import React, { useState, useRef, useEffect } from "react";
 import {
   getAllChats,
@@ -23,11 +20,13 @@ import { FileCard } from "@/components/ui/FileCard";
 import type { FileWithUrl } from "@/components/ui/FileWithUrl";
 import { PulseLoader } from "./ui/pulse";
 import { CitationCard } from "./CitationCard";
+import { LOCAL_MODELS } from "@/lib/localModels";
 import {
   ProcessingResult,
   sendExternalChatMessage,
   uploadDocument,
   processDocument,
+  isUsingCustomBackend,
 } from "@/lib/api";
 import { useUser } from "@clerk/nextjs";
 import { toast } from "sonner";
@@ -42,6 +41,7 @@ import { ChatSidebar } from "./ChatSidebar";
 import { ChatInput } from "./ChatInput";
 import { FileList } from "./ui/file-list";
 import { cloneChatFolderToLocal } from "@/lib/localFiles";
+import { BackendConfigDialog } from "./BackendConfig";
 
 interface ChatInterfaceProps {
   activeDocument?: ProcessingResult;
@@ -51,7 +51,7 @@ export function ChatInterface({ activeDocument }: ChatInterfaceProps) {
   const [currentChatId, setCurrentChatId] = useState<string | undefined>();
   const [input, setInput] = useState("");
   const [files, setFiles] = useState<FileWithUrl[]>([]);
-  const [model, setModel] = useState(LOCAL_MODELS[0].name);
+  const [model, setModel] = useState("remote"); // Default to remote
   const [previewFile, setPreviewFile] = useState<FileWithUrl | string | null>(null);
   const [showAttachments, setShowAttachments] = useState(false);
   const [chats, setChats] = useState<ChatDocument[]>(() => getAllChats());
@@ -62,6 +62,15 @@ export function ChatInterface({ activeDocument }: ChatInterfaceProps) {
     }
     return true;
   });
+
+  const getModelDisplayName = (modelName?: string) => {
+    if (!modelName) return null;
+    const modelInfo = LOCAL_MODELS.find(m => m.name === modelName);
+    if (modelInfo) {
+      return `${modelInfo.name} (${modelInfo.company})`;
+    }
+    return modelName;
+  };
 
   useEffect(() => {
     setChats(getAllChats());
@@ -142,6 +151,7 @@ export function ChatInterface({ activeDocument }: ChatInterfaceProps) {
         type: file.type,
         size: file.size,
         chatId,
+        enabled: true, 
         uploadStatus: 'uploading',
         processingStatus: 'idle',
         downloadStatus: 'idle',
@@ -159,7 +169,8 @@ export function ChatInterface({ activeDocument }: ChatInterfaceProps) {
               key,
               name: filename || f.name,
               uploadStatus: 'uploaded',
-              statusMessage: 'Uploaded',
+              statusMessage: isUsingCustomBackend() ? 'Ready' : 'Uploaded',
+              localFile: isUsingCustomBackend() ? file : undefined,
             } : f)));
             return {
               name: filename || file.name,
@@ -168,8 +179,10 @@ export function ChatInterface({ activeDocument }: ChatInterfaceProps) {
               type: file.type,
               size: file.size,
               chatId,
+              enabled: true,
               uploadStatus: 'uploaded',
-              statusMessage: 'Uploaded',
+              statusMessage: isUsingCustomBackend() ? 'Ready' : 'Uploaded',
+              localFile: isUsingCustomBackend() ? file : undefined,
             } as FileWithUrl;
           } catch (err) {
             setFiles((prev) => prev.map(f => (f.name === file.name && f.chatId === chatId ? { ...f, uploadStatus: 'failed', statusMessage: 'Upload failed' } : f)));
@@ -192,7 +205,9 @@ export function ChatInterface({ activeDocument }: ChatInterfaceProps) {
         }
         setFiles((prev) => prev.map(f => (f.key === uploadedFile.key && f.chatId === chatId ? { ...f, processingStatus: 'processing', statusMessage: 'Processing' } : f)));
         try {
-          const result = await processDocument(uploadedFile.key);
+          const result = isUsingCustomBackend() && uploadedFile.localFile
+            ? await processDocument(undefined, uploadedFile.localFile)
+            : await processDocument(uploadedFile.key);
           if (result?.documentId) {
             documentIdByKey.set(uploadedFile.key, result.documentId);
             setFiles((prev) => prev.map(f => (f.key === uploadedFile.key && f.chatId === chatId ? { ...f, documentId: result.documentId, processingStatus: 'done', statusMessage: 'Processed' } : f)));
@@ -211,24 +226,30 @@ export function ChatInterface({ activeDocument }: ChatInterfaceProps) {
           chatId,
           uploaded.map(f => ({ name: f.name, type: f.type, key: f.key }))
         );
-        const withLocal = uploaded.map(f => ({
-          ...f,
-          localUrl: mapping[f.name] || f.localUrl,
-          documentId: f.key ? documentIdByKey.get(f.key) : f.documentId,
-          downloadStatus: mapping[f.name] ? 'done' : 'failed',
-          statusMessage: mapping[f.name] ? 'Available' : 'Download failed',
-        })) as FileWithUrl[];
-        setFiles((prev) => [...prev, ...withLocal]);
-      } catch {
-        setFiles((prev) => [
-          ...prev,
-          ...uploaded.map(f => ({
+        setFiles((prev) => prev.map(f => {
+          if (f.chatId !== chatId) return f;
+          const uploadedFile = uploaded.find(u => u.key === f.key);
+          if (!uploadedFile) return f;
+          return {
             ...f,
-            documentId: f.key ? documentIdByKey.get(f.key) : f.documentId,
+            localUrl: mapping[uploadedFile.name] || f.localUrl,
+            documentId: uploadedFile.key ? documentIdByKey.get(uploadedFile.key) : f.documentId,
+            downloadStatus: mapping[uploadedFile.name] ? 'done' : 'failed',
+            statusMessage: mapping[uploadedFile.name] ? 'Available' : 'Download failed',
+          };
+        }));
+      } catch {
+        setFiles((prev) => prev.map(f => {
+          if (f.chatId !== chatId) return f;
+          const uploadedFile = uploaded.find(u => u.key === f.key);
+          if (!uploadedFile) return f;
+          return {
+            ...f,
+            documentId: uploadedFile.key ? documentIdByKey.get(uploadedFile.key) : f.documentId,
             downloadStatus: 'failed',
             statusMessage: 'Local copy not available',
-          })) as FileWithUrl[],
-        ]);
+          };
+        }));
       }
     }
   };
@@ -299,12 +320,15 @@ export function ChatInterface({ activeDocument }: ChatInterfaceProps) {
     chat.message_objects.push(userMsg);
     // Keep chat-level file list in sync (unique by key+name)
     const existing = chat.fileWithUrl || [];
-    const seen = new Set(existing.map(f => `${f.key || ''}|${f.name}`));
+    const seen = new Map(existing.map(f => [`${f.key || ''}|${f.name}`, f]));
     for (const f of currentFiles) {
       const uniq = `${f.key || ''}|${f.name}`;
-      if (!seen.has(uniq)) {
+      if (seen.has(uniq)) {
+        const existingFile = seen.get(uniq)!;
+        Object.assign(existingFile, f);
+      } else {
         existing.push(f);
-        seen.add(uniq);
+        seen.set(uniq, f);
       }
     }
     chat.fileWithUrl = existing;
@@ -322,15 +346,16 @@ export function ChatInterface({ activeDocument }: ChatInterfaceProps) {
           content: "",
           created_at: new Date().toISOString(),
           files: [],
+          model: model,
         };
         chat.message_objects.push(botMsg);
         updateChat(chat);
         setChats(getAllChats());
         const fileDocIds = Array.from(new Set(
-          currentFiles.map(f => f.documentId).filter((id): id is string => !!id)
+          currentFiles.filter(f => f.enabled !== false).map(f => f.documentId).filter((id): id is string => !!id)
         ));
         const chatLevelDocIds = Array.from(new Set(
-          (chat.fileWithUrl || []).map(f => f.documentId).filter((id): id is string => !!id)
+          (chat.fileWithUrl || []).filter(f => f.enabled !== false).map(f => f.documentId).filter((id): id is string => !!id)
         ));
         const documentIds = fileDocIds.length > 0 ? fileDocIds : chatLevelDocIds;
 
@@ -342,7 +367,7 @@ export function ChatInterface({ activeDocument }: ChatInterfaceProps) {
             stream: true,
             documentIds,
             useAgentTools,
-            onStreamChunk: (chunk) => {
+            onStreamChunk: (chunk: string) => {
               fullResponse += chunk;
               // Update bot message in chat
               const updatedChat = getChatById(chatId!);
@@ -354,7 +379,7 @@ export function ChatInterface({ activeDocument }: ChatInterfaceProps) {
                 setChats(getAllChats());
               }
             },
-            onStatusChange: (status) => {
+            onStatusChange: (status: any) => {
               const updatedChat = getChatById(chatId!);
               if (!updatedChat) return;
               const msgIdx = updatedChat.message_objects.findIndex(m => m.message_id === botMsgId);
@@ -372,7 +397,7 @@ export function ChatInterface({ activeDocument }: ChatInterfaceProps) {
             stream: false,
             documentIds,
             useAgentTools,
-            onStatusChange: (status) => {
+            onStatusChange: (status: any) => {
               // Update bot message with status
               const updatedChat = getChatById(chatId!);
               if (!updatedChat) return;
@@ -431,6 +456,11 @@ export function ChatInterface({ activeDocument }: ChatInterfaceProps) {
 
       <main className="flex-1 flex flex-col h-screen overflow-hidden">
         <div className="flex-1 flex flex-col min-h-0 relative">
+          {/* Backend Config Button - Floating */}
+          <div className="absolute top-4 right-4 z-10">
+            <BackendConfigDialog />
+          </div>
+          
           {/* Chat messages area */}
           <FlowArea />
           <div className="flex-1 flex flex-col">
@@ -505,6 +535,13 @@ export function ChatInterface({ activeDocument }: ChatInterfaceProps) {
                               style={{ wordBreak: 'break-word', whiteSpace: 'pre-wrap' }}
                             >
                               <div className="space-y-2 overflow-hidden">
+                                {message.author === "ai" && message.model && (
+                                  <div className="flex items-center gap-2 mb-1">
+                                    <span className="text-xs px-2 py-0.5 rounded-full bg-primary/10 text-primary border border-primary/20 font-medium">
+                                      {getModelDisplayName(message.model)}
+                                    </span>
+                                  </div>
+                                )}
                                 {(message.files && message.files.length > 0) && (
                                   <div className="flex flex-wrap gap-2 mb-2">
                                     {message.files.map((file, index) => (
@@ -639,6 +676,20 @@ export function ChatInterface({ activeDocument }: ChatInterfaceProps) {
                 : getAllAttachedFiles()}
               onRemove={() => {}}
               previewFile={setPreviewFile}
+              onToggleEnabled={(index, enabled) => {
+                if (currentChatId) {
+                  const chat = getChatById(currentChatId);
+                  if (chat && chat.fileWithUrl) {
+                    chat.fileWithUrl[index].enabled = enabled;
+                    updateChat(chat);
+                    setFiles(prev => prev.map((f, i) => 
+                      f.chatId === currentChatId && f.key === chat.fileWithUrl[index].key
+                        ? { ...f, enabled }
+                        : f
+                    ));
+                  }
+                }
+              }}
             />
           </div>
         </DialogContent>

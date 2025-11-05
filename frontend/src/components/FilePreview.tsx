@@ -13,7 +13,7 @@ import { ScrollArea } from '@radix-ui/react-scroll-area';
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 
 import type { FileWithUrl } from "./ui/FileWithUrl";
-import { summarizeByDocumentId, processDocument } from "@/lib/api";
+import { summarizeByDocumentId, processDocument, loadModel } from "@/lib/api";
 import { toast } from "sonner";
 import { getChatFileLocalUrl, cloneChatFolderToLocal } from "@/lib/localFiles";
 import { getChatById, updateChat } from "@/lib/chatStorage";
@@ -188,21 +188,53 @@ export function FilePreview({ file, onClose, className }: FilePreviewProps) {
           <div className="flex items-center gap-2">
             {file && (
               <>
-                {getFileType(file) === 'pdf' && typeof file !== 'string' && (file.key || file.documentId) && (
+                {(getFileType(file) === 'pdf' || getFileType(file) === 'image') && typeof file !== 'string' && (file.key || file.documentId || file.localFile) && (
                   <Button
                     variant="ghost"
                     size="icon"
                     onClick={async () => {
                       if (typeof file === 'string') return;
                       setIsSummarizing(true);
+                      const isImage = getFileType(file) === 'image';
                       try {
-                        let out: { summary: string } | undefined;
+                        let out: { summary: string; chunkCount?: number } | undefined;
                         if (file.documentId) {
-                          out = await summarizeByDocumentId(file.documentId);
+                          out = await summarizeByDocumentId(
+                            file.documentId,
+                            (index, total, chunkSummary) => {
+                              toast.info(isImage ? 'Analyzing image...' : `Processing chunk ${index + 1}/${total}`, { duration: 1000 });
+                            },
+                            (status) => {
+                              toast.info(status, { duration: 1500 });
+                            }
+                          );
+                        } else if (file.localFile) {
+                          const proc = await processDocument(undefined, file.localFile);
+                          if (proc?.documentId) {
+                            out = await summarizeByDocumentId(
+                              proc.documentId,
+                              (index, total, chunkSummary) => {
+                                toast.info(isImage ? 'Analyzing image...' : `Processing chunk ${index + 1}/${total}`, { duration: 1000 });
+                              },
+                              (status) => {
+                                toast.info(status, { duration: 1500 });
+                              }
+                            );
+                          } else {
+                            throw new Error('Failed to process document before summarization');
+                          }
                         } else if (file.key) {
                           const proc = await processDocument(file.key);
                           if (proc?.documentId) {
-                            out = await summarizeByDocumentId(proc.documentId);
+                            out = await summarizeByDocumentId(
+                              proc.documentId,
+                              (index, total, chunkSummary) => {
+                                toast.info(isImage ? 'Analyzing image...' : `Processing chunk ${index + 1}/${total}`, { duration: 1000 });
+                              },
+                              (status) => {
+                                toast.info(status, { duration: 1500 });
+                              }
+                            );
                           } else {
                             throw new Error('Failed to process document before summarization');
                           }
@@ -230,18 +262,21 @@ export function FilePreview({ file, onClose, className }: FilePreviewProps) {
                               updateChat(chat);
                             }
                           }
-                          toast.success('Paper summarized!', { description: 'Summary saved with file', duration: 2500 });
+                          toast.success(isImage ? 'Image analyzed!' : 'Paper summarized!', { 
+                            description: out.chunkCount ? `Processed ${out.chunkCount} chunks` : 'Summary saved with file', 
+                            duration: 2500 
+                          });
                         } else {
                           toast.error('No summary returned');
                         }
                       } catch (error) {
-                        toast.error('Failed to summarize paper', { description: error instanceof Error ? error.message : 'Unknown error' });
+                        toast.error(isImage ? 'Failed to analyze image' : 'Failed to summarize paper', { description: error instanceof Error ? error.message : 'Unknown error' });
                       } finally {
                         setIsSummarizing(false);
                       }
                     }}
                     className="h-7 w-7"
-                    title="Summarize Research Paper"
+                    title={getFileType(file) === 'image' ? "Analyze Image with AI" : "Summarize Research Paper"}
                   >
                     {isSummarizing ? (
                       <span className="inline-flex items-center justify-center h-4 w-4">

@@ -5,8 +5,8 @@ import { ThemeProvider } from "next-themes";
 import { Toaster } from "sonner";
 
 export const metadata: Metadata = {
-  title: "AI Document Summarizer",
-  description: "Summarize documents with AI and chat with your documents.",
+  title: "Private Local Document Summarizer",
+  description: "100% Private, fully local AI document summarization. Your documents never leave your machine. Run entirely on your own hardware.",
   icons: {
     icon: "/favicon.ico"
   }

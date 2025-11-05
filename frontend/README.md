@@ -1,36 +1,77 @@
-This is a [Next.js](https://nextjs.org) project bootstrapped with [`create-next-app`](https://nextjs.org/docs/app/api-reference/cli/create-next-app).
+# Private Local Document Summarizer
 
-## Getting Started
+A **100% private, fully local** AI document summarization platform. Your documents never leave your machine.
 
-First, run the development server:
+## 🔒 Privacy-First Features
+
+- **Zero Cloud Uploads** - All processing happens locally on your hardware
+- **Powered by Ollama** - Uses open-source models (Mistral, Llama, Phi, etc.)
+- **Offline Capable** - Works without internet connection
+- **No Data Collection** - No tracking, no logging, no external APIs
+- **GDPR Compliant** - Data never leaves your machine automatically
+
+## 🚀 Getting Started
+
+### Prerequisites
+
+1. **Install Ollama** - [Download from ollama.ai](https://ollama.ai)
+2. **Pull a model**:
+   ```bash
+   ollama pull mistral
+   # or
+   ollama pull llama2
+   ```
+
+### Run the Frontend
 
 ```bash
+npm install
 npm run dev
 # or
-yarn dev
-# or
+pnpm install
 pnpm dev
-# or
-bun dev
 ```
 
-Open [http://localhost:3000](http://localhost:3000) with your browser to see the result.
+Open [http://localhost:3000](http://localhost:3000) with your browser.
 
-You can start editing the page by modifying `app/page.tsx`. The page auto-updates as you edit the file.
+### Backend Setup
 
-This project uses [`next/font`](https://nextjs.org/docs/app/building-your-application/optimizing/fonts) to automatically optimize and load [Geist](https://vercel.com/font), a new font family for Vercel.
+The backend connects to your local Ollama instance. Make sure Ollama is running:
 
-## Learn More
+```bash
+ollama serve
+```
 
-To learn more about Next.js, take a look at the following resources:
+## 🛠️ Tech Stack
 
-- [Next.js Documentation](https://nextjs.org/docs) - learn about Next.js features and API.
-- [Learn Next.js](https://nextjs.org/learn) - an interactive Next.js tutorial.
+- **Frontend**: Next.js 15, TypeScript, TailwindCSS
+- **Backend**: FastAPI + LangChain
+- **AI Engine**: Ollama (local)
+- **Models**: Mistral, Llama, Phi, Gemma (any Ollama model)
+- **Vector Store**: ChromaDB (local)
 
-You can check out [the Next.js GitHub repository](https://github.com/vercel/next.js) - your feedback and contributions are welcome!
+## 📦 Features
 
-## Deploy on Vercel
+- ✅ **Map-Reduce Summarization** - Handles long documents efficiently
+- ✅ **RAG (Retrieval Augmented Generation)** - Chat with your documents
+- ✅ **PDF Support** - Extract and process PDF documents
+- ✅ **Citation Tracking** - Source attribution for answers
+- ✅ **Multi-Model Support** - Switch between different Ollama models
 
-The easiest way to deploy your Next.js app is to use the [Vercel Platform](https://vercel.com/new?utm_medium=default-template&filter=next.js&utm_source=create-next-app&utm_campaign=create-next-app-readme) from the creators of Next.js.
+## 🔐 Why Local?
 
-Check out our [Next.js deployment documentation](https://nextjs.org/docs/app/building-your-application/deploying) for more details.
+| Cloud Solutions | Our Local Approach |
+|----------------|-------------------|
+| Documents uploaded to servers | Documents stay on your machine |
+| Pay per API call | Free, unlimited processing |
+| Requires internet | Works offline |
+| Vendor lock-in | You control everything |
+| Privacy concerns | 100% private |
+
+## 📄 License
+
+Open source - your data, your machine, your control.
+
+## 🤝 Contributing
+
+Contributions welcome! This is a privacy-focused project - no cloud dependencies allowed.

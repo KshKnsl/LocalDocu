@@ -1,65 +1,112 @@
-!curl -fsSL https://ollama.com/install.sh | sh
-!pip install fastapi uvicorn pyngrok requests boto3 python-multipart aiofiles langchain langchain-community chromadb sentence-transformers PyMuPDF langchain-huggingface langchain-chroma langchain-google-genai langchain-ollama
-import os, signal, psutil, gc, time
+#!/usr/bin/env python3
+"""
+Private Document Summarizer - Backend for Windows
+==================================================
+Complete privacy-focused document summarization using local Ollama models.
 
-os.system("pkill -f 'uvicorn' || true")
-os.system("pkill -f 'ngrok' || true")
-os.system("pkill -f 'ollama' || true")
-gc.collect()
-time.sleep(1)
-print("✅ All background processes and threads terminated.")
+Prerequisites:
+1. Install Ollama: https://ollama.ai/download (Windows installer)
+2. Install Python 3.10+: https://www.python.org/downloads/
+3. Install dependencies: pip install -r requirements.txt
 
-import os, subprocess, threading, time, requests, tempfile, asyncio
-from fastapi import FastAPI, UploadFile, Form, Request
-from fastapi.responses import JSONResponse
+Setup:
+1. Download this file and requirements.txt
+2. Open PowerShell/CMD in the same folder
+3. Run: pip install -r requirements.txt
+4. Set your Google API key (optional for remote model):
+   $env:GOOGLE_API_KEY="your_api_key_here"
+5. Run: python backend-windows.py
+6. Copy the ngrok URL or use http://localhost:8000
+
+GitHub: https://github.com/YourRepo/MinorProject
+"""
+
+import os
+import subprocess
+import threading
+import time
+import requests
+import tempfile
+import asyncio
+import json
+import base64
+from pathlib import Path
+from fastapi import FastAPI, UploadFile, Request
+from fastapi.responses import JSONResponse, StreamingResponse
+from fastapi.middleware.cors import CORSMiddleware
 from pyngrok import ngrok
 from langchain_text_splitters import RecursiveCharacterTextSplitter
 from langchain_huggingface import HuggingFaceEmbeddings
 from langchain_chroma import Chroma
 from langchain_community.document_loaders import PyMuPDFLoader
 from langchain_ollama.llms import OllamaLLM
-from uuid import uuid4
-import uvicorn, sys
-from google.colab import userdata
-GOOGLE_API_KEY = userdata.get("GOOGLE_API_KEY")
 from langchain_google_genai import ChatGoogleGenerativeAI
-import base64
-from pathlib import Path
+from uuid import uuid4
+import uvicorn
+import sys
 
-def stream_logs(proc, name):
-    for line in iter(proc.stdout.readline, b''):
-        sys.stdout.write(f"[{name}] {line.decode()}")
-        sys.stdout.flush()
-    for line in iter(proc.stderr.readline, b''):
-        sys.stdout.write(f"[{name}-ERR] {line.decode()}")
-        sys.stdout.flush()
-
-ollama_proc = subprocess.Popen(["ollama", "serve"], stdout=subprocess.PIPE, stderr=subprocess.PIPE)
-threading.Thread(target=stream_logs, args=(ollama_proc, "Ollama"), daemon=True).start()
-print("🦙 Starting Ollama service...")
-
-for _ in range(40):
-    try:
-        if requests.get("http://localhost:11434").status_code == 200:
-            print("✅ Ollama is running locally!\n")
-            break
-    except:
-        time.sleep(2)
-else:
-    raise RuntimeError("❌ Ollama failed to start in time.")
-
+# Configuration
 OLLAMA_MODEL = os.environ.get("OLLAMA_MODEL", "mistral")
 OLLAMA_URL = "http://localhost:11434"
 PERSIST_BASE = os.path.abspath("./chroma_store")
 IMAGE_STORE = os.path.abspath("./image_store")
 os.makedirs(IMAGE_STORE, exist_ok=True)
-app = FastAPI(title="🦙 Ollama + LangChain Summarizer API")
+GOOGLE_API_KEY = os.environ.get("GOOGLE_API_KEY", "")
 
+# Supported image formats
 IMAGE_EXTENSIONS = {".jpg", ".jpeg", ".png", ".gif", ".bmp", ".webp"}
 
 def is_image_file(filename: str) -> bool:
     """Check if file is an image based on extension"""
     return Path(filename).suffix.lower() in IMAGE_EXTENSIONS
+
+app = FastAPI(title="🦙 Private Document Summarizer API")
+
+# Add CORS middleware
+app.add_middleware(
+    CORSMiddleware,
+    allow_origins=["*"],
+    allow_credentials=True,
+    allow_methods=["*"],
+    allow_headers=["*"],
+)
+
+def check_ollama_running():
+    """Check if Ollama is running"""
+    try:
+        response = requests.get(f"{OLLAMA_URL}/api/tags", timeout=2)
+        return response.status_code == 200
+    except:
+        return False
+
+def start_ollama_windows():
+    """Start Ollama service on Windows"""
+    print("🦙 Starting Ollama service...")
+    
+    # Check if already running
+    if check_ollama_running():
+        print("✅ Ollama is already running!")
+        return None
+    
+    # Try to start Ollama (Windows runs it as a background service)
+    try:
+        subprocess.Popen(["ollama", "serve"], 
+                        stdout=subprocess.PIPE, 
+                        stderr=subprocess.PIPE,
+                        creationflags=subprocess.CREATE_NO_WINDOW if os.name == 'nt' else 0)
+        
+        # Wait for Ollama to start
+        for _ in range(30):
+            if check_ollama_running():
+                print("✅ Ollama is running!")
+                return True
+            time.sleep(1)
+        
+        print("⚠️ Ollama didn't start automatically. Please start it manually.")
+        return False
+    except FileNotFoundError:
+        print("❌ Ollama not found. Please install from https://ollama.ai/download")
+        return False
 
 def load_and_split_pdf(pdf_bytes):
     with tempfile.NamedTemporaryFile(delete=False, suffix=".pdf") as tmp:
@@ -72,20 +119,18 @@ def load_and_split_pdf(pdf_bytes):
     print(f"📄 Loaded {len(chunks)} chunks.")
     return chunks
 
-
 def create_persistent_vectorstore(chunks, persist_dir: str):
     os.makedirs(persist_dir, exist_ok=True)
     embeddings = HuggingFaceEmbeddings(model_name="all-MiniLM-L6-v2")
     vs = Chroma.from_documents(chunks, embeddings, persist_directory=persist_dir)
     return vs
 
-# ===============================
-# Utility Functions
-# ===============================
 def generate_with_llm(prompt: str, model_name: str):
     """Unified LLM generation for both Gemini and Ollama"""
     if model_name.lower() == "remote":
-        llm = ChatGoogleGenerativeAI(model="gemini-2.5-flash",api_key=GOOGLE_API_KEY)
+        if not GOOGLE_API_KEY:
+            return "Error: GOOGLE_API_KEY not set. Please set environment variable."
+        llm = ChatGoogleGenerativeAI(model="gemini-1.5-flash", api_key=GOOGLE_API_KEY)
         resp = llm.invoke(prompt)
         return getattr(resp, "content", str(resp))
     else:
@@ -126,7 +171,7 @@ def build_context_from_documents(document_ids, question: str, top_k: int = 5):
 
 async def summarize_image(document_id: str, model_name: str):
     """Summarize image content using LLaVA vision model"""
-    import json
+    # Find the image file
     image_files = [f for f in os.listdir(IMAGE_STORE) if f.startswith(document_id)]
     if not image_files:
         return JSONResponse(
@@ -190,23 +235,84 @@ Be thorough and structured in your response."""
                 "suggestion": "Ensure Ollama is running and llava model is available"
             }) + "\n"
     
-    from fastapi.responses import StreamingResponse
     return StreamingResponse(stream_vision_response(), media_type="application/x-ndjson")
 
-# ===============================
+async def process_image_query(image_ids: list, text_ids: list, prompt: str, model: str):
+    """Process queries with image context using LLaVA"""
+    vision_model = "llava"
+    
+    responses = []
+    
+    # Process each image
+    for img_id in image_ids:
+        # Find the image file
+        image_files = [f for f in os.listdir(IMAGE_STORE) if f.startswith(img_id)]
+        if not image_files:
+            responses.append(f"Image {img_id} not found.")
+            continue
+        
+        image_path = os.path.join(IMAGE_STORE, image_files[0])
+        
+        # Read and encode image
+        with open(image_path, "rb") as f:
+            image_data = base64.b64encode(f.read()).decode()
+        
+        # Call Ollama with vision model
+        try:
+            response = requests.post(
+                f"{OLLAMA_URL}/api/generate",
+                json={
+                    "model": vision_model,
+                    "prompt": prompt,
+                    "images": [image_data],
+                    "stream": False
+                },
+                timeout=120
+            )
+            
+            if response.status_code == 200:
+                result = response.json()
+                responses.append(result.get("response", "No response from vision model"))
+            else:
+                responses.append(f"Error: Vision model returned status {response.status_code}")
+        except Exception as e:
+            responses.append(f"Error processing image: {str(e)}")
+    
+    # If there are also text documents, add their context
+    additional_context = ""
+    citations = []
+    if text_ids:
+        context, citations = build_context_from_documents(text_ids, prompt, top_k=3)
+        additional_context = f"\n\nAdditional context from documents:\n{context}"
+    
+    # Combine responses
+    final_response = "\n\n".join(responses)
+    if additional_context:
+        final_response += additional_context
+    
+    return JSONResponse(content={
+        "response": final_response,
+        "citations": citations,
+        "usedVisionModel": True,
+        "visionModel": vision_model
+    })
+
 # API Endpoints
-# ===============================
 @app.get("/")
 def home():
-    return {"message": "Ollama + LangChain API active"}
+    return {"message": "Private Document Summarizer API - Windows", "status": "active"}
 
 @app.post("/process")
 async def process(file: UploadFile):
+    # Check if it's an image
     if is_image_file(file.filename):
         doc_id = f"img_{uuid4().hex}"
         image_path = os.path.join(IMAGE_STORE, f"{doc_id}{Path(file.filename).suffix}")
+        
+        # Save image
         with open(image_path, "wb") as f:
             f.write(await file.read())
+        
         print(f"🖼️ Image saved: {image_path}")
         return {
             "documentId": doc_id, 
@@ -215,8 +321,10 @@ async def process(file: UploadFile):
             "imagePath": image_path
         }
     
+    # Process PDF normally
     chunks = load_and_split_pdf(await file.read())
     
+    # Handle empty chunks (e.g., image-only PDFs)
     if len(chunks) == 0:
         return JSONResponse(
             status_code=400,
@@ -237,6 +345,7 @@ async def summarize_by_id(request: Request):
     document_id = data.get("documentId")
     model_name = data.get("model_name", OLLAMA_MODEL)
 
+    # Check if it's an image
     if document_id.startswith("img_"):
         return await summarize_image(document_id, model_name)
 
@@ -253,7 +362,6 @@ async def summarize_by_id(request: Request):
             f"Chunk content:\n{txt}\n\nIntermediate summary:\n"
         )
 
-    # Helper: build final synthesis prompt
     def build_synthesis_prompt(intermediate_summaries: list[str], max_words: int = 500) -> str:
         combined = "\n\n".join(intermediate_summaries)[:40000]
         return (
@@ -270,9 +378,6 @@ async def summarize_by_id(request: Request):
         prompt = build_chunk_summary_prompt(chunk_text, idx, total)
         async with semaphore:
             return await asyncio.to_thread(generate_with_llm, prompt, model_name)
-
-    from fastapi.responses import StreamingResponse
-    import json
     
     async def stream_summaries():
         tasks = [asyncio.create_task(summarize_chunk_async(c, i, len(docs))) for i, c in enumerate(docs)]
@@ -282,6 +387,7 @@ async def summarize_by_id(request: Request):
             summary = await task
             intermediate_summaries.append(summary)
             yield json.dumps({"type": "chunk", "index": i, "total": len(docs), "summary": summary}) + "\n"
+        
         yield json.dumps({"type": "status", "message": "Generating final summary..."}) + "\n"
         synthesis_prompt = build_synthesis_prompt(intermediate_summaries)
         final_summary = await asyncio.to_thread(generate_with_llm, synthesis_prompt, model_name)
@@ -316,7 +422,6 @@ async def generate_text(request: Request):
     print(f"🎯 /generate → model={model}, mcp_tools={use_mcp_tools}, docs={len(document_ids)}")
     citations = []
     
-    # === PLAGIARISM CHECKER MODE (To be implemented) ===
     if use_mcp_tools:
         return JSONResponse(content={
             "response": "Plagiarism checker is not yet implemented.",
@@ -325,10 +430,12 @@ async def generate_text(request: Request):
             "status": "not_implemented"
         })
     
+    # Check if any document is an image
     image_ids = [doc_id for doc_id in document_ids if doc_id.startswith("img_")]
     text_ids = [doc_id for doc_id in document_ids if doc_id.startswith("doc_")]
     
     if image_ids:
+        # Use vision model for images
         return await process_image_query(image_ids, text_ids, prompt, model)
     
     if text_ids:
@@ -338,77 +445,28 @@ async def generate_text(request: Request):
     response_text = generate_with_llm(prompt, model)
     return JSONResponse(content={"response": response_text, "citations": citations})
 
-async def process_image_query(image_ids: list, text_ids: list, prompt: str, model: str):
-    """Process queries with image context using LLaVA"""
-    vision_model = "llava" if model.lower() != "remote" else "llava"
+if __name__ == "__main__":
+    print("=" * 60)
+    print("🔒 Private Document Summarizer - Windows Backend")
+    print("=" * 60)
     
-    responses = []
-    for img_id in image_ids:
-        image_files = [f for f in os.listdir(IMAGE_STORE) if f.startswith(img_id)]
-        if not image_files:
-            responses.append(f"Image {img_id} not found.")
-            continue
-        
-        image_path = os.path.join(IMAGE_STORE, image_files[0])
-        with open(image_path, "rb") as f:
-            image_data = base64.b64encode(f.read()).decode()
-        try:
-            response = requests.post(
-                f"{OLLAMA_URL}/api/generate",
-                json={
-                    "model": vision_model,
-                    "prompt": prompt,
-                    "images": [image_data],
-                    "stream": False
-                },
-                timeout=120
-            )
-            
-            if response.status_code == 200:
-                result = response.json()
-                responses.append(result.get("response", "No response from vision model"))
-            else:
-                responses.append(f"Error: Vision model returned status {response.status_code}")
-        except Exception as e:
-            responses.append(f"Error processing image: {str(e)}")
+    # Start Ollama
+    start_ollama_windows()
     
-    additional_context = ""
-    citations = []
-    if text_ids:
-        context, citations = build_context_from_documents(text_ids, prompt, top_k=3)
-        additional_context = f"\n\nAdditional context from documents:\n{context}"
+    # Start ngrok tunnel (optional)
+    use_ngrok = input("\n🌐 Do you want to expose via ngrok? (y/n): ").lower() == 'y'
     
-    final_response = "\n\n".join(responses)
-    if additional_context:
-        final_response += additional_context
+    if use_ngrok:
+        ngrok_token = input("Enter your ngrok auth token (from https://dashboard.ngrok.com): ")
+        if ngrok_token:
+            ngrok.set_auth_token(ngrok_token)
+            public_url = ngrok.connect(8000)
+            print(f"\n✅ Public URL: {public_url}")
+            print(f"📋 Copy this URL and paste it in the frontend Backend Settings\n")
     
-    return JSONResponse(content={
-        "response": final_response,
-        "citations": citations,
-        "usedVisionModel": True,
-        "visionModel": vision_model
-    })
-
-
-# === 🌍 NGROK ===
-NGROK_AUTHTOKEN = "32eB7tLSQoICKJD4JSQuJ9lWea6_7U5ndjtQCVaWnPLEc4Mws"
-FIXED_URL = "https://mari-unbequeathed-milkily.ngrok-free.app"
-!ngrok config add-authtoken $NGROK_AUTHTOKEN
-
-print("🌐 Starting ngrok tunnel...")
-ngrok_proc = subprocess.Popen(["ngrok", "http", "--host-header=rewrite", "--log", "stdout", "--url", FIXED_URL, "8000"],
-                              stdout=subprocess.PIPE, stderr=subprocess.PIPE)
-threading.Thread(target=stream_logs, args=(ngrok_proc, "ngrok"), daemon=True).start()
-time.sleep(3)
-print(f"✅ Public URL: {FIXED_URL}\n")
-
-config = uvicorn.Config(app, host="0.0.0.0", port=8000, log_level="info", access_log=True)
-server = uvicorn.Server(config)
-def run_uvicorn():
-    asyncio.run(server.serve())
-
-threading.Thread(target=run_uvicorn, daemon=True).start()
-print("🚀 FastAPI running with live logs (Colab-safe)...\n")
-
-while True:
-    time.sleep(30)
+    print("\n🚀 Starting FastAPI server...")
+    print("📍 Local URL: http://localhost:8000")
+    print("📖 API Docs: http://localhost:8000/docs")
+    print("\nPress Ctrl+C to stop the server\n")
+    
+    uvicorn.run(app, host="0.0.0.0", port=8000, log_level="info")

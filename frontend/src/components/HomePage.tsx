@@ -9,6 +9,7 @@ import { SignIn, SignUp } from "@clerk/nextjs"
 import { useEffect, useState } from "react"
 import { Check, Rocket, AlertTriangle, Layers, Zap, Globe, BarChart2, FileText, ToolCase, SlidersHorizontal } from "lucide-react"
 import ThemeSwitcher from "./Theme-switcher"
+import { BackendConfigDialog } from "./BackendConfig"
 
 export default function HomePage() {
   const [mounted, setMounted] = useState(false)
@@ -18,8 +19,8 @@ export default function HomePage() {
   }, [])
   return (
     <main className="w-full flex-1 flex flex-col items-center justify-center bg-background relative">
-      {/* Theme Switcher - Floating */}
-      <div className="fixed top-6 right-6 z-50">
+      <div className="fixed top-6 right-6 z-50 flex items-center gap-2">
+        <BackendConfigDialog />
         <ThemeSwitcher />
       </div>
       
@@ -33,15 +34,15 @@ export default function HomePage() {
           <div className="flex flex-col items-start gap-6">
             <Badge className="w-fit inline-flex items-center gap-2" variant="secondary">
               <Check className="w-4 h-4" />
-              Built to solve real summarisation problems
+              100% Private · Fully Local · Zero Cloud
             </Badge>
             <h1 className="text-balance text-3xl font-semibold tracking-tight md:text-5xl leading-tight">
-              <span className="block">Tackle token limits, “lost-in-the-middle,”</span>
-              <span className="block">and hallucinations head-on</span>
+              <span className="block">Your Documents Stay Private.</span>
+              <span className="block">Runs Completely On Your Machine.</span>
             </h1>
             <p className="max-w-xl text-pretty text-base text-muted-foreground md:text-lg">
-              A research-grade document summariser engineered for long documents and high accuracy—using hierarchical
-              pipelines, factual verification, and multi-criteria evaluation. Perfect for research assistance and beyond.
+              A privacy-first document summarizer that runs entirely locally using Ollama. No cloud uploads, no external APIs, 
+              no data leaks. Everything processes on your own hardware with open-source AI models you control.
             </p>
 
             <div className="flex flex-col sm:flex-row gap-3 w-full">
@@ -54,7 +55,7 @@ export default function HomePage() {
 
               <a href="#problems" className="w-full sm:w-auto">
                 <Button size="lg" variant="outline" className="w-full sm:w-auto">
-                  See the problems we solve
+                  Why Local & Private?
                 </Button>
               </a>
             </div>
@@ -68,15 +69,15 @@ export default function HomePage() {
             </CardHeader>
             <CardContent className="grid gap-4">
               <div className="flex items-start gap-3">
-                <Check className="w-5 h-5 text-blue-500 mt-1" />
+                <Check className="w-5 h-5 text-green-500 mt-1" />
                 <div>
-                  <p className="font-medium">Accuracy-first pipelines</p>
-                  <p className="text-sm text-muted-foreground">Fact-checking and hierarchical synthesis built in.</p>
+                  <p className="font-medium">100% Local Processing</p>
+                  <p className="text-sm text-muted-foreground">All AI runs on your machine via Ollama. Zero cloud dependencies.</p>
                 </div>
               </div>
 
               <div className="flex items-start gap-3">
-                <Check className="w-5 h-5 text-blue-500 mt-1" />
+                <Check className="w-5 h-5 text-green-500 mt-1" />
                 <div>
                   <p className="font-medium">Scale to long documents</p>
                   <p className="text-sm text-muted-foreground">Chunking and map-reduce preserve document structure.</p>
@@ -102,9 +103,9 @@ export default function HomePage() {
         style={{ transitionDelay: mounted ? ("140ms" as string) : undefined }}
       >
           <div className="mb-8 max-w-xl">
-            <h2 className="text-2xl font-semibold tracking-tight md:text-3xl">Access your workspace</h2>
+            <h2 className="text-2xl font-semibold tracking-tight md:text-3xl">Access your private workspace</h2>
             <p className="text-muted-foreground">
-              Sign in or create an account to generate accurate, verifiable summaries.
+              Sign in to start processing documents locally on your machine. All processing stays private.
             </p>
           </div>
 
@@ -120,24 +121,24 @@ export default function HomePage() {
 
               <div className="mt-4 space-y-3">
                 <div className="flex items-start gap-3">
-                  <Rocket className="w-4 h-4 text-blue-500 mt-1 flex-shrink-0" />
+                  <Rocket className="w-4 h-4 text-green-500 mt-1 flex-shrink-0" />
                   <div className="text-sm">
-                    <p className="font-medium">Quick Setup</p>
-                    <p className="text-xs text-muted-foreground">Get started in under 30 seconds</p>
+                    <p className="font-medium">Runs Locally</p>
+                    <p className="text-xs text-muted-foreground">Powered by Ollama on your hardware</p>
                   </div>
                 </div>
                 <div className="flex items-start gap-3">
-                  <Globe className="w-4 h-4 text-purple-500 mt-1 flex-shrink-0" />
+                  <Globe className="w-4 h-4 text-green-500 mt-1 flex-shrink-0" />
                   <div className="text-sm">
                     <p className="font-medium">Universal Access</p>
                     <p className="text-xs text-muted-foreground">Works with any document format</p>
                   </div>
                 </div>
                 <div className="flex items-start gap-3">
-                  <SlidersHorizontal className="w-4 h-4 text-orange-500 mt-1 flex-shrink-0" />
+                  <SlidersHorizontal className="w-4 h-4 text-green-500 mt-1 flex-shrink-0" />
                   <div className="text-sm">
-                    <p className="font-medium">Custom Settings</p>
-                    <p className="text-xs text-muted-foreground">Tailor output to your needs</p>
+                    <p className="font-medium">Open Source Models</p>
+                    <p className="text-xs text-muted-foreground">Use Mistral, Llama, or any Ollama model</p>
                   </div>
                 </div>
               </div>
@@ -196,33 +197,33 @@ export default function HomePage() {
 
           <Card className="p-4 mb-0">
             <CardHeader className="p-0 mb-0">
-              <CardTitle className="text-base">Why create an account?</CardTitle>
-              <CardDescription>Problem-led benefits</CardDescription>
+              <CardTitle className="text-base">Privacy-First Benefits</CardTitle>
+              <CardDescription>Why go local matters</CardDescription>
             </CardHeader>
             <CardContent className="text-sm text-muted-foreground grid gap-3 mb-0">
               <div className="flex items-start gap-2">
-                <Badge variant="outline">Accuracy</Badge>
-                <p className="m-0">Factual verification reduces hallucinations and preserves trust.</p>
+                <Badge variant="outline" className="bg-green-50 dark:bg-green-950 border-green-500">Private</Badge>
+                <p className="m-0">Documents processed entirely on your hardware.</p>
               </div>
               <div className="flex items-start gap-2">
-                <Badge variant="outline">Scale</Badge>
-                <p className="m-0">Hierarchical pipelines handle 100k+ tokens without losing structure.</p>
+                <Badge variant="outline" className="bg-green-50 dark:bg-green-950 border-green-500">Offline</Badge>
+                <p className="m-0">Works without internet. Perfect for sensitive or confidential documents.</p>
               </div>
               <div className="flex items-start gap-2">
-                <Badge variant="outline">Evaluation</Badge>
-                <p className="m-0">Multi-criteria scoring compares methods for better quality.</p>
+                <Badge variant="outline" className="bg-green-50 dark:bg-green-950 border-green-500">Open Source</Badge>
+                <p className="m-0">Uses Ollama with models like Mistral, Llama. Fully transparent AI.</p>
               </div>
               <div className="flex items-start gap-2">
-                <Badge variant="outline">Speed</Badge>
-                <p className="m-0">Optimized processing pipelines deliver results in seconds, not minutes.</p>
+                <Badge variant="outline" className="bg-green-50 dark:bg-green-950 border-green-500">Free</Badge>
+                <p className="m-0">No API costs. No per-document fees. Unlimited processing on your machine.</p>
               </div>
               <div className="flex items-start gap-2">
-                <Badge variant="outline">Security</Badge>
-                <p className="m-0">Enterprise-grade encryption keeps your documents safe and private.</p>
+                <Badge variant="outline" className="bg-green-50 dark:bg-green-950 border-green-500">Control</Badge>
+                <p className="m-0">You own the models, data, and infrastructure. No vendor lock-in.</p>
               </div>
               <div className="flex items-start gap-2">
-                <Badge variant="outline">Integration</Badge>
-                <p className="m-0">API access and export formats for seamless workflow integration.</p>
+                <Badge variant="outline" className="bg-green-50 dark:bg-green-950 border-green-500">Fast</Badge>
+                <p className="m-0">Local processing with GPU acceleration. No network latency.</p>
               </div>
             </CardContent>
           </Card>
@@ -239,8 +240,8 @@ export default function HomePage() {
         style={{ transitionDelay: mounted ? ("80ms" as string) : undefined }}
       >
           <div className="mb-6 max-w-xl">
-            <h2 className="text-2xl font-semibold tracking-tight md:text-3xl">Challenges & Capabilities</h2>
-            <p className="text-muted-foreground">Compact view of common problems and our capability map.</p>
+            <h2 className="text-2xl font-semibold tracking-tight md:text-3xl">Privacy Meets Capability</h2>
+            <p className="text-muted-foreground">Why local processing solves real problems better than cloud solutions.</p>
           </div>
 
           <div className="space-y-8">
@@ -249,12 +250,12 @@ export default function HomePage() {
               <h3 className="text-lg font-semibold mb-4 text-rose-600">Key Challenges</h3>
               <div className="grid grid-cols-1 md:grid-cols-3 lg:grid-cols-4 gap-4">
                 {[
-                  { title: "Token Limits", body: "Truncation across long documents; lost cross-section references.", icon: AlertTriangle },
-                  { title: "Lost in the Middle", body: "Salient mid-document content gets ignored as prompts grow.", icon: Layers },
-                  { title: "Hallucinations", body: "Ungrounded claims without verification.", icon: AlertTriangle },
-                  { title: "Context Loss", body: "Important relationships between sections get disconnected.", icon: Globe },
-                  { title: "Inconsistent Quality", body: "Variable output quality without proper evaluation metrics.", icon: BarChart2 },
-                  { title: "Processing Speed", body: "Slow traditional methods can't handle real-time demands.", icon: SlidersHorizontal },
+                  { title: "Cloud Privacy Risks", body: "Documents uploaded to cloud services can be exposed or logged.", icon: AlertTriangle },
+                  { title: "API Costs", body: "Per-document fees add up quickly for heavy usage.", icon: Layers },
+                  { title: "Vendor Lock-in", body: "Proprietary APIs tie you to specific providers.", icon: AlertTriangle },
+                  { title: "Internet Required", body: "Cloud solutions fail offline or with poor connectivity.", icon: Globe },
+                  { title: "Data Compliance", body: "GDPR, HIPAA restrictions prevent cloud uploads.", icon: BarChart2 },
+                  { title: "Network Latency", body: "Upload/download delays slow processing significantly.", icon: SlidersHorizontal },
                 ].map((c) => (
                   <div key={c.title} className="flex items-start gap-3 rounded-md border p-4">
                     <div className="flex-shrink-0 mt-1">
@@ -271,7 +272,7 @@ export default function HomePage() {
 
             {/* Capabilities Section */}
             <div>
-              <h3 className="text-lg font-semibold mb-4 text-blue-600">Our Solutions</h3>
+              <h3 className="text-lg font-semibold mb-4 text-green-600">Local Processing Advantages</h3>
               <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4">
                 {[
                   { title: "Hierarchical Processing", body: "Map-reduce pipelines with recursive synthesis for long documents", icon: Layers },
@@ -285,7 +286,7 @@ export default function HomePage() {
                 ].map((cap) => (
                   <div key={cap.title} className="flex items-start gap-3 rounded-md border p-4">
                     <div className="flex-shrink-0 mt-1">
-                      <cap.icon className="w-5 h-5 text-blue-500" />
+                      <cap.icon className="w-5 h-5 text-green-500" />
                     </div>
                     <div>
                       <div className="text-sm font-semibold">{cap.title}</div>
@@ -315,11 +316,11 @@ export default function HomePage() {
           <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
             <Accordion type="single" collapsible defaultValue="item-3" className="space-y-2">
               <AccordionItem value="item-1">
-                <AccordionTrigger className="rounded-md border px-4 py-3 text-left">How do you handle extremely long documents?</AccordionTrigger>
+                <AccordionTrigger className="rounded-md border px-4 py-3 text-left">How does local processing work?</AccordionTrigger>
                 <AccordionContent className="text-sm text-muted-foreground p-4 border-x border-b rounded-b-md">
-                  We use hierarchical chunking and Map-Reduce pipelines to preserve cross-section context and synthesise
-                  coherent summaries well beyond typical token limits. Our system can process documents up to 1M+ tokens
-                  while maintaining narrative flow and key relationships between sections.
+                  We use Ollama to run open-source AI models (Mistral, Llama, Phi, etc.) directly on your machine. 
+                  Documents are processed entirely locally with no cloud uploads. The AI runs on your CPU/GPU using 
+                  optimized inference engines for fast results.
                 </AccordionContent>
               </AccordionItem>
               <AccordionItem value="item-2">
