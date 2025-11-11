@@ -124,74 +124,7 @@ def build_context_from_documents(document_ids, question: str, top_k: int = 5):
     
     return "\n---\n".join(contexts)[:20000], citations
 
-async def summarize_image(document_id: str, model_name: str):
-    """Summarize image content using LLaVA vision model"""
-    import json
-    image_files = [f for f in os.listdir(IMAGE_STORE) if f.startswith(document_id)]
-    if not image_files:
-        return JSONResponse(
-            status_code=404,
-            content={"error": "Image not found", "documentId": document_id}
-        )
-    
-    image_path = os.path.join(IMAGE_STORE, image_files[0])
-    
-    # Read and encode image
-    with open(image_path, "rb") as f:
-        image_data = base64.b64encode(f.read()).decode()
-    
-    vision_model = "llava"
-    
-    # Generate comprehensive description
-    prompt = """Provide a detailed description of this image. Include:
-- What type of document or image this is (diagram, chart, photo, text, etc.)
-- Main visual elements and their arrangement
-- Any text visible in the image
-- Key information, data, or insights
-- Overall purpose or message
-
-Be thorough and structured in your response."""
-    
-    async def stream_vision_response():
-        try:
-            response = requests.post(
-                f"{OLLAMA_URL}/api/generate",
-                json={
-                    "model": vision_model,
-                    "prompt": prompt,
-                    "images": [image_data],
-                    "stream": False
-                },
-                timeout=180
-            )
-            
-            if response.status_code == 200:
-                result = response.json()
-                summary = result.get("response", "Unable to analyze image")
-                
-                yield json.dumps({
-                    "type": "final",
-                    "summary": summary,
-                    "isImage": True,
-                    "visionModel": vision_model,
-                    "chunkCount": 1,
-                    "intermediateCount": 0
-                }) + "\n"
-            else:
-                yield json.dumps({
-                    "type": "error",
-                    "message": f"Vision model returned status {response.status_code}. Make sure 'llava' model is pulled.",
-                    "suggestion": "Run: ollama pull llava"
-                }) + "\n"
-        except Exception as e:
-            yield json.dumps({
-                "type": "error",
-                "message": f"Error processing image: {str(e)}",
-                "suggestion": "Ensure Ollama is running and llava model is available"
-            }) + "\n"
-    
-    from fastapi.responses import StreamingResponse
-    return StreamingResponse(stream_vision_response(), media_type="application/x-ndjson")
+# NOTE: Image summarization removed intentionally. Image queries are still supported via /generate.
 
 # ===============================
 # API Endpoints
@@ -237,8 +170,6 @@ async def summarize_by_id(request: Request):
     document_id = data.get("documentId")
     model_name = data.get("model_name", OLLAMA_MODEL)
 
-    if document_id.startswith("img_"):
-        return await summarize_image(document_id, model_name)
 
     persist_dir = os.path.join(PERSIST_BASE, document_id)
     embeddings = HuggingFaceEmbeddings(model_name="all-MiniLM-L6-v2")

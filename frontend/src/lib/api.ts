@@ -79,7 +79,7 @@ export async function sendExternalChatMessage({ prompt, model = "mistral", strea
 
 export type UploadResult = { url: string; filename: string; key: string };
 export type ProcessingResult = { documentId: string; status: string; chunkCount: number };
-export type Citation = { documentId: string; page: string | number; snippet: string; fullText: string; source: string; rank: number };
+export type Citation = { documentId: string; page: string | number; snippet: string; fullText: string; source: string; rank: number; score?: number };
 export type ChatResponse = { response: string; citations?: Citation[] };
 
 export async function uploadDocument(file: File, opts?: { chatFolder?: string }): Promise<UploadResult> {

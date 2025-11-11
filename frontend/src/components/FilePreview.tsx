@@ -146,7 +146,12 @@ export function FilePreview({ file, onClose, className }: FilePreviewProps) {
         if (!imgSrc) return null;
         return (
           <div className="w-full h-[calc(100vh-10rem)] bg-white/5 dark:bg-black/20 rounded-lg overflow-auto">
-            <div className="flex items-center justify-center min-h-full p-4">
+            <div className="w-full flex items-center justify-center p-2">
+              <div className="text-xs text-muted-foreground bg-muted/60 px-2 py-1 rounded">
+                Tip: Use chat to ask questions about this image. Summarization is text-only.
+              </div>
+            </div>
+            <div className="flex items-center justify-center min-h-[calc(100%-2.5rem)] p-4">
               {/* eslint-disable-next-line @next/next/no-img-element */}
               <img
                 src={imgSrc}
@@ -188,21 +193,20 @@ export function FilePreview({ file, onClose, className }: FilePreviewProps) {
           <div className="flex items-center gap-2">
             {file && (
               <>
-                {(getFileType(file) === 'pdf' || getFileType(file) === 'image') && typeof file !== 'string' && (file.key || file.documentId || file.localFile) && (
+                {getFileType(file) === 'pdf' && typeof file !== 'string' && (file.key || file.documentId || file.localFile) && (
                   <Button
                     variant="ghost"
                     size="icon"
                     onClick={async () => {
                       if (typeof file === 'string') return;
                       setIsSummarizing(true);
-                      const isImage = getFileType(file) === 'image';
                       try {
                         let out: { summary: string; chunkCount?: number } | undefined;
                         if (file.documentId) {
                           out = await summarizeByDocumentId(
                             file.documentId,
                             (index, total, chunkSummary) => {
-                              toast.info(isImage ? 'Analyzing image...' : `Processing chunk ${index + 1}/${total}`, { duration: 1000 });
+                              toast.info(`Processing chunk ${index + 1}/${total}`, { duration: 1000 });
                             },
                             (status) => {
                               toast.info(status, { duration: 1500 });
@@ -214,7 +218,7 @@ export function FilePreview({ file, onClose, className }: FilePreviewProps) {
                             out = await summarizeByDocumentId(
                               proc.documentId,
                               (index, total, chunkSummary) => {
-                                toast.info(isImage ? 'Analyzing image...' : `Processing chunk ${index + 1}/${total}`, { duration: 1000 });
+                                toast.info(`Processing chunk ${index + 1}/${total}`, { duration: 1000 });
                               },
                               (status) => {
                                 toast.info(status, { duration: 1500 });
@@ -229,7 +233,7 @@ export function FilePreview({ file, onClose, className }: FilePreviewProps) {
                             out = await summarizeByDocumentId(
                               proc.documentId,
                               (index, total, chunkSummary) => {
-                                toast.info(isImage ? 'Analyzing image...' : `Processing chunk ${index + 1}/${total}`, { duration: 1000 });
+                                toast.info(`Processing chunk ${index + 1}/${total}`, { duration: 1000 });
                               },
                               (status) => {
                                 toast.info(status, { duration: 1500 });
@@ -262,7 +266,7 @@ export function FilePreview({ file, onClose, className }: FilePreviewProps) {
                               updateChat(chat);
                             }
                           }
-                          toast.success(isImage ? 'Image analyzed!' : 'Paper summarized!', { 
+                          toast.success('Paper summarized!', { 
                             description: out.chunkCount ? `Processed ${out.chunkCount} chunks` : 'Summary saved with file', 
                             duration: 2500 
                           });
@@ -270,13 +274,13 @@ export function FilePreview({ file, onClose, className }: FilePreviewProps) {
                           toast.error('No summary returned');
                         }
                       } catch (error) {
-                        toast.error(isImage ? 'Failed to analyze image' : 'Failed to summarize paper', { description: error instanceof Error ? error.message : 'Unknown error' });
+                        toast.error('Failed to summarize paper', { description: error instanceof Error ? error.message : 'Unknown error' });
                       } finally {
                         setIsSummarizing(false);
                       }
                     }}
                     className="h-7 w-7"
-                    title={getFileType(file) === 'image' ? "Analyze Image with AI" : "Summarize Research Paper"}
+                    title="Summarize Research Paper"
                   >
                     {isSummarizing ? (
                       <span className="inline-flex items-center justify-center h-4 w-4">

@@ -12,7 +12,6 @@ import {
 import { Card } from "@/components/ui/card";
 import { ScrollArea } from "@/components/ui/scroll-area";
 import { FilePreview } from "./FilePreview";
-import { FlowArea } from "./FlowArea";
 import { cn } from "@/lib/utils";
 import { Copy, Link2, MessageSquare, Bot } from "lucide-react";
 import { MarkdownRenderer } from "./MarkdownRenderer";
@@ -461,8 +460,6 @@ export function ChatInterface({ activeDocument }: ChatInterfaceProps) {
             <BackendConfigDialog />
           </div>
           
-          {/* Chat messages area */}
-          <FlowArea />
           <div className="flex-1 flex flex-col">
             <div className="h-[calc(100vh-10rem)] w-full pt-5">
               <ScrollArea className="h-full w-full">
