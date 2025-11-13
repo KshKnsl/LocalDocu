@@ -1,6 +1,5 @@
 "use client";
 
-import { Card } from "@/components/ui/card";
 import { Progress } from "@/components/ui/progress";
 import { FileText, Loader2, CheckCircle2, AlertCircle } from "lucide-react";
 import { Badge } from "@/components/ui/badge";
@@ -32,31 +31,17 @@ export function ProcessingBanner({ files, onDismiss }: ProcessingBannerProps) {
   const allComplete = activeFiles.length === 0;
 
   return (
-    <Card className="fixed top-4 right-4 left-4 md:left-auto md:w-[480px] z-50 shadow-2xl border-2 bg-background/95 backdrop-blur-sm">
-      <div className="p-4 space-y-3">
-        {/* Header */}
-        <div className="flex items-center justify-between">
-          <div className="flex items-center gap-2">
-            {allComplete ? (
-              <CheckCircle2 className="w-5 h-5 text-green-500" />
-            ) : (
-              <Loader2 className="w-5 h-5 animate-spin text-blue-500" />
-            )}
-            <h3 className="font-semibold text-base">
-              {allComplete 
-                ? "Processing Complete" 
-                : `Processing ${files.length} ${files.length === 1 ? 'Document' : 'Documents'}`}
-            </h3>
-          </div>
-          {allComplete && onDismiss && (
-            <button 
-              onClick={onDismiss}
-              className="text-sm text-muted-foreground hover:text-foreground"
-            >
-              Dismiss
-            </button>
-          )}
+    <div className="space-y-4">
+      {allComplete && onDismiss && (
+        <div className="flex justify-end">
+          <button 
+            onClick={onDismiss}
+            className="text-sm text-muted-foreground hover:text-foreground hover:underline"
+          >
+            Close (auto-closing in 3s)
+          </button>
         </div>
+      )}
 
         {/* Overall Progress */}
         {!allComplete && (
@@ -152,7 +137,6 @@ export function ProcessingBanner({ files, onDismiss }: ProcessingBannerProps) {
             </div>
           ))}
         </div>
-      </div>
-    </Card>
+    </div>
   );
 }

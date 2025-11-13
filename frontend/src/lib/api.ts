@@ -6,6 +6,10 @@ const getBackendUrl = () => {
   return "https://minor-project-6v6z.vercel.app/api"
 }
 
+const getProgressServiceUrl = () => {
+  return "https://minor-project-progress.vercel.app/api"
+}
+
 export const isUsingCustomBackend = () => {
   if (typeof window !== "undefined") {
     const customUrl = localStorage.getItem("backendUrl")
@@ -93,8 +97,8 @@ export type ProgressData = {
 export async function getProgress(documentId?: string): Promise<Record<string, ProgressData> | ProgressData | null> {
   try {
     const url = documentId 
-      ? `${getBackendUrl()}/progress?documentId=${encodeURIComponent(documentId)}`
-      : `${getBackendUrl()}/progress`;
+      ? `${getProgressServiceUrl()}/progress?documentId=${encodeURIComponent(documentId)}`
+      : `${getProgressServiceUrl()}/progress`;
     
     const res = await fetch(url);
     if (!res.ok) return null;
@@ -109,7 +113,7 @@ export async function getProgress(documentId?: string): Promise<Record<string, P
 
 export async function clearProgress(documentId: string): Promise<void> {
   try {
-    await fetch(`${getBackendUrl()}/progress/${encodeURIComponent(documentId)}`, {
+    await fetch(`${getProgressServiceUrl()}/progress/${encodeURIComponent(documentId)}`, {
       method: "DELETE"
     });
   } catch (e) {

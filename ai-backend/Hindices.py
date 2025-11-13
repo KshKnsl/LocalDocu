@@ -68,10 +68,10 @@ if not NGROK_AUTHTOKEN or NGROK_AUTHTOKEN == "YOUR_NGROK_AUTHTOKEN":
 OLLAMA_MODEL = os.environ.get("OLLAMA_MODEL", "mistral")
 OLLAMA_URL = "http://localhost:11434"
 
-PROXY_BACKEND_URL = os.environ.get("PROXY_BACKEND_URL", "http://localhost:3000")
+PROGRESS_SERVICE_URL = os.environ.get("PROGRESS_SERVICE_URL", "")
 
 def post_progress(document_id: str, status: str, progress: int = 0, **kwargs):
-    """Post progress update to proxy backend."""
+    """Post progress update to progress tracking service (async, non-blocking)."""
     try:
         payload = {
             "documentId": document_id,
@@ -79,9 +79,25 @@ def post_progress(document_id: str, status: str, progress: int = 0, **kwargs):
             "progress": progress,
             **kwargs
         }
-        requests.post(f"{PROXY_BACKEND_URL}/api/progress", json=payload, timeout=2)
+        import threading
+        def _post():
+            try:
+                response = requests.post(
+                    f"{PROGRESS_SERVICE_URL}/progress", 
+                    json=payload, 
+                    timeout=10  # Longer timeout for reliability
+                )
+                if response.status_code != 200:
+                    print(f"Warning: Progress service returned {response.status_code}")
+            except requests.exceptions.Timeout:
+                print(f"Warning: Progress service timeout (doc: {document_id})")
+            except Exception as e:
+                print(f"Warning: Progress service error: {e}")
+        
+        thread = threading.Thread(target=_post, daemon=True)
+        thread.start()
     except Exception as e:
-        print(f"Warning: Failed to post progress: {e}")
+        pass  
 
 # --- Persistent Storage Paths (Hierarchical) ---
 PERSIST_BASE = os.path.abspath("./chroma_store")

@@ -68,12 +68,29 @@ export function ChatInterface({ activeDocument }: ChatInterfaceProps) {
   const [chats, setChats] = useState<ChatDocument[]>(() => getAllChats());
   const [useAgentTools, setUseAgentTools] = useState(false);
   const [processingFiles, setProcessingFiles] = useState<ProcessingFile[]>([]);
+  const [showProcessingDialog, setShowProcessingDialog] = useState(false);
+  const [isProcessing, setIsProcessing] = useState(false);
   const [isSidebarOpen, setIsSidebarOpen] = useState(() => {
     if (typeof window !== "undefined") {
       return window.innerWidth >= 640;
     }
     return true;
   });
+
+  useEffect(() => {
+    const allComplete = processingFiles.length > 0 && 
+      processingFiles.every(f => f.status === 'done' || f.status === 'failed');
+    
+    if (allComplete && showProcessingDialog) {
+      const timer = setTimeout(() => {
+        setShowProcessingDialog(false);
+        setProcessingFiles([]);
+        setIsProcessing(false);
+      }, 3000);
+      
+      return () => clearTimeout(timer);
+    }
+  }, [processingFiles, showProcessingDialog]);
 
   const getModelDisplayName = (modelName?: string) => {
     if (!modelName) return null;
@@ -160,6 +177,9 @@ export function ChatInterface({ activeDocument }: ChatInterfaceProps) {
       const chatFolder = `chats/${chatId}`;
       const tempIds = fileArray.map(() => `temp_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`);
       
+      // Show processing dialog and block operations
+      setIsProcessing(true);
+      setShowProcessingDialog(true);
       setProcessingFiles(fileArray.map(file => ({
         name: file.name,
         status: 'uploading',
@@ -534,11 +554,39 @@ export function ChatInterface({ activeDocument }: ChatInterfaceProps) {
   };
   return (
     <div className="flex w-full h-full">
-      {/* Processing Banner */}
-      <ProcessingBanner 
-        files={processingFiles}
-        onDismiss={() => setProcessingFiles([])}
-      />
+      {/* Processing Dialog */}
+      <Dialog open={showProcessingDialog} onOpenChange={() => {}}>
+        <DialogContent className="sm:max-w-[600px]" onInteractOutside={(e) => e.preventDefault()}>
+          <DialogHeader>
+            <DialogTitle className="flex items-center gap-2">
+              {processingFiles.every(f => f.status === 'done' || f.status === 'failed') ? (
+                <>
+                  <span className="text-green-600">✓</span>
+                  Processing Complete
+                </>
+              ) : (
+                <>
+                  <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-primary" />
+                  Processing {processingFiles.length} {processingFiles.length === 1 ? 'Document' : 'Documents'}
+                </>
+              )}
+            </DialogTitle>
+          </DialogHeader>
+          <ProcessingBanner 
+            files={processingFiles}
+            onDismiss={() => {
+              setShowProcessingDialog(false);
+              setProcessingFiles([]);
+              setIsProcessing(false);
+            }}
+          />
+        </DialogContent>
+      </Dialog>
+
+      {/* Blocking Overlay */}
+      {isProcessing && (
+        <div className="fixed inset-0 bg-background/80 backdrop-blur-sm z-40" />
+      )}
       
       <ChatSidebar
         isSidebarOpen={isSidebarOpen}
@@ -744,6 +792,7 @@ export function ChatInterface({ activeDocument }: ChatInterfaceProps) {
               setModel={setModel}
               useAgentTools={useAgentTools}
               setUseAgentTools={setUseAgentTools}
+              disabled={isProcessing}
             />
           </div>
         </div>

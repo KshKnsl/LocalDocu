@@ -25,6 +25,7 @@ interface ChatInputProps {
   setModel: (model: string) => void;
   useAgentTools?: boolean;
   setUseAgentTools?: (value: boolean) => void;
+  disabled?: boolean;
 }
 
 export function ChatInput({
@@ -40,6 +41,7 @@ export function ChatInput({
   setModel,
   useAgentTools = false,
   setUseAgentTools,
+  disabled = false,
 }: ChatInputProps) {
   const fileInputRef = useRef<HTMLInputElement>(null);
   const isCustomModel = !LOCAL_MODELS.some(m => m.name === model);
@@ -122,19 +124,20 @@ export function ChatInput({
         <textarea
           value={input}
           onChange={(e) => setInput(e.target.value)}
-          placeholder="Type your message..."
+          placeholder={disabled ? "Processing files..." : "Type your message..."}
           onKeyDown={(e) => {
-            if (e.key === "Enter" && !e.shiftKey) {
+            if (e.key === "Enter" && !e.shiftKey && !disabled) {
               e.preventDefault();
               onSubmit();
             }
           }}
+          disabled={disabled}
           className="flex-1 min-h-[80px] max-h-[160px] rounded-md border bg-background px-3 py-2 text-sm ring-offset-background placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50 resize-none overflow-y-auto [&::-webkit-scrollbar]:hidden"
         />
         <div className="flex flex-col gap-2">
           <Button
             onClick={onSubmit}
-            disabled={!input.trim() && files.length === 0}
+            disabled={disabled || (!input.trim() && files.length === 0)}
             className="shrink-0 px-4 w-full"
           >
             <Send className="h-4 w-4 mr-2" />
@@ -147,6 +150,7 @@ export function ChatInput({
               onClick={() => fileInputRef.current?.click()}
               className="shrink-0"
               title="Attach files"
+              disabled={disabled}
             >
               <Paperclip className="h-4 w-4" />
             </Button>
@@ -156,6 +160,7 @@ export function ChatInput({
               onClick={onShowAttachments}
               className="shrink-0"
               title="View attachments"
+              disabled={disabled}
             >
               <Link2 className="h-4 w-4" />
             </Button>
