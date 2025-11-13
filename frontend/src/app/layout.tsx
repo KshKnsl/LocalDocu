@@ -5,10 +5,10 @@ import { ThemeProvider } from "next-themes";
 import { Toaster } from "sonner";
 
 export const metadata: Metadata = {
-  title: "Private Local Document Summarizer",
-  description: "100% Private, fully local AI document summarization. Your documents never leave your machine. Run entirely on your own hardware.",
+  title: "Docu - Private Local RAG",
+  description: "100% Private, fully local document AI assistant. Your documents never leave your machine. Run entirely on your own hardware with RAG.",
   icons: {
-    icon: "/favicon.ico"
+    icon: "/logo.png"
   }
 };
 

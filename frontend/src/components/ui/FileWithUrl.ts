@@ -14,4 +14,5 @@ export interface FileWithUrl {
   downloadStatus?: 'idle' | 'downloading' | 'done' | 'failed';
   processingStatus?: 'idle' | 'processing' | 'done' | 'failed';
   statusMessage?: string;
+  chunkCount?: number;
 }

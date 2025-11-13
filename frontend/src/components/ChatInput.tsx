@@ -21,6 +21,7 @@ interface ChatInputProps {
   onSubmit: () => void;
   onPreviewFile: (file: FileWithUrl) => void;
   onShowAttachments: () => void;
+  onViewChunks?: (documentId: string, documentName: string) => void;
   model: string;
   setModel: (model: string) => void;
   useAgentTools?: boolean;
@@ -38,6 +39,7 @@ export function ChatInput({
   onSubmit,
   onPreviewFile,
   onShowAttachments,
+  onViewChunks,
   model,
   setModel,
   useAgentTools = false,
@@ -109,6 +111,7 @@ export function ChatInput({
                   file={file}
                   onPreview={onPreviewFile}
                   onRemove={() => onRemoveFile(index)}
+                  onViewChunks={onViewChunks}
                 />
               ))}
               {files.length === 0 && (

@@ -130,6 +130,8 @@ class Reference(BaseModel):
     id: str = Field(..., description="The citation ID, e.g., '1', '2'.")
     title: str = Field(..., description="The title of the source document.")
     source: str = Field(..., description="The source URL or filename.")
+    page: int = Field(default=0, description="The page number in the document.")
+    snippet: str = Field(default="", description="A short text snippet from the source.")
 
 class AIAnswer(BaseModel):
     """Pydantic model for the LLM's structured answer."""
@@ -155,7 +157,7 @@ def deduplicate_references_and_update_answer(answer: str, references: List[Refer
     for ref in references:
         if ref.source not in unique_refs:
             new_id = str(new_id_counter)
-            unique_refs[ref.source] = Reference(id=new_id, title=ref.title, source=ref.source)
+            unique_refs[ref.source] = Reference(id=new_id, title=ref.title, source=ref.source, page=ref.page, snippet=ref.snippet)
             new_id_counter += 1
 
         id_mapping[ref.id] = unique_refs[ref.source].id
@@ -176,15 +178,6 @@ def deduplicate_references_and_update_answer(answer: str, references: List[Refer
 # 5. SYSTEM & OLLAMA UTILS
 # ==============================================================================
 # (This section is unchanged from the previous code)
-
-def kill_processes():
-    print("Terminating existing processes...")
-    os.system("pkill -f 'uvicorn' || true")
-    os.system("pkill -f 'ngrok' || true")
-    os.system("pkill -f 'ollama' || true")
-    gc.collect()
-    time.sleep(2)
-    print("✅ All background processes and threads terminated.")
 
 def stream_logs(proc, name):
     for line in iter(proc.stdout.readline, b''):
@@ -300,12 +293,16 @@ Page Content Chunk: \n\nMachine learning is a subset of AI.
     {{
       "id": "1",
       "title": "AI in 2024 (Page 5, Chunk 1)",
-      "source": "https://example.com/ai.pdf"
+      "source": "https://example.com/ai.pdf",
+      "page": 5,
+      "snippet": "Artificial intelligence has seen rapid growth, especially in large language models."
     }},
     {{
       "id": "2",
       "title": "ML Basics (Page 2, Chunk 4)",
-      "source": "https://example.com/ml.pdf"
+      "source": "https://example.com/ml.pdf",
+      "page": 2,
+      "snippet": "Machine learning is a subset of AI."
     }}
   ]
 }}
@@ -533,12 +530,12 @@ class HierarchicalRAGService:
 {
   "answer": "your detailed answer here with [1], [2] citation markers",
   "references": [
-    {"id": 1, "title": "document title", "source": "source path", "page": page_number},
-    {"id": 2, "title": "document title", "source": "source path", "page": page_number}
+    {"id": "1", "title": "document title", "source": "source path", "page": page_number, "snippet": "short excerpt from the source"},
+    {"id": "2", "title": "document title", "source": "source path", "page": page_number, "snippet": "short excerpt from the source"}
   ]
 }
 
-Ensure all citation markers in your answer correspond to reference IDs."""
+Ensure all citation markers in your answer correspond to reference IDs. Include page numbers and snippets from the provided document metadata."""
 
                 print("... Invoking Ollama LLM with JSON instructions...")
                 raw_response = await asyncio.to_thread(llm.invoke, json_prompt)
@@ -570,10 +567,11 @@ Ensure all citation markers in your answer correspond to reference IDs."""
 
                 references = [
                     Reference(
-                        id=ref.get('id', i+1),
+                        id=str(ref.get('id', i+1)),
                         title=ref.get('title', 'Unknown'),
                         source=ref.get('source', 'Unknown'),
-                        page=ref.get('page', 0)
+                        page=ref.get('page', 0),
+                        snippet=ref.get('snippet', '')
                     )
                     for i, ref in enumerate(parsed_json.get('references', []))
                 ]
@@ -589,15 +587,34 @@ Ensure all citation markers in your answer correspond to reference IDs."""
             print(f"📝 Answer preview: {ai_answer_response.answer[:200]}...")
 
             print(f"\n{'─'*80}")
-            print(f"🔄 STEP 4: Post-processing")
+            print(f"🔄 STEP 4: Post-processing & Citation Mapping")
             print(f"{'─'*80}")
             final_answer, final_refs = deduplicate_references_and_update_answer(
                 ai_answer_response.answer,
                 ai_answer_response.references
             )
 
-            # Convert Pydantic models to dicts for JSON response
-            final_refs_dict = [ref.model_dump() for ref in final_refs]
+            chunk_map = {}
+            for chunk in relevant_chunks:
+                source = chunk.metadata.get("source", "")
+                if source:
+                    chunk_map[source] = chunk
+
+            final_refs_dict = []
+            for i, ref in enumerate(final_refs):
+                chunk = chunk_map.get(ref.source)
+                citation_dict = {
+                    "documentId": ref.source.split("/")[-1] if "/" in ref.source else ref.source,
+                    "page": ref.page or chunk.metadata.get("page", 0) if chunk else 0,
+                    "snippet": ref.snippet or (chunk.page_content[:200] if chunk else ""),
+                    "fullText": chunk.page_content if chunk else ref.title,
+                    "source": ref.title,
+                    "rank": i + 1,
+                    "score": None
+                }
+                final_refs_dict.append(citation_dict)
+            
+            print(f"✓ Mapped {len(final_refs_dict)} citations to frontend format")
 
             return final_answer, final_refs_dict
 
@@ -797,8 +814,6 @@ async def pull_model(request: Request):
 # ==============================================================================
 # 10. SERVER STARTUP
 # ==============================================================================
-
-kill_processes()
 
 try:
     start_ollama_service()

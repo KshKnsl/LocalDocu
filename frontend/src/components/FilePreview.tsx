@@ -16,7 +16,6 @@ import { processDocument, loadModel } from "@/lib/api";
 import { toast } from "sonner";
 import { getChatFileLocalUrl, cloneChatFolderToLocal } from "@/lib/localFiles";
 import { getChatById, updateChat } from "@/lib/chatStorage";
-
 interface FilePreviewProps {
   file: FileWithUrl | string | null;
   onClose: () => void;
@@ -47,6 +46,27 @@ export function FilePreview({ file, onClose, className, onViewChunks }: FilePrev
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [isOpen, setIsOpen] = useState(true);
+  const [width, setWidth] = useState(550);
+  const [isResizing, setIsResizing] = useState(false);
+
+  useEffect(() => {
+    const handleMouseMove = (e: MouseEvent) => {
+      if (!isResizing) return;
+      const newWidth = window.innerWidth - e.clientX;
+      setWidth(Math.max(300, Math.min(newWidth, window.innerWidth * 0.7)));
+    };
+
+    const handleMouseUp = () => setIsResizing(false);
+
+    if (isResizing) {
+      document.addEventListener('mousemove', handleMouseMove);
+      document.addEventListener('mouseup', handleMouseUp);
+      return () => {
+        document.removeEventListener('mousemove', handleMouseMove);
+        document.removeEventListener('mouseup', handleMouseUp);
+      };
+    }
+  }, [isResizing]);
 
   useEffect(() => {
     if (!file) {
@@ -166,15 +186,24 @@ export function FilePreview({ file, onClose, className, onViewChunks }: FilePrev
     }
   };
 
+  const fileData = typeof file !== 'string' && file ? file : null;
+
   return (
     <Collapsible
       open={isOpen}
       onOpenChange={setIsOpen}
       className={cn(
-        "relative bg-background border-l data-[state=open]:w-[350px] data-[state=closed]:w-[50px] transition-all duration-300",
+        "relative bg-background border-l transition-none",
         className
       )}
+      style={{ width: isOpen ? `${width}px` : '50px' }}
     >
+      {isOpen && (
+        <div
+          className="absolute left-0 top-0 w-1 h-full cursor-ew-resize hover:bg-primary/50 active:bg-primary z-50"
+          onMouseDown={() => setIsResizing(true)}
+        />
+      )}
       <div className="sticky top-0 z-10 border-b bg-muted/50">
         <div className="flex items-center justify-between gap-2 p-2">
           <div className="flex items-center flex-1 min-w-0">

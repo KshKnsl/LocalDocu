@@ -613,6 +613,11 @@ export function ChatInterface({ activeDocument }: ChatInterfaceProps) {
         stream={stream}
         setStream={setStream}
         onPreviewFile={(f) => setPreviewFile(f)}
+        onViewChunks={(docId, docName) => {
+          setChunkViewerDocId(docId);
+          setChunkViewerDocName(docName);
+          setShowChunkViewer(true);
+        }}
       />
 
       <main className="flex-1 flex flex-col h-screen overflow-hidden">
@@ -802,6 +807,11 @@ export function ChatInterface({ activeDocument }: ChatInterfaceProps) {
               onSubmit={handleSubmit}
               onPreviewFile={setPreviewFile}
               onShowAttachments={() => setShowAttachments(true)}
+              onViewChunks={(docId, docName) => {
+                setChunkViewerDocId(docId);
+                setChunkViewerDocName(docName);
+                setShowChunkViewer(true);
+              }}
               model={model}
               setModel={setModel}
               useAgentTools={useAgentTools}
@@ -847,17 +857,25 @@ export function ChatInterface({ activeDocument }: ChatInterfaceProps) {
       />
 
       <Dialog open={showAttachments} onOpenChange={setShowAttachments}>
-        <DialogContent>
+        <DialogContent className="w-[95vw] sm:w-[85vw] lg:w-[70vw] max-w-none h-[85vh]">
           <DialogHeader>
             <DialogTitle>Attached Files</DialogTitle>
           </DialogHeader>
-          <div className="max-h-[60vh] overflow-y-auto px-1">
+          <div className="flex-1 overflow-y-auto px-1">
             <FileList
               files={(currentChatId && getChatById(currentChatId)?.fileWithUrl?.length)
                 ? (getChatById(currentChatId)!.fileWithUrl)
                 : getAllAttachedFiles()}
               onRemove={() => {}}
               previewFile={setPreviewFile}
+              onViewChunks={(docId, docName) => {
+                console.log('ChatInterface onViewChunks called:', { docId, docName });
+                setChunkViewerDocId(docId);
+                setChunkViewerDocName(docName);
+                setShowChunkViewer(true);
+                setShowAttachments(false);
+                console.log('State updated, showChunkViewer should be true');
+              }}
               onToggleEnabled={(index, enabled) => {
                 if (currentChatId) {
                   const chat = getChatById(currentChatId);

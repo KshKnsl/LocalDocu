@@ -135,12 +135,14 @@ export function ChunkViewer({ isOpen, onClose, documentId, documentName, onApply
         </div>
 
         {/* Chunks List */}
-        <ScrollArea className="flex-1 -mx-6 px-6">
-          {loading ? (
-            <div className="flex items-center justify-center h-full">
-              <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary" />
-            </div>
-          ) : filteredChunks.length === 0 ? (
+        <div className="flex-1 overflow-hidden">
+          <ScrollArea className="h-full w-full">
+            <div className="pr-4">
+              {loading ? (
+                <div className="flex items-center justify-center h-40">
+                  <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary" />
+                </div>
+              ) : filteredChunks.length === 0 ? (
             <div className="flex flex-col items-center justify-center h-full text-muted-foreground">
               <Search className="h-12 w-12 mb-2" />
               <p>No chunks found</p>
@@ -189,7 +191,9 @@ export function ChunkViewer({ isOpen, onClose, documentId, documentName, onApply
               ))}
             </div>
           )}
-        </ScrollArea>
+            </div>
+          </ScrollArea>
+        </div>
 
         {/* Footer Actions */}
         <div className="flex justify-between items-center pt-4 border-t">

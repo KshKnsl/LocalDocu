@@ -26,6 +26,7 @@ import {
 import ThemeSwitcher from "./ui/theme-switcher";
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import type { FileWithUrl } from "@/components/ui/FileWithUrl";
+import { FileList } from "@/components/ui/file-list";
 import { BackendConfigDialog } from "./BackendConfig";
 import { exportChatToPDF, exportAllChatsToPDF } from "@/lib/pdfExport";
 
@@ -41,6 +42,7 @@ interface ChatSidebarProps {
   stream?: boolean;
   setStream?: (v: boolean) => void;
   onPreviewFile?: (file: FileWithUrl) => void;
+  onViewChunks?: (documentId: string, documentName: string) => void;
 }
 
 
@@ -55,6 +57,7 @@ export function ChatSidebar({
   stream = false,
   setStream,
   onPreviewFile,
+  onViewChunks,
 }: ChatSidebarProps) {
   const [search, setSearch] = useState("");
   const [filesOpen, setFilesOpen] = useState(false);
@@ -122,6 +125,12 @@ export function ChatSidebar({
       )}
     >
       <div className="p-2 border-b relative">
+        {isSidebarOpen && (
+          <div className="flex items-center gap-2 mb-2 px-1">
+            <img src="/logo.png" alt="Docu" className="w-8 h-8" />
+            <span className="text-lg font-bold">Docu</span>
+          </div>
+        )}
         {isSidebarOpen ? (
           <Button
             onClick={onNewChatStart}
@@ -131,8 +140,8 @@ export function ChatSidebar({
             New Chat
           </Button>
         ) : (
-          <Button size="icon" onClick={onNewChatStart} className="w-full">
-            <Plus className="h-4 w-4" />
+          <Button size="icon" onClick={onNewChatStart} className="w-full" title="Docu">
+            <img src="/logo.png" alt="Docu" className="w-6 h-6" />
           </Button>
         )}
         <div className="absolute -right-[18px] top-2 z-50">
@@ -267,52 +276,39 @@ export function ChatSidebar({
       </div>
 
       <Dialog open={filesOpen} onOpenChange={setFilesOpen}>
-        <DialogContent className="max-w-lg">
+        <DialogContent className="w-[95vw] sm:w-[85vw] lg:w-[70vw] max-w-none h-[85vh]">
           <DialogHeader>
-            <DialogTitle>All files</DialogTitle>
+            <DialogTitle>All Files</DialogTitle>
           </DialogHeader>
-          <div className="max-h-[60vh] overflow-y-auto space-y-2">
-            {allFiles.length === 0 ? (
-              <div className="text-sm text-muted-foreground">No files yet</div>
-            ) : (
-              allFiles.map((file, idx) => (
-                <div key={`${file.key || file.name}-${idx}`} className="flex items-center justify-between gap-2 border rounded-md px-2 py-1 bg-background">
-                  <div className="truncate text-sm" title={file.name}>{file.name}</div>
-                  <div className="flex items-center gap-2">
-                    <Button size="icon" variant="ghost" title="Preview" onClick={() => { setFilesOpen(false); onPreviewFile?.(file); }}>
-                      <Eye className="h-4 w-4" />
-                    </Button>
-                    <Button 
-                      size="icon" 
-                      variant="ghost" 
-                      title="Delete" 
-                      className="text-destructive hover:text-destructive hover:bg-destructive/10"
-                      onClick={() => {
-                        if (file.chatId) {
-                          const chat = chats.find(c => c.chat_id === file.chatId);
-                          if (chat) {
-                            chat.fileWithUrl = (chat.fileWithUrl || []).filter(f => 
-                              !((file.key && f.key === file.key) || (!file.key && f.name === file.name))
-                            );
-                            chat.message_objects = chat.message_objects.map(m => ({
-                              ...m,
-                              files: (m.files || []).filter(f => 
-                                !((file.key && f.key === file.key) || (!file.key && f.name === file.name))
-                              )
-                            }));
-                            updateChat(chat);
-                            onChatsUpdate?.();
-                            toast.success("File deleted");
-                          }
-                        }
-                      }}
-                    >
-                      <Trash2 className="h-4 w-4" />
-                    </Button>
-                  </div>
-                </div>
-              ))
-            )}
+          <div className="flex-1 overflow-y-auto px-1">
+            <FileList
+              files={allFiles}
+              onRemove={(index) => {
+                const file = allFiles[index];
+                if (file.chatId) {
+                  const chat = chats.find(c => c.chat_id === file.chatId);
+                  if (chat) {
+                    chat.fileWithUrl = (chat.fileWithUrl || []).filter(f => 
+                      !((file.key && f.key === file.key) || (!file.key && f.name === file.name))
+                    );
+                    chat.message_objects = chat.message_objects.map(m => ({
+                      ...m,
+                      files: (m.files || []).filter(f => 
+                        !((file.key && f.key === file.key) || (!file.key && f.name === file.name))
+                      )
+                    }));
+                    updateChat(chat);
+                    onChatsUpdate?.();
+                    toast.success("File deleted");
+                  }
+                }
+              }}
+              previewFile={(file) => {
+                setFilesOpen(false);
+                onPreviewFile?.(file);
+              }}
+              onViewChunks={onViewChunks}
+            />
           </div>
         </DialogContent>
       </Dialog>
