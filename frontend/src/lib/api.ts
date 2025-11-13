@@ -81,6 +81,41 @@ export type UploadResult = { url: string; filename: string; key: string };
 export type ProcessingResult = { documentId: string; status: string; chunkCount: number };
 export type Citation = { documentId: string; page: string | number; snippet: string; fullText: string; source: string; rank: number; score?: number };
 export type ChatResponse = { response: string; citations?: Citation[] };
+export type ProgressData = {
+  documentId: string;
+  status: string;
+  progress: number;
+  message?: string;
+  currentChunk?: number;
+  totalChunks?: number;
+};
+
+export async function getProgress(documentId?: string): Promise<Record<string, ProgressData> | ProgressData | null> {
+  try {
+    const url = documentId 
+      ? `${getBackendUrl()}/progress?documentId=${encodeURIComponent(documentId)}`
+      : `${getBackendUrl()}/progress`;
+    
+    const res = await fetch(url);
+    if (!res.ok) return null;
+    
+    const data = await res.json();
+    return documentId ? data.progress : data.progress;
+  } catch (e) {
+    console.error("Failed to get progress:", e);
+    return null;
+  }
+}
+
+export async function clearProgress(documentId: string): Promise<void> {
+  try {
+    await fetch(`${getBackendUrl()}/progress/${encodeURIComponent(documentId)}`, {
+      method: "DELETE"
+    });
+  } catch (e) {
+    console.error("Failed to clear progress:", e);
+  }
+}
 
 export async function uploadDocument(file: File, opts?: { chatFolder?: string }): Promise<UploadResult> {
   if (isUsingCustomBackend()) {

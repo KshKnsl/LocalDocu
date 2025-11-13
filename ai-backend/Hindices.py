@@ -3,7 +3,7 @@
 # ==============================================================================
 # Uncomment the following lines if running in Google Colab:
 # !curl -fsSL https://ollama.com/install.sh | sh
-# !pip install fastapi uvicorn pyngrok requests boto3 python-multipart aiofiles langchain langchain-community chromadb sentence-transformers PyMuPDF langchain-huggingface langchain-chroma langchain-google-genai langchain-ollama langchain-experimental flashrank-retriever pydantic python-dotenv
+# !pip install fastapi uvicorn pyngrok requests boto3 python-multipart aiofiles langchain langchain-community chromadb sentence-transformers PyMuPDF langchain-huggingface langchain-chroma langchain-google-genai langchain-ollama langchain-experimental flashrank pydantic python-dotenv
 
 # ==============================================================================
 # 1. IMPORTS
@@ -33,7 +33,7 @@ from langchain_huggingface import HuggingFaceEmbeddings
 from langchain_chroma import Chroma
 from langchain_ollama.llms import OllamaLLM
 from langchain_google_genai import ChatGoogleGenerativeAI
-from langchain_core.pydantic_v1 import BaseModel, Field
+from pydantic import BaseModel, Field
 
 # --- Colab Support ---
 try:
@@ -67,6 +67,21 @@ if not NGROK_AUTHTOKEN or NGROK_AUTHTOKEN == "YOUR_NGROK_AUTHTOKEN":
 
 OLLAMA_MODEL = os.environ.get("OLLAMA_MODEL", "mistral")
 OLLAMA_URL = "http://localhost:11434"
+
+PROXY_BACKEND_URL = os.environ.get("PROXY_BACKEND_URL", "http://localhost:3000")
+
+def post_progress(document_id: str, status: str, progress: int = 0, **kwargs):
+    """Post progress update to proxy backend."""
+    try:
+        payload = {
+            "documentId": document_id,
+            "status": status,
+            "progress": progress,
+            **kwargs
+        }
+        requests.post(f"{PROXY_BACKEND_URL}/api/progress", json=payload, timeout=2)
+    except Exception as e:
+        print(f"Warning: Failed to post progress: {e}")
 
 # --- Persistent Storage Paths (Hierarchical) ---
 PERSIST_BASE = os.path.abspath("./chroma_store")
@@ -343,33 +358,43 @@ class HierarchicalRAGService:
         return final_summary
 
     async def add_document_to_stores(self, pdf_bytes: bytes, doc_id: str, model_name: str):
+        post_progress(doc_id, "loading", 5, message="Loading PDF...")
+        
         chunks = self._load_and_split_pdf(pdf_bytes)
         if not chunks:
+            post_progress(doc_id, "failed", 0, message="No text content found")
             raise ValueError("No text content found in the document")
+        
+        post_progress(doc_id, "chunking", 20, message=f"Split into {len(chunks)} chunks", totalChunks=len(chunks))
         
         # Associate original filename with all chunks for better citation
         # Let's assume the first chunk has the source metadata
         source_filename = chunks[0].metadata.get("source", f"doc_{doc_id}")
 
+        post_progress(doc_id, "summarizing", 40, message="Generating document summary...", totalChunks=len(chunks))
         summary_text = await self._generate_summary_for_ingestion(chunks, model_name)
+        
+        post_progress(doc_id, "embedding_summary", 60, message="Creating summary embeddings...", totalChunks=len(chunks))
         summary_doc = Document(
             page_content=summary_text,
             metadata={"doc_id": doc_id, "source": source_filename, "title": f"Summary for {source_filename}"}
         )
         self.summary_store.add_documents([summary_doc], ids=[doc_id])
         
-        chunk_metadatas = []
+        post_progress(doc_id, "embedding_chunks", 75, message="Creating chunk embeddings...", totalChunks=len(chunks))
         for i, chunk in enumerate(chunks):
-            chunk_metadata = chunk.metadata.copy()
-            chunk_metadata["doc_id"] = doc_id
-            chunk_metadata["title"] = f"{Path(source_filename).name} (Page {chunk_metadata.get('page', i+1)})"
-            chunk_metadatas.append(chunk_metadata)
+            chunk.metadata["doc_id"] = doc_id
+            chunk.metadata["title"] = f"{Path(source_filename).name} (Page {chunk.metadata.get('page', i+1)})"
+            if i % 5 == 0 or i == len(chunks) - 1: 
+                progress = 75 + int((i + 1) / len(chunks) * 20)
+                post_progress(doc_id, "embedding_chunks", progress, 
+                            message=f"Embedding chunk {i+1}/{len(chunks)}...",
+                            currentChunk=i+1, totalChunks=len(chunks))
         
         chunk_ids = [f"{doc_id}_{i}" for i in range(len(chunks))]
-        self.detailed_store.add_documents(chunks, metadatas=chunk_metadatas, ids=chunk_ids)
+        self.detailed_store.add_documents(chunks, ids=chunk_ids)
 
-        self.summary_store.persist()
-        self.detailed_store.persist()
+        post_progress(doc_id, "complete", 100, message="Document processing complete!", totalChunks=len(chunks))
         print(f"✅ Document {doc_id} added to hierarchical stores.")
         return len(chunks)
 
@@ -386,7 +411,13 @@ class HierarchicalRAGService:
         Performs the 2-step Hierarchical RAG query using
         structured output and IEEE-style citations.
         """
-        print(f"Starting Hierarchical RAG query on docs: {document_ids}")
+        print(f"\n{'='*80}")
+        print(f"🔍 Starting Hierarchical RAG query")
+        print(f"{'='*80}")
+        print(f"📋 Question: {question}")
+        print(f"📁 Document IDs: {document_ids}")
+        print(f"🤖 Model: {model_name}")
+        print(f"🎯 Top K: {top_k}")
         
         # === Step 1: Search SUMMARY_STORE (Unchanged) ===
         summary_retriever = self.summary_store.as_retriever(
@@ -397,6 +428,7 @@ class HierarchicalRAGService:
         )
         print("... (Step 1) Re-ranking summaries...")
         relevant_summaries = summary_compressor.invoke(question)
+        print(f"✓ Found {len(relevant_summaries)} relevant summaries")
         relevant_doc_ids = list(set([doc.metadata['doc_id'] for doc in relevant_summaries]))
         
         if not relevant_doc_ids:
@@ -414,14 +446,24 @@ class HierarchicalRAGService:
         )
         print("... (Step 2) Re-ranking detailed chunks...")
         relevant_chunks = chunk_compressor.invoke(question)
+        print(f"✓ Found {len(relevant_chunks)} relevant chunks after reranking")
         
         if not relevant_chunks:
             print("No relevant chunks found in detailed search.")
             return "I found relevant documents, but no specific chunks matched your question.", []
+        
+        # Print chunk details
+        print(f"\n📝 Chunk Details:")
+        for i, chunk in enumerate(relevant_chunks[:3], 1):  # Show first 3
+            print(f"  Chunk {i}:")
+            print(f"    - Title: {chunk.metadata.get('title', 'N/A')}")
+            print(f"    - Source: {chunk.metadata.get('source', 'N/A')}")
+            print(f"    - Page: {chunk.metadata.get('page', 'N/A')}")
+            print(f"    - Content preview: {chunk.page_content[:100]}...")
 
         # === Step 3: Build Advanced Prompt & Call Structured LLM ===
         print("... (Step 3) Building advanced RAG prompt...")
-        context_string = _format_chunks_for_advanced_prompt(relevant_chunks)
+        context_string = _format_chunks_for_prompt(relevant_chunks)
         final_prompt = build_advanced_rag_prompt(question, context_string)
         
         # Get the LLM *with* structured output
@@ -432,14 +474,82 @@ class HierarchicalRAGService:
         if model_name.lower() != "remote" and model_name.lower() not in ["mistral", "llama3"]:
             print(f"Switching RAG model from '{model_name}' to 'mistral' for better JSON support.")
             llm_name_for_rag = "mistral"
+        
+        print(f"🤖 Using model: '{llm_name_for_rag}' for structured output")
 
         try:
-            structured_llm = get_llm(llm_name_for_rag).with_structured_output(AIAnswer)
+            llm = get_llm(llm_name_for_rag)
+            is_remote_model = llm_name_for_rag.lower() == "remote"
             
-            # This is an async call in a sync function, so we run in thread
-            ai_answer_response = await asyncio.to_thread(structured_llm.invoke, final_prompt)
+            if is_remote_model:
+                print("... Creating structured LLM instance (Google Gemini)...")
+                structured_llm = llm.with_structured_output(AIAnswer)
+                print(f"✓ Structured LLM created: {type(structured_llm)}")
+                ai_answer_response = await asyncio.to_thread(structured_llm.invoke, final_prompt)
+                print(f"✓ LLM response received: {type(ai_answer_response)}")
+                
+            else:
+                print("... Using JSON mode for Ollama model (no native structured output)...")
+                json_prompt = final_prompt + """\n\nIMPORTANT: Return your response as a valid JSON object with this exact structure:
+{
+  "answer": "your detailed answer here with [1], [2] citation markers",
+  "references": [
+    {"id": 1, "title": "document title", "source": "source path", "page": page_number},
+    {"id": 2, "title": "document title", "source": "source path", "page": page_number}
+  ]
+}
+
+Ensure all citation markers in your answer correspond to reference IDs."""
+                
+                print("... Invoking Ollama LLM with JSON instructions...")
+                raw_response = await asyncio.to_thread(llm.invoke, json_prompt)
+                print(f"✓ LLM response received (length: {len(raw_response.content)} chars)")
+                print(f"📄 Raw response preview: {raw_response.content[:300]}...")
+                
+                import json
+                import re
+                
+                response_text = raw_response.content
+                
+                json_match = re.search(r'```(?:json)?\s*(\{.*?\})\s*```', response_text, re.DOTALL)
+                if json_match:
+                    json_str = json_match.group(1)
+                    print("✓ Found JSON in code block")
+                else:
+                    json_match = re.search(r'\{.*"answer".*"references".*\}', response_text, re.DOTALL)
+                    if json_match:
+                        json_str = json_match.group(0)
+                        print("✓ Found raw JSON object")
+                    else:
+                        print("❌ No JSON structure found in response")
+                        raise ValueError("No JSON structure in response")
+                
+                parsed_json = json.loads(json_str)
+                print(f"✓ JSON parsed successfully")
+                
+                references = [
+                    Reference(
+                        id=ref.get('id', i+1),
+                        title=ref.get('title', 'Unknown'),
+                        source=ref.get('source', 'Unknown'),
+                        page=ref.get('page', 0)
+                    )
+                    for i, ref in enumerate(parsed_json.get('references', []))
+                ]
+                
+                ai_answer_response = AIAnswer(
+                    answer=parsed_json.get('answer', ''),
+                    references=references
+                )
+                print(f"✓ Converted to AIAnswer object")
             
-            print("... (Step 4) Deduplicating references...")
+            print(f"✓ Answer length: {len(ai_answer_response.answer)} chars")
+            print(f"✓ References count: {len(ai_answer_response.references)}")
+            print(f"📝 Answer preview: {ai_answer_response.answer[:200]}...")
+            
+            print(f"\n{'─'*80}")
+            print(f"🔄 STEP 4: Post-processing")
+            print(f"{'─'*80}")
             final_answer, final_refs = deduplicate_references_and_update_answer(
                 ai_answer_response.answer, 
                 ai_answer_response.references
@@ -451,12 +561,27 @@ class HierarchicalRAGService:
             return final_answer, final_refs_dict
             
         except Exception as e:
-            print(f"CRITICAL: Failed to get structured output from LLM: {e}")
-            print("--- Failing over to simple text generation ---")
+            print(f"\n{'='*80}")
+            print(f"❌ CRITICAL ERROR in Structured Output")
+            print(f"{'='*80}")
+            print(f"Error type: {type(e).__name__}")
+            print(f"Error message: {e}")
+            import traceback
+            print(f"Traceback:\n{traceback.format_exc()}")
+            print(f"\n{'─'*80}")
+            print(f"🔄 Failing over to simple text generation...")
+            print(f"{'─'*80}")
             # Failover to simple text generation
+            print("... Building simple prompt (no citations)...")
             simple_context = "\n\n".join([c.page_content for c in relevant_chunks])
             simple_prompt = f"Answer this question based on the context:\nQuestion: {question}\n\nContext:\n{simple_context}\n\nAnswer:"
+            print(f"📏 Simple prompt length: {len(simple_prompt)} characters")
+            print("... Calling LLM without structured output...")
             failover_answer = generate_with_llm(simple_prompt, model_name)
+            print(f"✓ Failover answer received: {len(failover_answer)} chars")
+            print(f"\n{'='*80}")
+            print(f"⚠️  RAG Complete (Failover Mode - No Citations)")
+            print(f"{'='*80}")
             return failover_answer, []
 
 # ==============================================================================
@@ -676,14 +801,27 @@ try:
 except Exception as e:
     print(f"Failed to start Ollama: {e}")
 
+FIXED_URL = "https://mari-unbequeathed-milkily.ngrok-free.app"
+public_url = "http://localhost:8000"
+ngrok_enabled = False
+ngrok_proc = None
+
 if NGROK_AUTHTOKEN and NGROK_AUTHTOKEN != "YOUR_NGROK_AUTHTOKEN":
     if IN_COLAB:
         get_ipython().system(f'ngrok config add-authtoken {NGROK_AUTHTOKEN}')
     else:
         os.system(f"ngrok config add-authtoken {NGROK_AUTHTOKEN}")
     
-    print("🌐 Starting ngrok tunnel...")
-    public_url = ngrok.connect(8000)
+    print("🌐 Starting ngrok tunnel with fixed URL...")
+    ngrok_proc = subprocess.Popen(
+        ["ngrok", "http", "--host-header=rewrite", "--log=stdout", "--url", FIXED_URL, "8000"],
+        stdout=subprocess.PIPE,
+        stderr=subprocess.PIPE
+    )
+    public_url = FIXED_URL
+    ngrok_enabled = True
+    
+    time.sleep(3)
     print(f"✅ Public URL: {public_url}\n")
 else:
     print("⚠️ Ngrok not configured. Server will only be accessible locally.")
@@ -704,5 +842,7 @@ try:
     while True: time.sleep(300)
 except KeyboardInterrupt:
     print("Shutting down server...")
-    ngrok.disconnect(public_url)
+    if ngrok_enabled and ngrok_proc:
+        ngrok_proc.terminate()
+        ngrok_proc.wait()
     print("Goodbye!")

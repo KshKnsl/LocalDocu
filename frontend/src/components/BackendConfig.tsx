@@ -9,7 +9,7 @@ import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from 
 import { Download, Server, Check, X, Loader2 } from "lucide-react"
 import { toast } from "sonner"
 
-const DEFAULT_BACKEND = "https://minor-project-6v6z.vercel.app/api/health"
+const DEFAULT_BACKEND = "https://minor-project-6v6z.vercel.app/api"
 
 export function BackendConfig() {
   const [backendMode, setBackendMode] = useState<"default" | "custom">("default")
@@ -32,7 +32,7 @@ export function BackendConfig() {
   const testConnection = async (url: string) => {
     setIsTestingConnection(true)
     try {
-      const res = await fetch(`${url}/`, { method: "GET", signal: AbortSignal.timeout(5000) })
+      const res = await fetch(`${url}/health`, { method: "GET", signal: AbortSignal.timeout(5000) })
       const success = res.ok
       setConnectionStatus(success ? "success" : "error")
       toast[success ? "success" : "error"](success ? "Backend connected!" : "Backend not ready")
@@ -285,7 +285,7 @@ export function BackendConfigDialog() {
       if (!checkUrl) return
       
       try {
-        const res = await fetch(`${checkUrl}/`, { method: "GET", signal: AbortSignal.timeout(5000) })
+        const res = await fetch(`${checkUrl}/health`, { method: "GET", signal: AbortSignal.timeout(5000) })
         setStatus(res.ok ? "success" : "error")
       } catch {
         setStatus("error")

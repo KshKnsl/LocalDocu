@@ -6,6 +6,7 @@ app = Flask(__name__)
 CORS(app, resources={r"/api/*": {"origins": "*"}})
 
 OLLAMA_URL = "https://mari-unbequeathed-milkily.ngrok-free.app"
+progress_data = {}
 
 @app.route("/api/<path:path>", methods=["GET", "POST", "OPTIONS"])
 def proxy(path):
@@ -49,6 +50,68 @@ def proxy(path):
 @app.route('/')
 def home():
     return 'Hello, World!'
+
+@app.route('/api/progress', methods=['POST'])
+def post_progress():
+    """
+    Endpoint for AI backend to post progress updates.
+    Accepts JSON with progress data and stores it in global variable.
+    """
+    try:
+        data = request.get_json()
+        if not data:
+            return Response('{"error": "No data provided"}', status=400, mimetype='application/json')
+        
+        document_id = data.get('documentId')
+        if document_id:
+            progress_data[document_id] = data
+        else:
+            progress_data['_general'] = data
+        
+        return Response('{"status": "success"}', status=200, mimetype='application/json')
+    except Exception as e:
+        return Response(f'{{"error": "{str(e)}"}}', status=500, mimetype='application/json')
+
+@app.route('/api/progress', methods=['GET'])
+def get_progress():
+    """
+    Endpoint for frontend to retrieve progress data.
+    Returns all stored progress data or specific document progress.
+    """
+    try:
+        document_id = request.args.get('documentId')
+        
+        if document_id:
+            doc_progress = progress_data.get(document_id, {})
+            return Response(
+                f'{{"progress": {doc_progress if doc_progress else "null"}}}',
+                status=200,
+                mimetype='application/json'
+            )
+        else:
+            import json
+            return Response(
+                json.dumps({"progress": progress_data}),
+                status=200,
+                mimetype='application/json'
+            )
+    except Exception as e:
+        return Response(f'{{"error": "{str(e)}"}}', status=500, mimetype='application/json')
+
+@app.route('/api/progress/<document_id>', methods=['DELETE'])
+def clear_progress(document_id):
+    """
+    Endpoint to clear progress data for a specific document.
+    Useful after processing is complete.
+    """
+    try:
+        if document_id in progress_data:
+            del progress_data[document_id]
+            return Response('{"status": "cleared"}', status=200, mimetype='application/json')
+        else:
+            return Response('{"status": "not_found"}', status=404, mimetype='application/json')
+    except Exception as e:
+        return Response(f'{{"error": "{str(e)}"}}', status=500, mimetype='application/json')
 
 
 # Ensure CORS headers are set on every response as a final fallback.

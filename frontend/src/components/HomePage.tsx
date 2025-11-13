@@ -22,8 +22,9 @@ import {
   DialogTitle,
   DialogTrigger,
 } from "@/components/ui/dialog";
-import { SignIn, SignUp } from "@clerk/nextjs";
+import { SignIn, SignUp, useUser } from "@clerk/nextjs";
 import { useEffect, useState } from "react";
+import { useRouter } from "next/navigation";
 import {
   Check,
   Rocket,
@@ -41,10 +42,13 @@ import { BackendConfigDialog } from "./BackendConfig";
 
 export default function HomePage() {
   const [mounted, setMounted] = useState(false);
+  const router = useRouter();
+  
   useEffect(() => {
     const t = setTimeout(() => setMounted(true), 10);
     return () => clearTimeout(t);
   }, []);
+
   return (
     <main className="w-full flex-1 flex flex-col items-center justify-center bg-background relative">
       <div className="fixed top-6 right-6 z-50 flex items-center gap-2">
@@ -79,23 +83,23 @@ export default function HomePage() {
             </p>
 
             <div className="flex flex-col sm:flex-row gap-3 w-full">
-              <a href="#signin" className="w-full sm:w-auto">
+              <a href="/chat" className="w-full sm:w-auto">
                 <Button
                   size="lg"
                   className="w-full sm:w-auto inline-flex items-center gap-2"
                 >
                   <Rocket className="w-4 h-4" />
-                  Sign in to start
+                  Start Using App
                 </Button>
               </a>
 
-              <a href="#problems" className="w-full sm:w-auto">
+              <a href="#signin" className="w-full sm:w-auto">
                 <Button
                   size="lg"
                   variant="outline"
                   className="w-full sm:w-auto"
                 >
-                  Why Local & Private?
+                  Sign In (Optional)
                 </Button>
               </a>
             </div>

@@ -26,6 +26,9 @@ import {
   uploadDocument,
   processDocument,
   isUsingCustomBackend,
+  getProgress,
+  clearProgress,
+  ProgressData,
 } from "@/lib/api";
 import { useUser } from "@clerk/nextjs";
 import { toast } from "sonner";
@@ -41,9 +44,18 @@ import { ChatInput } from "./ChatInput";
 import { FileList } from "./ui/file-list";
 import { cloneChatFolderToLocal } from "@/lib/localFiles";
 import { BackendConfigDialog } from "./BackendConfig";
+import { ProcessingBanner } from "./ProcessingBanner";
 
 interface ChatInterfaceProps {
   activeDocument?: ProcessingResult;
+}
+
+interface ProcessingFile {
+  name: string;
+  status: 'uploading' | 'processing' | 'done' | 'failed';
+  progress?: number;
+  chunks?: number;
+  currentChunk?: number;
 }
 
 export function ChatInterface({ activeDocument }: ChatInterfaceProps) {
@@ -55,6 +67,7 @@ export function ChatInterface({ activeDocument }: ChatInterfaceProps) {
   const [showAttachments, setShowAttachments] = useState(false);
   const [chats, setChats] = useState<ChatDocument[]>(() => getAllChats());
   const [useAgentTools, setUseAgentTools] = useState(false);
+  const [processingFiles, setProcessingFiles] = useState<ProcessingFile[]>([]);
   const [isSidebarOpen, setIsSidebarOpen] = useState(() => {
     if (typeof window !== "undefined") {
       return window.innerWidth >= 640;
@@ -145,7 +158,15 @@ export function ChatInterface({ activeDocument }: ChatInterfaceProps) {
         chatId = newChatId;
       }
       const chatFolder = `chats/${chatId}`;
-      const placeholders: FileWithUrl[] = fileArray.map((file) => ({
+      const tempIds = fileArray.map(() => `temp_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`);
+      
+      setProcessingFiles(fileArray.map(file => ({
+        name: file.name,
+        status: 'uploading',
+        progress: 0,
+      })));
+      
+      const placeholders: FileWithUrl[] = fileArray.map((file, idx) => ({
         name: file.name,
         type: file.type,
         size: file.size,
@@ -155,14 +176,24 @@ export function ChatInterface({ activeDocument }: ChatInterfaceProps) {
         processingStatus: 'idle',
         downloadStatus: 'idle',
         statusMessage: 'Uploading',
+        key: tempIds[idx], // Temporary unique ID
       }));
       setFiles((prev) => [...prev, ...placeholders]);
 
       const uploaded: FileWithUrl[] = await Promise.all(
         fileArray.map(async (file, idx) => {
+          const tempId = tempIds[idx];
           try {
             const { url, key, filename } = await uploadDocument(file, { chatFolder });
-            setFiles((prev) => prev.map(f => (f.name === file.name && f.chatId === chatId ? {
+            
+            // Update processing banner
+            setProcessingFiles(prev => prev.map(pf => 
+              pf.name === file.name && pf.status === 'uploading'
+                ? { ...pf, status: 'processing' as const, progress: 10 }
+                : pf
+            ));
+            
+            setFiles((prev) => prev.map(f => (f.key === tempId && f.chatId === chatId ? {
               ...f,
               url,
               key,
@@ -184,7 +215,7 @@ export function ChatInterface({ activeDocument }: ChatInterfaceProps) {
               localFile: isUsingCustomBackend() ? file : undefined,
             } as FileWithUrl;
           } catch (err) {
-            setFiles((prev) => prev.map(f => (f.name === file.name && f.chatId === chatId ? { ...f, uploadStatus: 'failed', statusMessage: 'Upload failed' } : f)));
+            setFiles((prev) => prev.map(f => (f.key === tempId && f.chatId === chatId ? { ...f, uploadStatus: 'failed', statusMessage: 'Upload failed' } : f)));
             return {
               name: file.name,
               type: file.type,
@@ -203,19 +234,82 @@ export function ChatInterface({ activeDocument }: ChatInterfaceProps) {
           continue;
         }
         setFiles((prev) => prev.map(f => (f.key === uploadedFile.key && f.chatId === chatId ? { ...f, processingStatus: 'processing', statusMessage: 'Processing' } : f)));
+        
+        // Update processing banner - show analyzing
+        setProcessingFiles(prev => prev.map(pf => 
+          pf.name === uploadedFile.name && pf.status === 'processing'
+            ? { ...pf, progress: 30 }
+            : pf
+        ));
+        
         try {
           const result = isUsingCustomBackend() && uploadedFile.localFile
             ? await processDocument(undefined, uploadedFile.localFile)
             : await processDocument(uploadedFile.key);
           if (result?.documentId) {
             documentIdByKey.set(uploadedFile.key, result.documentId);
+            
+            let attempts = 0;
+            const maxAttempts = 300; 
+            let lastProgress = 30;
+            
+            while (attempts < maxAttempts) {
+              const progressData = await getProgress(result.documentId) as ProgressData | null;
+              
+              if (progressData) {
+                const progress = progressData.progress || lastProgress;
+                lastProgress = progress;
+                
+                setProcessingFiles(prev => prev.map(pf => 
+                  pf.name === uploadedFile.name
+                    ? { 
+                        ...pf, 
+                        progress,
+                        chunks: progressData.totalChunks,
+                        currentChunk: progressData.currentChunk,
+                        status: progressData.status === 'complete' ? 'done' as const :
+                               progressData.status === 'failed' ? 'failed' as const : 
+                               'processing' as const
+                      }
+                    : pf
+                ));
+                
+                if (progressData.status === 'complete' || progress >= 100) {
+                  setProcessingFiles(prev => prev.map(pf => 
+                    pf.name === uploadedFile.name
+                      ? { ...pf, status: 'done' as const, progress: 100 }
+                      : pf
+                  ));
+                  await clearProgress(result.documentId);
+                  break;
+                }
+                
+                if (progressData.status === 'failed') {
+                  throw new Error('Processing failed');
+                }
+              }
+              
+              await new Promise(resolve => setTimeout(resolve, 100));
+              attempts++;
+            }
+            
             setFiles((prev) => prev.map(f => (f.key === uploadedFile.key && f.chatId === chatId ? { ...f, documentId: result.documentId, processingStatus: 'done', statusMessage: 'Processed' } : f)));
             toast.success(`Document ${uploadedFile.name} processed for RAG`, { duration: 2000 });
           } else {
+            setProcessingFiles(prev => prev.map(pf => 
+              pf.name === uploadedFile.name
+                ? { ...pf, status: 'failed' as const }
+                : pf
+            ));
             setFiles((prev) => prev.map(f => (f.key === uploadedFile.key && f.chatId === chatId ? { ...f, processingStatus: 'failed', statusMessage: 'Processing failed' } : f)));
             toast.error(`Failed to process ${uploadedFile.name}`);
           }
         } catch (error) {
+          setProcessingFiles(prev => prev.map(pf => 
+            pf.name === uploadedFile.name
+              ? { ...pf, status: 'failed' as const }
+              : pf
+          ));
           setFiles((prev) => prev.map(f => (f.key === uploadedFile.key && f.chatId === chatId ? { ...f, processingStatus: 'failed', statusMessage: 'Processing error' } : f)));
           toast.error(`Failed to process ${uploadedFile.name}: ${error instanceof Error ? error.message : 'Unknown error'}`);
         }
@@ -440,6 +534,12 @@ export function ChatInterface({ activeDocument }: ChatInterfaceProps) {
   };
   return (
     <div className="flex w-full h-full">
+      {/* Processing Banner */}
+      <ProcessingBanner 
+        files={processingFiles}
+        onDismiss={() => setProcessingFiles([])}
+      />
+      
       <ChatSidebar
         isSidebarOpen={isSidebarOpen}
         setIsSidebarOpen={setIsSidebarOpen}
@@ -455,11 +555,6 @@ export function ChatInterface({ activeDocument }: ChatInterfaceProps) {
 
       <main className="flex-1 flex flex-col h-screen overflow-hidden">
         <div className="flex-1 flex flex-col min-h-0 relative">
-          {/* Backend Config Button - Floating */}
-          <div className="absolute top-4 right-4 z-10">
-            <BackendConfigDialog />
-          </div>
-          
           <div className="flex-1 flex flex-col">
             <div className="h-[calc(100vh-10rem)] w-full pt-5">
               <ScrollArea className="h-full w-full">
