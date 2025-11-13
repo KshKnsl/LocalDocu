@@ -7,7 +7,7 @@ const getBackendUrl = () => {
 }
 
 const getProgressServiceUrl = () => {
-  return "https://minor-project-progress.vercel.app/api"
+  return "https://minor-project-progress.vercel.app"
 }
 
 export const isUsingCustomBackend = () => {
@@ -157,9 +157,35 @@ export async function processDocument(key?: string, file?: File): Promise<Proces
     throw new Error("Either key or file must be provided");
   }
 
-  const res = await fetch(`${getBackendUrl()}/process`, { method: "POST", body: formData });
-  if (!res.ok) throw new Error(await res.text() || "Failed to process document");
-  return res.json();
+  let pollTimer: number | null = null;
+  if (typeof window !== "undefined" && !isUsingCustomBackend()) {
+    pollTimer = window.setInterval(async () => {
+      try {
+        const progress = await getProgress();
+        // If progress service returns null, the work has already completed
+        // and the progress record was removed — stop polling.
+        if (progress === null) {
+          if (pollTimer !== null) {
+            clearInterval(pollTimer);
+            pollTimer = null;
+          }
+          return;
+        }
+      } catch (e) {
+        // ignore polling errors
+      }
+    }, 1000);
+  }
+
+  try {
+    const res = await fetch(`${getBackendUrl()}/process`, { method: "POST", body: formData });
+    if (!res.ok) throw new Error(await res.text() || "Failed to process document");
+    return res.json();
+  } finally {
+    if (pollTimer !== null) {
+      clearInterval(pollTimer);
+    }
+  }
 }
 
 export async function summarizeByDocumentId(
