@@ -9,7 +9,7 @@ import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from 
 import { Download, Server, Check, X, Loader2 } from "lucide-react"
 import { toast } from "sonner"
 
-const DEFAULT_BACKEND = "https://minor-project-6v6z.vercel.app/api"
+const DEFAULT_BACKEND = "https://minor-project-6v6z.vercel.app/api/health"
 
 export function BackendConfig() {
   const [backendMode, setBackendMode] = useState<"default" | "custom">("default")
