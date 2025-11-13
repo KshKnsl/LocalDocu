@@ -45,6 +45,7 @@ import { FileList } from "./ui/file-list";
 import { cloneChatFolderToLocal } from "@/lib/localFiles";
 import { BackendConfigDialog } from "./BackendConfig";
 import { ProcessingBanner } from "./ProcessingBanner";
+import { ChunkViewer } from "./ChunkViewer";
 
 interface ChatInterfaceProps {
   activeDocument?: ProcessingResult;
@@ -70,6 +71,10 @@ export function ChatInterface({ activeDocument }: ChatInterfaceProps) {
   const [processingFiles, setProcessingFiles] = useState<ProcessingFile[]>([]);
   const [showProcessingDialog, setShowProcessingDialog] = useState(false);
   const [isProcessing, setIsProcessing] = useState(false);
+  const [showChunkViewer, setShowChunkViewer] = useState(false);
+  const [chunkViewerDocId, setChunkViewerDocId] = useState<string>("");
+  const [chunkViewerDocName, setChunkViewerDocName] = useState<string>("");
+  const [selectedChunks, setSelectedChunks] = useState<Record<string, number[]>>({});
   const [isSidebarOpen, setIsSidebarOpen] = useState(() => {
     if (typeof window !== "undefined") {
       return window.innerWidth >= 640;
@@ -471,6 +476,13 @@ export function ChatInterface({ activeDocument }: ChatInterfaceProps) {
           (chat.fileWithUrl || []).filter(f => f.enabled !== false).map(f => f.documentId).filter((id): id is string => !!id)
         ));
         const documentIds = fileDocIds.length > 0 ? fileDocIds : chatLevelDocIds;
+        const hasSelectedChunks = documentIds.some(id => selectedChunks[id] && selectedChunks[id].length > 0);
+        const specificChunks = hasSelectedChunks ? 
+          Object.fromEntries(
+            Object.entries(selectedChunks).filter(([docId, chunks]) => 
+              documentIds.includes(docId) && chunks.length > 0
+            )
+          ) : undefined;
 
         if (stream) {
           let fullResponse = "";
@@ -480,6 +492,7 @@ export function ChatInterface({ activeDocument }: ChatInterfaceProps) {
             stream: true,
             documentIds,
             useAgentTools,
+            specificChunks,
             onStreamChunk: (chunk: string) => {
               fullResponse += chunk;
               // Update bot message in chat
@@ -510,6 +523,7 @@ export function ChatInterface({ activeDocument }: ChatInterfaceProps) {
             stream: false,
             documentIds,
             useAgentTools,
+            specificChunks,
             onStatusChange: (status: any) => {
               // Update bot message with status
               const updatedChat = getChatById(chatId!);
@@ -793,6 +807,11 @@ export function ChatInterface({ activeDocument }: ChatInterfaceProps) {
               useAgentTools={useAgentTools}
               setUseAgentTools={setUseAgentTools}
               disabled={isProcessing}
+              selectedChunksInfo={
+                Object.keys(selectedChunks).length > 0
+                  ? `${Object.values(selectedChunks).reduce((sum, arr) => sum + arr.length, 0)} chunks selected`
+                  : undefined
+              }
             />
           </div>
         </div>
@@ -802,8 +821,30 @@ export function ChatInterface({ activeDocument }: ChatInterfaceProps) {
         <FilePreview
           file={previewFile}
           onClose={() => setPreviewFile(null)}
+          onViewChunks={(docId, docName) => {
+            setChunkViewerDocId(docId);
+            setChunkViewerDocName(docName);
+            setShowChunkViewer(true);
+          }}
         />
       )}
+
+      <ChunkViewer
+        isOpen={showChunkViewer}
+        onClose={() => setShowChunkViewer(false)}
+        documentId={chunkViewerDocId}
+        documentName={chunkViewerDocName}
+        onApplySelection={(chunkIds) => {
+          setSelectedChunks(prev => ({
+            ...prev,
+            [chunkViewerDocId]: chunkIds
+          }));
+          toast.success(`Selected ${chunkIds.length} chunks from ${chunkViewerDocName}`, {
+            description: 'These chunks will be used in your next query',
+            duration: 3000,
+          });
+        }}
+      />
 
       <Dialog open={showAttachments} onOpenChange={setShowAttachments}>
         <DialogContent>

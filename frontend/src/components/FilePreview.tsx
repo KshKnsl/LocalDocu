@@ -3,17 +3,16 @@
 import React, { useEffect, useState } from 'react';
 import { Card } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
-import { ExternalLink, FileText, X, FileQuestion, Download, FileSearch } from 'lucide-react';
+import { ExternalLink, FileText, X, FileQuestion, Download, BookOpen } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import {
   Collapsible,
   CollapsibleContent,
 } from "@/components/ui/collapsible";
 import { ScrollArea } from '@radix-ui/react-scroll-area';
-import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 
 import type { FileWithUrl } from "./ui/FileWithUrl";
-import { summarizeByDocumentId, processDocument, loadModel } from "@/lib/api";
+import { processDocument, loadModel } from "@/lib/api";
 import { toast } from "sonner";
 import { getChatFileLocalUrl, cloneChatFolderToLocal } from "@/lib/localFiles";
 import { getChatById, updateChat } from "@/lib/chatStorage";
@@ -22,6 +21,7 @@ interface FilePreviewProps {
   file: FileWithUrl | string | null;
   onClose: () => void;
   className?: string;
+  onViewChunks?: (documentId: string, documentName: string) => void;
 }
 
 type FileType = 'pdf' | 'text' | 'image' | 'other';
@@ -42,121 +42,11 @@ function getFileType(input: FileWithUrl | string): FileType {
   ].includes(extension)) return 'text';
   return 'other';
 }
-export function FilePreview({ file, onClose, className }: FilePreviewProps) {
+export function FilePreview({ file, onClose, className, onViewChunks }: FilePreviewProps) {
   const [content, setContent] = useState<string>('');
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [isOpen, setIsOpen] = useState(true);
-  const [summary, setSummary] = useState<string>("");
-  const [isSummarizing, setIsSummarizing] = useState<boolean>(false);
-  const [chunkSummaries, setChunkSummaries] = useState<string[]>([]);
-  const [chunkProgress, setChunkProgress] = useState<{ index: number; total: number } | null>(null);
-  const [isSummaryOpen, setIsSummaryOpen] = useState<boolean>(false);
-
-  const handleSummarize = async () => {
-    if (!file || typeof file === 'string') return;
-    setIsSummarizing(true);
-    setChunkSummaries([]);
-    setChunkProgress(null);
-    try {
-      let out: { summary: string; chunkCount?: number } | undefined;
-      if (file.documentId) {
-        out = await summarizeByDocumentId(
-          file.documentId,
-          (index, total, chunkSummary) => {
-            setChunkSummaries((prev) => {
-              const copy = [...prev];
-              copy[index] = chunkSummary;
-              return copy;
-            });
-            setChunkProgress({ index: index + 1, total });
-          },
-          (status) => {
-            setChunkProgress((p) => p ?? { index: 0, total: 0 });
-            toast.info(status, { duration: 1200 });
-          }
-        );
-      } else if (file.localFile) {
-        const proc = await processDocument(undefined, file.localFile);
-        if (proc?.documentId) {
-          out = await summarizeByDocumentId(
-            proc.documentId,
-            (index, total, chunkSummary) => {
-              setChunkSummaries((prev) => {
-                const copy = [...prev];
-                copy[index] = chunkSummary;
-                return copy;
-              });
-              setChunkProgress({ index: index + 1, total });
-            },
-            (status) => {
-              setChunkProgress((p) => p ?? { index: 0, total: 0 });
-              toast.info(status, { duration: 1200 });
-            }
-          );
-        } else {
-          throw new Error('Failed to process document before summarization');
-        }
-      } else if (file.key) {
-        const proc = await processDocument(file.key);
-        if (proc?.documentId) {
-          out = await summarizeByDocumentId(
-            proc.documentId,
-            (index, total, chunkSummary) => {
-              setChunkSummaries((prev) => {
-                const copy = [...prev];
-                copy[index] = chunkSummary;
-                return copy;
-              });
-              setChunkProgress({ index: index + 1, total });
-            },
-            (status) => {
-              setChunkProgress((p) => p ?? { index: 0, total: 0 });
-              toast.info(status, { duration: 1200 });
-            }
-          );
-        } else {
-          throw new Error('Failed to process document before summarization');
-        }
-      }
-
-      if (out?.summary) {
-        setSummary(out.summary);
-        if (file.chatId) {
-          const chat = getChatById(file.chatId);
-          if (chat) {
-            chat.fileWithUrl = (chat.fileWithUrl || []).map((f) => {
-              if ((file.key && f.key === file.key) || (!file.key && f.name === file.name)) {
-                return { ...f, summary: out!.summary };
-              }
-              return f;
-            });
-            chat.message_objects = chat.message_objects.map((m) => ({
-              ...m,
-              files: (m.files || []).map((f) => {
-                if ((file.key && f.key === file.key) || (!file.key && f.name === file.name)) {
-                  return { ...f, summary: out!.summary };
-                }
-                return f;
-              }),
-            }));
-            updateChat(chat);
-          }
-        }
-        toast.success('Paper summarized!', {
-          description: out.chunkCount ? `Processed ${out.chunkCount} chunks` : 'Summary saved with file',
-          duration: 2500,
-        });
-      } else {
-        toast.error('No summary returned');
-      }
-    } catch (error) {
-      toast.error('Failed to summarize paper', { description: error instanceof Error ? error.message : 'Unknown error' });
-    } finally {
-      setIsSummarizing(false);
-      setChunkProgress(null);
-    }
-  };
 
   useEffect(() => {
     if (!file) {
@@ -172,11 +62,6 @@ export function FilePreview({ file, onClose, className }: FilePreviewProps) {
         if (typeof file === 'string') {
           setContent(file);
         } else {
-          if (file.summary) {
-            setSummary(file.summary);
-          } else {
-            setSummary("");
-          }
           let useUrl = file.localUrl;
           if (file.chatId && file.name) {
             useUrl = await getChatFileLocalUrl(file.chatId, file.name) || useUrl;
@@ -300,21 +185,15 @@ export function FilePreview({ file, onClose, className }: FilePreviewProps) {
           <div className="flex items-center gap-2">
             {file && (
               <>
-                {getFileType(file) === 'pdf' && typeof file !== 'string' && (file.key || file.documentId || file.localFile) && (
+                {typeof file !== 'string' && file.documentId && onViewChunks && (
                   <Button
                     variant="ghost"
                     size="icon"
-                    onClick={handleSummarize}
+                    onClick={() => onViewChunks(file.documentId!, file.name)}
                     className="h-7 w-7"
-                    title="Summarize Research Paper"
+                    title="View Chunks"
                   >
-                    {isSummarizing ? (
-                      <span className="inline-flex items-center justify-center h-4 w-4">
-                        <span className="animate-ping inline-flex h-3 w-3 rounded-full bg-primary opacity-75" />
-                      </span>
-                    ) : (
-                      <FileSearch className="h-4 w-4" />
-                    )}
+                    <BookOpen className="h-4 w-4" />
                   </Button>
                 )}
                 <Button
@@ -362,66 +241,8 @@ export function FilePreview({ file, onClose, className }: FilePreviewProps) {
       </div>
 
       <CollapsibleContent className="overflow-auto p-4 max-h-[calc(100vh-4rem)]">
-        {typeof file !== 'string' && summary && (
-          <Card
-            className="mb-4 p-3 bg-muted/40 cursor-pointer hover:bg-muted/60 transition-colors"
-            onClick={() => setIsSummaryOpen(true)}
-            role="button"
-            aria-label="Open full summary"
-            tabIndex={0}
-          >
-            <div className="text-xs uppercase text-muted-foreground mb-1">Summary</div>
-            <div className="whitespace-pre-wrap break-words text-sm">
-              {summary.length > 200 ? `${summary.slice(0, 200)}...` : summary}
-            </div>
-            {summary.length > 200 && (
-              <div className="mt-1 text-xs text-primary/80">Click to view full summary</div>
-            )}
-          </Card>
-        )}
-        {/* Streaming chunk summaries and progress */}
-        {chunkProgress && (
-          <div className="mb-4">
-            <div className="flex items-center justify-between text-xs text-muted-foreground mb-1">
-              <div>Summarization progress</div>
-              <div>{chunkProgress.index}/{chunkProgress.total}</div>
-            </div>
-            <div className="w-full bg-muted/20 rounded h-2 overflow-hidden">
-              <div
-                className="h-2 bg-primary"
-                style={{ width: `${Math.round((chunkProgress.index / Math.max(1, chunkProgress.total)) * 100)}%` }}
-              />
-            </div>
-          </div>
-        )}
-
-        {chunkSummaries && chunkSummaries.length > 0 && (
-          <div className="mb-4 space-y-2">
-            <div className="text-xs uppercase text-muted-foreground">Chunk Summaries</div>
-            <div className="max-h-40 overflow-y-auto space-y-1">
-              {chunkSummaries.map((cs, i) => (
-                <Card key={i} className="p-2 bg-muted/30 text-sm">
-                  <div className="text-xs text-muted-foreground">Chunk {i + 1}</div>
-                  <div className="whitespace-pre-wrap">{cs || <span className="text-muted-foreground">Waiting...</span>}</div>
-                </Card>
-              ))}
-            </div>
-          </div>
-        )}
         {renderPreview()}
       </CollapsibleContent>
-
-      {/* Full Summary Dialog */}
-      <Dialog open={isSummaryOpen} onOpenChange={setIsSummaryOpen}>
-        <DialogContent className="max-w-2xl">
-          <DialogHeader>
-            <DialogTitle>Document Summary</DialogTitle>
-          </DialogHeader>
-          <div className="max-h-[60vh] overflow-y-auto whitespace-pre-wrap break-words text-sm">
-            {summary}
-          </div>
-        </DialogContent>
-      </Dialog>
     </Collapsible>
   );
 }

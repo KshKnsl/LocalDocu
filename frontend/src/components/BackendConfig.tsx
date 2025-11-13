@@ -8,6 +8,7 @@ import { Badge } from "@/components/ui/badge"
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog"
 import { Download, Server, Check, X, Loader2 } from "lucide-react"
 import { toast } from "sonner"
+import { downloadBackendFile } from "@/lib/downloadUtils"
 
 const DEFAULT_BACKEND = "https://minor-project-6v6z.vercel.app/api"
 
@@ -59,16 +60,7 @@ export function BackendConfig() {
     }
   }
 
-  const downloadBackend = (os: "windows" | "mac" | "linux") => {
-    const fileMap = { windows: '/backend-windows.py', mac: '/backend-mac.py', linux: '/backend-ubuntu.py' }
-    const link = document.createElement('a')
-    link.href = fileMap[os]
-    link.download = `backend-${os}.py`
-    document.body.appendChild(link)
-    link.click()
-    document.body.removeChild(link)
-    toast.success(`Backend downloaded for ${os}`, { description: "See file for setup instructions" })
-  }
+
 
   const currentBackendUrl = backendMode === "custom" ? customUrl : DEFAULT_BACKEND
 
@@ -202,7 +194,7 @@ export function BackendConfig() {
               <Button 
                 size="sm" 
                 variant="outline"
-                onClick={() => downloadBackend("windows")}
+                onClick={() => downloadBackendFile("windows")}
                 className="flex items-center gap-2"
               >
                 <Download className="w-3 h-3" />
@@ -211,7 +203,7 @@ export function BackendConfig() {
               <Button 
                 size="sm" 
                 variant="outline"
-                onClick={() => downloadBackend("mac")}
+                onClick={() => downloadBackendFile("mac")}
                 className="flex items-center gap-2"
               >
                 <Download className="w-3 h-3" />
@@ -220,7 +212,7 @@ export function BackendConfig() {
               <Button 
                 size="sm" 
                 variant="outline"
-                onClick={() => downloadBackend("linux")}
+                onClick={() => downloadBackendFile("linux")}
                 className="flex items-center gap-2"
               >
                 <Download className="w-3 h-3" />

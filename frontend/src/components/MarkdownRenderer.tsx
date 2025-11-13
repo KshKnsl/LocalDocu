@@ -138,9 +138,13 @@ const CodeBlock = ({ children, language }: { children: string; language: string 
   }, []);
 
   const handleCopy = async () => {
-    await navigator.clipboard.writeText(children);
-    setCopied(true);
-    setTimeout(() => setCopied(false), 2000);
+    try {
+      await navigator.clipboard.writeText(children);
+      setCopied(true);
+      setTimeout(() => setCopied(false), 2000);
+    } catch (error) {
+      // Silent fail for copy
+    }
   };
 
   // Choose theme based on current system/user preference

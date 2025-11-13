@@ -20,11 +20,14 @@ import {
   ChevronRight,
   Eye,
   Trash2,
+  Download,
+  FileText,
 } from "lucide-react";
-import ThemeSwitcher from "./Theme-switcher";
+import ThemeSwitcher from "./ui/theme-switcher";
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import type { FileWithUrl } from "@/components/ui/FileWithUrl";
 import { BackendConfigDialog } from "./BackendConfig";
+import { exportChatToPDF, exportAllChatsToPDF } from "@/lib/pdfExport";
 
 
 interface ChatSidebarProps {
@@ -157,7 +160,7 @@ export function ChatSidebar({
           />
         )}
         {isSidebarOpen && (
-          <div className="mt-2">
+          <div className="mt-2 space-y-2">
             <Button
               variant="outline"
               size="sm"
@@ -168,6 +171,46 @@ export function ChatSidebar({
               <Eye className="h-4 w-4" />
               All files
             </Button>
+            <div className="flex gap-2">
+              <Button
+                variant="outline"
+                size="sm"
+                onClick={() => {
+                  if (currentChatId) {
+                    const chat = chats.find(c => c.chat_id === currentChatId);
+                    if (chat) {
+                      exportChatToPDF(chat);
+                      toast.success("Chat exported as PDF");
+                    }
+                  } else {
+                    toast.error("No chat selected");
+                  }
+                }}
+                title="Export current chat as PDF"
+                className="flex-1 justify-start gap-2"
+                disabled={!currentChatId}
+              >
+                <FileText className="h-4 w-4" />
+                Export Chat
+              </Button>
+              <Button
+                variant="outline"
+                size="sm"
+                onClick={() => {
+                  if (chats.length === 0) {
+                    toast.error("No chats to export");
+                    return;
+                  }
+                  exportAllChatsToPDF(chats);
+                  toast.success(`Exported ${chats.length} chats as PDF`);
+                }}
+                title="Export all chats as PDF"
+                className="flex-1 justify-start gap-2"
+              >
+                <Download className="h-4 w-4" />
+                Export All
+              </Button>
+            </div>
           </div>
         )}
       </div>

@@ -428,10 +428,14 @@ class HierarchicalRAGService:
         return docs
 
     # --- RAG Logic with Structured Citations ---
-    async def query_rag(self, document_ids: List[str], question: str, model_name: str, top_k: int = 5) -> Tuple[str, List[Dict[str, Any]]]:
+    async def query_rag(self, document_ids: List[str], question: str, model_name: str, top_k: int = 5, specific_chunks: Dict[str, List[int]] = None) -> Tuple[str, List[Dict[str, Any]]]:
         """
         Performs the 2-step Hierarchical RAG query using
         structured output and IEEE-style citations.
+        Can optionally use specific user-selected chunks.
+        
+        Args:
+            specific_chunks: Dict mapping document_id to list of chunk indices to use
         """
         print(f"\n{'='*80}")
         print(f"🔍 Starting Hierarchical RAG query")
@@ -440,6 +444,8 @@ class HierarchicalRAGService:
         print(f"📁 Document IDs: {document_ids}")
         print(f"🤖 Model: {model_name}")
         print(f"🎯 Top K: {top_k}")
+        if specific_chunks:
+            print(f"📌 Using specific chunks: {specific_chunks}")
 
         # === Step 1: Search SUMMARY_STORE (Unchanged) ===
         summary_retriever = self.summary_store.as_retriever(
@@ -458,17 +464,28 @@ class HierarchicalRAGService:
             return "I couldn't find any relevant documents for your question.", []
         print(f"... (Step 1) Found top relevant docs: {relevant_doc_ids}")
 
-        # === Step 2: Search DETAILED_STORE (Unchanged) ===
-        detailed_retriever = self.detailed_store.as_retriever(
-            search_kwargs={'k': 25, 'filter': {'doc_id': {'$in': relevant_doc_ids}}}
-        )
-        chunk_compressor = ContextualCompressionRetriever(
-            base_compressor=FlashrankRerank(top_n=top_k),
-            base_retriever=detailed_retriever
-        )
-        print("... (Step 2) Re-ranking detailed chunks...")
-        relevant_chunks = chunk_compressor.invoke(question)
-        print(f"✓ Found {len(relevant_chunks)} relevant chunks after reranking")
+        if specific_chunks:
+            print("... (Step 2) Using user-selected specific chunks...")
+            relevant_chunks = []
+            for doc_id in relevant_doc_ids:
+                if doc_id in specific_chunks:
+                    all_chunks = self.get_chunks_by_doc_id(doc_id)
+                    selected_indices = specific_chunks[doc_id]
+                    for idx in selected_indices:
+                        if idx < len(all_chunks):
+                            relevant_chunks.append(all_chunks[idx])
+            print(f"✓ Using {len(relevant_chunks)} user-selected chunks")
+        else:
+            detailed_retriever = self.detailed_store.as_retriever(
+                search_kwargs={'k': 25, 'filter': {'doc_id': {'$in': relevant_doc_ids}}}
+            )
+            chunk_compressor = ContextualCompressionRetriever(
+                base_compressor=FlashrankRerank(top_n=top_k),
+                base_retriever=detailed_retriever
+            )
+            print("... (Step 2) Re-ranking detailed chunks...")
+            relevant_chunks = chunk_compressor.invoke(question)
+            print(f"✓ Found {len(relevant_chunks)} relevant chunks after reranking")
 
         if not relevant_chunks:
             print("No relevant chunks found in detailed search.")
@@ -613,51 +630,6 @@ Ensure all citation markers in your answer correspond to reference IDs."""
 # ==============================================================================
 # (This section is unchanged from the previous code)
 
-async def stream_map_reduce_summary(docs_text: List[str], model_name: str):
-    def build_chunk_summary_prompt(chunk_text: str, idx: int, total: int, max_words: int = 300) -> str:
-        txt = (chunk_text or "")[:30000]
-        return (
-            f"You are an expert research assistant. Summarize the following document CHUNK ({idx+1}/{total}) in up to {max_words} words.\n"
-            "Focus on the most important claims, methods, and results in this chunk. Keep the output as a short, self-contained bullet list or short paragraphs.\n\n"
-            f"Chunk content:\n{txt}\n\nIntermediate summary:\n"
-        )
-    def build_synthesis_prompt(intermediate_summaries: list[str], max_words: int = 500) -> str:
-        combined = "\n\n".join(intermediate_summaries)[:40000]
-        return (
-            f"You are an expert research assistant. You have the following INTERMEDIATE SUMMARIES derived from chunks of a research paper.\n"
-            f"Using only the information below, produce a single structured summary of approximately {max_words} words with the following sections:\n"
-            "- TL;DR (one short paragraph)\n- Problem & Motivation\n- Method\n- Key Results\n- Limitations\n- Conclusion\n\n"
-            "Write clearly and use short headings for each section. If information is missing, be explicit.\n\n"
-            f"Intermediate summaries:\n{combined}\n\nFinal structured summary:\n"
-        )
-    semaphore = asyncio.Semaphore(10)
-    async def summarize_chunk_async(chunk_text: str, idx: int, total: int) -> str:
-        prompt = build_chunk_summary_prompt(chunk_text, idx, total)
-        async with semaphore:
-            return await asyncio.to_thread(generate_with_llm, prompt, model_name)
-
-    total_chunks = len(docs_text)
-    tasks = [asyncio.create_task(summarize_chunk_async(c, i, total_chunks)) for i, c in enumerate(docs_text)]
-    intermediate_summaries = []
-
-    for i, task in enumerate(asyncio.as_completed(tasks)):
-        try:
-            summary = await task
-            intermediate_summaries.append(summary)
-            yield json.dumps({"type": "chunk", "index": i, "total": total_chunks, "summary": summary}) + "\n"
-        except Exception as e:
-            print(f"Error summarizing chunk {i}: {e}")
-            yield json.dumps({"type": "error", "index": i, "message": str(e)}) + "\n"
-    yield json.dumps({"type": "status", "message": "Generating final summary..."}) + "\n"
-    synthesis_prompt = build_synthesis_prompt(intermediate_summaries)
-    final_summary = await asyncio.to_thread(generate_with_llm, synthesis_prompt, model_name)
-    yield json.dumps({
-        "type": "final",
-        "summary": final_summary,
-        "chunkCount": total_chunks,
-        "intermediateCount": len(intermediate_summaries)
-    }) + "\n"
-
 # ==============================================================================
 # 9. FASTAPI APP & ENDPOINTS (MODIFIED)
 # ==============================================================================
@@ -709,17 +681,26 @@ async def process(file: UploadFile):
         print(f"Error processing document: {e}")
         return JSONResponse(status_code=500, content={"error": "Failed to process document", "message": str(e)})
 
-@app.post("/summarize_by_id")
-async def summarize_by_id(request: Request):
+@app.post("/get_chunks")
+async def get_chunks(request: Request):
+    """Get all chunks for a specific document ID."""
     if rag_service is None: raise HTTPException(status_code=500, detail="RAG Service is not operational.")
     data = await request.json()
     document_id = data.get("documentId")
-    model_name = data.get("model_name", OLLAMA_MODEL)
     if not document_id: raise HTTPException(status_code=400, detail="documentId is required")
     chunks = rag_service.get_chunks_by_doc_id(document_id)
     if not chunks: raise HTTPException(status_code=404, detail=f"No chunks found for documentId {document_id}")
-    chunks_text = [c.page_content for c in chunks]
-    return StreamingResponse(stream_map_reduce_summary(chunks_text, model_name), media_type="application/x-ndjson")
+    return JSONResponse(content={
+        "documentId": document_id,
+        "chunks": [
+            {
+                "id": i,
+                "content": chunk.page_content,
+                "metadata": chunk.metadata,
+            }
+            for i, chunk in enumerate(chunks)
+        ]
+    })
 
 @app.post("/generate")
 async def generate_text(request: Request):
@@ -732,6 +713,7 @@ async def generate_text(request: Request):
     model = data.get("model", OLLAMA_MODEL)
     prompt = data.get("prompt", "")
     document_ids = data.get("documentIds", [])
+    specific_chunks = data.get("specificChunks", None)  # Optional: {"doc_id": [0, 2, 5], ...}
 
     image_ids = [doc_id for doc_id in document_ids if doc_id.startswith("img_")]
     text_ids = [doc_id for doc_id in document_ids if doc_id.startswith("doc_")]
@@ -750,6 +732,7 @@ async def generate_text(request: Request):
             document_ids=text_ids,
             question=prompt,
             model_name=model,
+            specific_chunks=specific_chunks,
             top_k=max_citations
         )
         return JSONResponse(content={"response": response_text, "citations": citations})
