@@ -24,8 +24,6 @@ interface ChatInputProps {
   onViewChunks?: (documentId: string, documentName: string) => void;
   model: string;
   setModel: (model: string) => void;
-  useAgentTools?: boolean;
-  setUseAgentTools?: (value: boolean) => void;
   disabled?: boolean;
   selectedChunksInfo?: string;
 }
@@ -42,8 +40,6 @@ export function ChatInput({
   onViewChunks,
   model,
   setModel,
-  useAgentTools = false,
-  setUseAgentTools,
   disabled = false,
   selectedChunksInfo,
 }: ChatInputProps) {
@@ -176,19 +172,6 @@ export function ChatInput({
             </Button>
           </div>
         </div>
-        {setUseAgentTools && (
-          <div className="flex items-center gap-2 px-3 py-1.5 rounded-lg border bg-muted/30">
-            <Bot className="h-4 w-4 text-muted-foreground" />
-            <label htmlFor="agent-toggle" className="text-xs font-medium cursor-pointer">
-              Agent Tools
-            </label>
-            <Switch
-              id="agent-toggle"
-              checked={useAgentTools}
-              onCheckedChange={setUseAgentTools}
-            />
-          </div>
-        )}
       </div>
     </div>
   );

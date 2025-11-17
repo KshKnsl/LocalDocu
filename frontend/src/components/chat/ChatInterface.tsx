@@ -51,7 +51,6 @@ export function ChatInterface({ initialChatId }: ChatInterfaceProps) {
   const [previewFile, setPreviewFile] = useState<FileWithUrl | string | null>(null);
   const [showAttachments, setShowAttachments] = useState(false);
   const [chats, setChats] = useState<ChatDocument[]>(() => getAllChats());
-  const [useAgentTools, setUseAgentTools] = useState(false);
   const [processingFiles, setProcessingFiles] = useState<ProcessingFile[]>([]);
   const [showProcessingDialog, setShowProcessingDialog] = useState(false);
   const [isProcessing, setIsProcessing] = useState(false);
@@ -307,7 +306,6 @@ export function ChatInterface({ initialChatId }: ChatInterfaceProps) {
             model,
             stream: true,
             documentIds,
-            useAgentTools,
             specificChunks,
             onStreamChunk: (chunk: string) => {
               fullResponse += chunk;
@@ -337,7 +335,6 @@ export function ChatInterface({ initialChatId }: ChatInterfaceProps) {
             model,
             stream: false,
             documentIds,
-            useAgentTools,
             specificChunks,
             onStatusChange: (status: any) => {
               const updatedChat = getChatById(chatId!);
@@ -485,8 +482,6 @@ export function ChatInterface({ initialChatId }: ChatInterfaceProps) {
               onShowAttachments={() => setShowAttachments(true)}
               model={model}
               setModel={setModel}
-              useAgentTools={useAgentTools}
-              setUseAgentTools={setUseAgentTools}
               disabled={isProcessing}
               selectedChunksInfo={
                 Object.keys(selectedChunks).length > 0

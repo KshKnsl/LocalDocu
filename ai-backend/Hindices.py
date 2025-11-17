@@ -19,7 +19,7 @@ load_dotenv()
 
 # --- FastAPI & Server ---
 from fastapi import FastAPI, UploadFile, Form, Request, HTTPException
-from fastapi.responses import JSONResponse, StreamingResponse
+from fastapi.responses import JSONResponse, StreamingResponse, FileResponse
 import uvicorn
 from pyngrok import ngrok
 
@@ -34,6 +34,7 @@ from langchain_chroma import Chroma
 from langchain_ollama.llms import OllamaLLM
 from langchain_google_genai import ChatGoogleGenerativeAI
 from pydantic import BaseModel, Field
+import fitz
 
 # --- Colab Support ---
 try:
@@ -200,8 +201,22 @@ def start_ollama_service():
             time.sleep(2)
     raise RuntimeError("❌ Ollama failed to start in time.")
 
-def is_image_file(filename: str) -> bool:
-    return Path(filename).suffix.lower() in IMAGE_EXTENSIONS
+def generate_image_summary(image_path: str, model: str = "llava") -> str:
+    """Generate a detailed description of an image using a vision model."""
+    with open(image_path, "rb") as f:
+        image_data = base64.b64encode(f.read()).decode()
+    try:
+        response = requests.post(
+            f"{OLLAMA_URL}/api/generate",
+            json={"model": model, "prompt": "Describe this image in detail, including any text, objects, colors, and context.", "images": [image_data], "stream": False},
+            timeout=120
+        )
+        if response.status_code == 200:
+            return response.json().get("response", "No description available")
+        else:
+            return f"Error generating summary: {response.status_code}"
+    except Exception as e:
+        return f"Error: {str(e)}"
 
 # ==============================================================================
 # 6. SHARED LLM & RAG PROMPT LOGIC (MODIFIED)
@@ -349,8 +364,45 @@ class HierarchicalRAGService:
             tmp.write(pdf_bytes)
             path = tmp.name
         docs = PyMuPDFLoader(path).load()
+        if not docs:
+            os.remove(path)
+            return []
+
+        pdf = fitz.open(path)
+        images_per_page = {}
+        for page_num in range(len(pdf)):
+            page = pdf[page_num]
+            images = page.get_images(full=True)
+            page_images = []
+            for img_index, img in enumerate(images):
+                xref = img[0]
+                try:
+                    base_image = pdf.extract_image(xref)
+                    image_bytes = base_image["image"]
+                    image_ext = base_image["ext"]
+                    img_id = f"img_{uuid4().hex}"
+                    image_filename = f"{img_id}.{image_ext}"
+                    image_path = os.path.join(IMAGE_STORE, image_filename)
+                    with open(image_path, "wb") as f:
+                        f.write(image_bytes)
+                    summary = generate_image_summary(image_path)
+                    page_images.append({
+                        "id": img_id,
+                        "url": f"{getBackendUrl()}/image/{img_id}",
+                        "summary": summary,
+                        "page": page_num + 1
+                    })
+                except Exception as e:
+                    print(f"Error extracting image {img_index} on page {page_num + 1}: {e}")
+            images_per_page[page_num + 1] = page_images
+        pdf.close()
         os.remove(path)
-        if not docs: return []
+
+        # Assign images to documents based on page
+        for doc in docs:
+            page_num = doc.metadata.get('page', 1)
+            doc.metadata["images"] = images_per_page.get(page_num, [])
+
         print("🧠 Applying Semantic Chunker...")
         splitter = SemanticChunker(self.embeddings, breakpoint_threshold_type="percentile")
         chunks = splitter.split_documents(docs)
@@ -714,6 +766,7 @@ async def get_chunks(request: Request):
                 "id": i,
                 "content": chunk.page_content,
                 "metadata": chunk.metadata,
+                "images": chunk.metadata.get("images", [])
             }
             for i, chunk in enumerate(chunks)
         ]
@@ -798,6 +851,17 @@ async def process_image_query(image_ids: list, text_ids: list, prompt: str, mode
     if additional_context: final_response += additional_context
 
     return JSONResponse(content={"response": final_response, "citations": citations, "usedVisionModel": True, "visionModel": vision_model})
+
+
+@app.get("/image/{image_id}")
+async def get_image(image_id: str):
+    """Serve an image by its ID."""
+    for ext in IMAGE_EXTENSIONS:
+        image_path = os.path.join(IMAGE_STORE, f"{image_id}{ext}")
+        if os.path.exists(image_path):
+            return FileResponse(image_path, media_type=f"image/{ext[1:]}")
+    raise HTTPException(status_code=404, detail="Image not found")
+
 
 @app.post("/pull")
 async def pull_model(request: Request):

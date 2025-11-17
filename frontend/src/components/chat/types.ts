@@ -14,7 +14,6 @@ export interface ChatState {
   input: string;
   files: FileWithUrl[];
   model: string;
-  useAgentTools: boolean;
   processingFiles: ProcessingFile[];
   showProcessingDialog: boolean;
   isProcessing: boolean;
@@ -27,5 +26,4 @@ export interface ChatHandlers {
   onSubmit: () => void;
   setInput: (value: string) => void;
   setModel: (model: string) => void;
-  setUseAgentTools: (value: boolean) => void;
 }

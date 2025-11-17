@@ -67,7 +67,6 @@ export function ChatInterface({ activeDocument }: ChatInterfaceProps) {
   const [previewFile, setPreviewFile] = useState<FileWithUrl | string | null>(null);
   const [showAttachments, setShowAttachments] = useState(false);
   const [chats, setChats] = useState<ChatDocument[]>(() => getAllChats());
-  const [useAgentTools, setUseAgentTools] = useState(false);
   const [processingFiles, setProcessingFiles] = useState<ProcessingFile[]>([]);
   const [showProcessingDialog, setShowProcessingDialog] = useState(false);
   const [isProcessing, setIsProcessing] = useState(false);
@@ -491,7 +490,6 @@ export function ChatInterface({ activeDocument }: ChatInterfaceProps) {
             model,
             stream: true,
             documentIds,
-            useAgentTools,
             specificChunks,
             onStreamChunk: (chunk: string) => {
               fullResponse += chunk;
@@ -522,7 +520,6 @@ export function ChatInterface({ activeDocument }: ChatInterfaceProps) {
             model,
             stream: false,
             documentIds,
-            useAgentTools,
             specificChunks,
             onStatusChange: (status: any) => {
               // Update bot message with status
@@ -814,8 +811,6 @@ export function ChatInterface({ activeDocument }: ChatInterfaceProps) {
               }}
               model={model}
               setModel={setModel}
-              useAgentTools={useAgentTools}
-              setUseAgentTools={setUseAgentTools}
               disabled={isProcessing}
               selectedChunksInfo={
                 Object.keys(selectedChunks).length > 0

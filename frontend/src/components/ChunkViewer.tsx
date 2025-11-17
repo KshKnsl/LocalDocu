@@ -180,6 +180,23 @@ export function ChunkViewer({ isOpen, onClose, documentId, documentName, onApply
                       <p className="text-sm line-clamp-3 whitespace-pre-wrap break-words">
                         {chunk.content}
                       </p>
+                      {chunk.images && chunk.images.length > 0 && (
+                        <div className="mt-3 space-y-2">
+                          <div className="text-xs font-medium text-muted-foreground">Images:</div>
+                          <div className="grid grid-cols-1 gap-2">
+                            {chunk.images.map((img, imgIndex) => (
+                              <div key={img.id} className="border rounded p-2 bg-muted/50">
+                                <img
+                                  src={img.url}
+                                  alt={`Image ${imgIndex + 1}`}
+                                  className="max-w-full h-auto max-h-32 object-contain rounded"
+                                />
+                                <p className="text-xs mt-1 text-muted-foreground">{img.summary}</p>
+                              </div>
+                            ))}
+                          </div>
+                        </div>
+                      )}
                       {chunk.metadata.page && (
                         <div className="mt-2 text-xs text-muted-foreground">
                           Page {chunk.metadata.page}

@@ -8,11 +8,11 @@ export const loadModel = async (modelName: string) => {
   return res.json();
 };
 
-export async function sendExternalChatMessage({ prompt, model = "mistral", stream = false, documentIds, useAgentTools = false, maxCitations, specificChunks, onStreamChunk, onStatusChange }: { prompt: string; model?: string; stream?: boolean; documentIds?: string[]; useAgentTools?: boolean; maxCitations?: number | null; specificChunks?: Record<string, number[]>; onStreamChunk?: (chunk: string) => void; onStatusChange?: (status: string) => void }): Promise<ChatResponse> {
+export async function sendExternalChatMessage({ prompt, model = "mistral", stream = false, documentIds, maxCitations, specificChunks, onStreamChunk, onStatusChange }: { prompt: string; model?: string; stream?: boolean; documentIds?: string[]; maxCitations?: number | null; specificChunks?: Record<string, number[]>; onStreamChunk?: (chunk: string) => void; onStatusChange?: (status: string) => void }): Promise<ChatResponse> {
   if (onStatusChange) onStatusChange("Pulling model...");
   await loadModel(model);
-  if (onStatusChange) onStatusChange(useAgentTools ? "Running agent with tools..." : "Generating...");
-  const body: any = { model, prompt, stream, documentIds, use_agent_tools: useAgentTools };
+  if (onStatusChange) onStatusChange("Generating...");
+  const body: any = { model, prompt, stream, documentIds };
   if (typeof maxCitations !== "undefined") body.maxCitations = maxCitations;
   if (specificChunks) body.specificChunks = specificChunks;
 
@@ -148,6 +148,12 @@ export type DocumentChunk = {
   id: number;
   content: string;
   metadata: Record<string, any>;
+  images?: Array<{
+    id: string;
+    url: string;
+    summary: string;
+    page: number;
+  }>;
 };
 
 export const getDocumentChunks = async (documentId: string): Promise<DocumentChunk[]> => {
