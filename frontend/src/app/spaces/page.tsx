@@ -15,6 +15,7 @@ import { getChatPreview, getMessageCount, getFileCount, filterChatsByQuery } fro
 import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import NewChatDialog from "@/components/NewChatDialog";
 import { BackendConfigDialog } from "@/components/BackendConfig";
+import { loadModel, isUsingCustomBackend } from "@/lib/api";
 
 export default function SpacesPage() {
   const router = useRouter();
@@ -41,7 +42,7 @@ export default function SpacesPage() {
         <div className="container mx-auto px-4 py-4">
           <div className="flex items-center justify-between">
             <div className="flex items-center gap-3">
-              <div className="flex items-center justify-center w-10 h-10 rounded-lg bg-primary text-primary-foreground"><MessageSquare className="h-6 w-6" /></div>
+              <img src="/logo.png" alt="App Logo" className="w-10 h-10 rounded-lg" />
               <div><h1 className="text-2xl font-bold">Document Spaces</h1><p className="text-sm text-muted-foreground">Manage your research conversations</p></div>
             </div>
             <div className="flex items-center gap-3">
@@ -73,7 +74,19 @@ export default function SpacesPage() {
           <NewChatDialog
             open={createDialogOpen}
             onOpenChange={setCreateDialogOpen}
-            onCreate={({ chatId, title, description, models }) => {
+            onCreate={async ({ chatId, title, description, models }) => {
+              if (isUsingCustomBackend()) {
+                toast.info("Pulling selected models...");
+                try {
+                  for (const model of models) {
+                    await loadModel(model);
+                  }
+                  toast.success("All models pulled successfully!");
+                } catch (error) {
+                  toast.error("Failed to pull some models. Please try again.");
+                  throw error; 
+                }
+              }
               const now = new Date().toISOString();
               addChat({ chat_id: chatId, title, created_at: now, fileWithUrl: [], message_objects: [], description, models });
               setChats(getAllChats());

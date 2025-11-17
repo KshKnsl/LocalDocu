@@ -17,6 +17,7 @@ import { LOCAL_MODELS } from "@/lib/localModels";
 import {
   sendExternalChatMessage,
 } from "@/lib/api";
+import { loadModel, isUsingCustomBackend } from "@/lib/api";
 import { useUser } from "@clerk/nextjs";
 import { toast } from "sonner";
 import { Button } from "@/components/ui/button";
@@ -409,7 +410,19 @@ export function ChatInterface({ initialChatId }: ChatInterfaceProps) {
       <NewChatDialog
         open={createDialogOpen}
         onOpenChange={setCreateDialogOpen}
-        onCreate={({ chatId, title, description, models }) => {
+        onCreate={async ({ chatId, title, description, models }) => {
+          if (isUsingCustomBackend()) {
+            toast.info("Pulling selected models...");
+            try {
+              for (const model of models) {
+                await loadModel(model);
+              }
+              toast.success("All models pulled successfully!");
+            } catch (error) {
+              toast.error("Failed to pull some models. Please try again.");
+              throw error;
+            }
+          }
           const now = new Date().toISOString();
           addChat({ chat_id: chatId, title, created_at: now, fileWithUrl: [], message_objects: [], description, models });
           setChats(getAllChats());

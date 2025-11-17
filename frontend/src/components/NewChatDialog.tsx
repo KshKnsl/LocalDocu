@@ -7,17 +7,19 @@ import { Textarea } from "@/components/ui/textarea";
 import { Checkbox } from "@/components/ui/checkbox";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from "@/components/ui/dialog";
 import { LOCAL_MODELS } from "@/lib/localModels";
+import { Loader2 } from "lucide-react";
 
 interface NewChatDialogProps {
   open: boolean;
   onOpenChange: (open: boolean) => void;
-  onCreate: (payload: { chatId: string; title: string; description?: string; models: string[] }) => void;
+  onCreate: (payload: { chatId: string; title: string; description?: string; models: string[] }) => Promise<void>;
 }
 
 export default function NewChatDialog({ open, onOpenChange, onCreate }: NewChatDialogProps) {
   const [title, setTitle] = useState("");
   const [description, setDescription] = useState("");
   const [selectedModels, setSelectedModels] = useState<string[]>(["remote"]);
+  const [isCreating, setIsCreating] = useState(false);
 
   const toggleModel = (modelName: string) => {
     setSelectedModels((prev) => {
@@ -28,14 +30,21 @@ export default function NewChatDialog({ open, onOpenChange, onCreate }: NewChatD
 
   const canCreate = title.trim().length > 0 && selectedModels.length > 0;
 
-  const handleCreate = () => {
-    if (!canCreate) return;
-    const chatId = Math.random().toString(36).substring(7);
-    onCreate({ chatId, title: title.trim(), description: description.trim(), models: selectedModels });
-    setTitle("");
-    setDescription("");
-    setSelectedModels(["remote"]);
-    onOpenChange(false);
+  const handleCreate = async () => {
+    if (!canCreate || isCreating) return;
+    setIsCreating(true);
+    try {
+      const chatId = Math.random().toString(36).substring(7);
+      await onCreate({ chatId, title: title.trim(), description: description.trim(), models: selectedModels });
+      setTitle("");
+      setDescription("");
+      setSelectedModels(["remote"]);
+      onOpenChange(false);
+    } catch (error) {
+      console.error("Failed to create chat:", error);
+    } finally {
+      setIsCreating(false);
+    }
   };
 
   return (
@@ -70,8 +79,17 @@ export default function NewChatDialog({ open, onOpenChange, onCreate }: NewChatD
           </div>
         </div>
         <DialogFooter>
-          <Button variant="outline" onClick={() => onOpenChange(false)}>Cancel</Button>
-          <Button onClick={handleCreate} disabled={!canCreate}>Create</Button>
+          <Button variant="outline" onClick={() => onOpenChange(false)} disabled={isCreating}>Cancel</Button>
+          <Button onClick={handleCreate} disabled={!canCreate || isCreating}>
+            {isCreating ? (
+              <>
+                <Loader2 className="w-4 h-4 mr-2 animate-spin" />
+                Creating...
+              </>
+            ) : (
+              "Create"
+            )}
+          </Button>
         </DialogFooter>
       </DialogContent>
     </Dialog>

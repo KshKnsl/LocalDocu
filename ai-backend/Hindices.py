@@ -446,13 +446,15 @@ class HierarchicalRAGService:
 
     async def _generate_summary_for_ingestion(self, chunks: List[Document], model_name: str) -> str:
         if not chunks: return "No text content found."
-        semaphore = asyncio.Semaphore(10)
         async def summarize_chunk_async(chunk_text: str) -> str:
             prompt = f"Summarize the following text chunk in 2-3 key bullet points:\n\n{chunk_text}\n\nSummary:"
-            async with semaphore:
-                return await asyncio.to_thread(generate_with_llm, prompt, model_name)
-        tasks = [asyncio.create_task(summarize_chunk_async(c.page_content)) for c in chunks]
-        intermediate_summaries = await asyncio.gather(*tasks)
+            return await asyncio.to_thread(generate_with_llm, prompt, model_name)
+        intermediate_summaries = []
+        for i in range(0, len(chunks), 5):
+            batch = chunks[i:i+5]
+            tasks = [asyncio.create_task(summarize_chunk_async(c.page_content)) for c in batch]
+            batch_summaries = await asyncio.gather(*tasks)
+            intermediate_summaries.extend(batch_summaries)
         combined_summaries = "\n".join(intermediate_summaries)
         synthesis_prompt = (
             f"Create a single, concise paragraph summarizing the key themes "
@@ -496,26 +498,29 @@ class HierarchicalRAGService:
         self.summary_store.add_documents([summary_doc], ids=[doc_id])
 
         post_progress(doc_id, "embedding_chunks", 75, message="Creating chunk embeddings...", totalChunks=len(chunks))
-        for i, chunk in enumerate(chunks):
-            # Defensive conversion: ensure chunk is Document and has dict metadata
-            if not isinstance(chunk, Document):
-                print(f"Converting non-Document chunk at index {i} of type {type(chunk)} to Document")
-                chunk = Document(page_content=str(chunk), metadata={})
-                chunks[i] = chunk
-            if not hasattr(chunk, 'metadata') or not isinstance(chunk.metadata, dict):
-                chunk.metadata = {}
-            chunk.metadata["doc_id"] = doc_id
-            chunk.metadata["title"] = f"{Path(source_filename).name} (Page {chunk.metadata.get('page', i+1)})"
-            try:
-                # san is sanitized so lists/dicts converted to strings
-                chunk.metadata = sanitize_metadata(chunk.metadata)
-            except Exception as e:
-                print(f"Warning: sanitize_metadata failed for chunk {i}: {e}; using unfiltered metadata")
-            if i % 5 == 0 or i == len(chunks) - 1:
-                progress = 75 + int((i + 1) / len(chunks) * 20)
-                post_progress(doc_id, "embedding_chunks", progress,
-                            message=f"Embedding chunk {i+1}/{len(chunks)}...",
-                            currentChunk=i+1, totalChunks=len(chunks))
+        current_index = 0
+        for i in range(0, len(chunks), 5):
+            batch = chunks[i:i+5]
+            for chunk in batch:
+                # Defensive conversion: ensure chunk is Document and has dict metadata
+                if not isinstance(chunk, Document):
+                    print(f"Converting non-Document chunk at index {current_index} of type {type(chunk)} to Document")
+                    chunk = Document(page_content=str(chunk), metadata={})
+                    chunks[current_index] = chunk
+                if not hasattr(chunk, 'metadata') or not isinstance(chunk.metadata, dict):
+                    chunk.metadata = {}
+                chunk.metadata["doc_id"] = doc_id
+                chunk.metadata["title"] = f"{Path(source_filename).name} (Page {chunk.metadata.get('page', current_index+1)})"
+                try:
+                    # san is sanitized so lists/dicts converted to strings
+                    chunk.metadata = sanitize_metadata(chunk.metadata)
+                except Exception as e:
+                    print(f"Warning: sanitize_metadata failed for chunk {current_index}: {e}; using unfiltered metadata")
+                current_index += 1
+            progress = 75 + int(current_index / len(chunks) * 20)
+            post_progress(doc_id, "embedding_chunks", progress,
+                        message=f"Embedding chunk {current_index}/{len(chunks)}...",
+                        currentChunk=current_index, totalChunks=len(chunks))
 
         # Final diagnostic: print first few sanitized metadata keys to confirm
         try:
