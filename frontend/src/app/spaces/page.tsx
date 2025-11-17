@@ -2,7 +2,7 @@
 
 import React, { useState, useEffect } from "react";
 import { useRouter } from "next/navigation";
-import { getAllChats, deleteChat, ChatDocument } from "@/lib/chatStorage";
+import { getAllChats, deleteChat, ChatDocument, addChat } from "@/lib/chatStorage";
 import { Card } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -13,6 +13,8 @@ import ThemeSwitcher from "@/components/ui/theme-switcher";
 import { exportChatToPDF, exportAllChatsToPDF } from "@/lib/pdfExport";
 import { getChatPreview, getMessageCount, getFileCount, filterChatsByQuery } from "@/lib/chatUtils";
 import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle } from "@/components/ui/dialog";
+import NewChatDialog from "@/components/NewChatDialog";
+import { BackendConfigDialog } from "@/components/BackendConfig";
 
 export default function SpacesPage() {
   const router = useRouter();
@@ -20,10 +22,11 @@ export default function SpacesPage() {
   const [searchQuery, setSearchQuery] = useState("");
   const [deleteDialogOpen, setDeleteDialogOpen] = useState(false);
   const [chatToDelete, setChatToDelete] = useState<string | null>(null);
+  const [createDialogOpen, setCreateDialogOpen] = useState(false);
 
   useEffect(() => setChats(getAllChats()), []);
 
-  const handleCreateSpace = () => router.push(`/chat/${Math.random().toString(36).substring(7)}`);
+  const handleCreateSpace = () => setCreateDialogOpen(true);
   const handleOpenSpace = (chatId: string) => router.push(`/chat/${chatId}`);
   const handleDeleteClick = (chatId: string, e: React.MouseEvent) => { e.stopPropagation(); setChatToDelete(chatId); setDeleteDialogOpen(true); };
   const handleDeleteConfirm = () => { if (chatToDelete) { deleteChat(chatToDelete); setChats(getAllChats()); toast.success("Document space deleted"); setDeleteDialogOpen(false); setChatToDelete(null); } };
@@ -43,6 +46,7 @@ export default function SpacesPage() {
             </div>
             <div className="flex items-center gap-3">
               <Button variant="outline" size="sm" onClick={handleExportAll} disabled={!chats.length}><Download className="h-4 w-4 mr-2" />Export All</Button>
+              <BackendConfigDialog />
               <ThemeSwitcher /><UserButton afterSwitchSessionUrl="/spaces" />
             </div>
           </div>
@@ -66,6 +70,16 @@ export default function SpacesPage() {
             <h3 className="text-xl font-semibold mb-2">{searchQuery ? "No spaces found" : "No document spaces yet"}</h3>
             <p className="text-muted-foreground mb-6 text-center max-w-md">{searchQuery ? "Try adjusting your search query" : "Create your first document space to start researching with AI"}</p>
             {!searchQuery && <Button onClick={handleCreateSpace} size="lg" className="gap-2"><Plus className="h-5 w-5" />Create Your First Space</Button>}
+          <NewChatDialog
+            open={createDialogOpen}
+            onOpenChange={setCreateDialogOpen}
+            onCreate={({ chatId, title, description, models }) => {
+              const now = new Date().toISOString();
+              addChat({ chat_id: chatId, title, created_at: now, fileWithUrl: [], message_objects: [], description, models });
+              setChats(getAllChats());
+              router.push(`/chat/${chatId}`);
+            }}
+          />
           </div>
         ) : (
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
@@ -82,6 +96,31 @@ export default function SpacesPage() {
                     </div>
                   </div>
                   <p className="text-sm text-muted-foreground mb-4 line-clamp-2 min-h-[2.5rem]">{getChatPreview(chat)}</p>
+                  {chat.description && (
+                    <p className="text-sm text-muted-foreground mb-4 italic">{chat.description}</p>
+                  )}
+                  <div className="mb-4">
+                    <div className="text-xs text-muted-foreground mb-1">Models:</div>
+                    <div className="flex flex-wrap gap-1">
+                      {chat.models && chat.models.length > 0 ? (
+                        chat.models.map(m => (
+                          <span key={m} className="text-xs bg-primary/10 text-primary px-2 py-1 rounded">{m}</span>
+                        ))
+                      ) : (
+                        <span className="text-xs text-muted-foreground">None</span>
+                      )}
+                    </div>
+                  </div>
+                  <div className="mb-4">
+                    <div className="text-xs text-muted-foreground mb-1">Files:</div>
+                    <div className="text-xs text-muted-foreground">
+                      {chat.fileWithUrl.length > 0 ? (
+                        chat.fileWithUrl.slice(0, 3).map(f => f.name).join(', ') + (chat.fileWithUrl.length > 3 ? '...' : '')
+                      ) : (
+                        'No files'
+                      )}
+                    </div>
+                  </div>
                   <div className="flex items-center gap-4 text-xs text-muted-foreground pt-4 border-t">
                     <div className="flex items-center gap-1"><MessageSquare className="h-3 w-3" /><span>{getMessageCount(chat)} messages</span></div>
                     <div className="flex items-center gap-1"><FileText className="h-3 w-3" /><span>{getFileCount(chat)} files</span></div>

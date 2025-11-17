@@ -27,6 +27,7 @@ import {
   DialogTitle,
 } from "@/components/ui/dialog";
 import { ChatSidebar } from "@/components/ChatSidebar";
+import NewChatDialog from "@/components/NewChatDialog";
 import { ChatInput } from "@/components/ChatInput";
 import { FileList } from "@/components/ui/file-list";
 import { cloneChatFolderToLocal } from "@/lib/localFiles";
@@ -53,6 +54,7 @@ export function ChatInterface({ initialChatId }: ChatInterfaceProps) {
   const [chats, setChats] = useState<ChatDocument[]>(() => getAllChats());
   const [processingFiles, setProcessingFiles] = useState<ProcessingFile[]>([]);
   const [showProcessingDialog, setShowProcessingDialog] = useState(false);
+  const [createDialogOpen, setCreateDialogOpen] = useState(false);
   const [isProcessing, setIsProcessing] = useState(false);
   const [showChunkViewer, setShowChunkViewer] = useState(false);
   const [chunkViewerDocId, setChunkViewerDocId] = useState<string>("");
@@ -77,6 +79,9 @@ export function ChatInterface({ initialChatId }: ChatInterfaceProps) {
   const { user } = useUser();
 
   const messages = currentChatId ? getChatById(currentChatId)?.message_objects || [] : [];
+  const currentChat = currentChatId ? getChatById(currentChatId) : undefined;
+  const allowedModels = currentChat?.models;
+  const modelLocked = Array.isArray(allowedModels) && allowedModels.length > 0;
 
   useEffect(() => {
     if (initialChatId) {
@@ -156,19 +161,8 @@ export function ChatInterface({ initialChatId }: ChatInterfaceProps) {
       const fileArray = Array.from(e.target.files);
       let chatId = currentChatId;
       if (!chatId) {
-        const newChatId = Math.random().toString(36).substring(7);
-        const now = new Date().toISOString();
-        const newChat: ChatDocument = {
-          chat_id: newChatId,
-          title: "New Chat",
-          created_at: now,
-          fileWithUrl: [],
-          message_objects: [],
-        };
-        addChat(newChat);
-        setChats(getAllChats());
-        setCurrentChatId(newChatId);
-        chatId = newChatId;
+        setCreateDialogOpen(true);
+        return;
       }
       const chatFolder = `chats/${chatId}`;
       
@@ -213,8 +207,7 @@ export function ChatInterface({ initialChatId }: ChatInterfaceProps) {
   };
 
   const handleSidebarNewChat = () => {
-    const newChatId = Math.random().toString(36).substring(7);
-    router.push(`/chat/${newChatId}`);
+    setCreateDialogOpen(true);
   };
 
   const handleSubmit = async () => {
@@ -222,19 +215,8 @@ export function ChatInterface({ initialChatId }: ChatInterfaceProps) {
     let chatId = currentChatId;
     let chat = chatId ? getChatById(chatId) : undefined;
     if (!chat) {
-      const newChatId = Math.random().toString(36).substring(7);
-      const now = new Date().toISOString();
-      chat = {
-        chat_id: newChatId,
-        title: "New Chat",
-        created_at: now,
-        fileWithUrl: [],
-        message_objects: [],
-      };
-      addChat(chat);
-      setChats(getAllChats());
-      setCurrentChatId(newChatId);
-      chatId = newChatId;
+      setCreateDialogOpen(true);
+      return;
     }
     const messageId = Math.random().toString(36).substring(7);
     const now = new Date().toISOString();
@@ -424,6 +406,16 @@ export function ChatInterface({ initialChatId }: ChatInterfaceProps) {
         setStream={setStream}
         onPreviewFile={(f) => setPreviewFile(f)}
       />
+      <NewChatDialog
+        open={createDialogOpen}
+        onOpenChange={setCreateDialogOpen}
+        onCreate={({ chatId, title, description, models }) => {
+          const now = new Date().toISOString();
+          addChat({ chat_id: chatId, title, created_at: now, fileWithUrl: [], message_objects: [], description, models });
+          setChats(getAllChats());
+          router.push(`/chat/${chatId}`);
+        }}
+      />
 
       <main className="flex-1 flex flex-col h-screen overflow-hidden">
         {/* Header with Back Button */}
@@ -482,6 +474,8 @@ export function ChatInterface({ initialChatId }: ChatInterfaceProps) {
               onShowAttachments={() => setShowAttachments(true)}
               model={model}
               setModel={setModel}
+              modelLocked={modelLocked}
+              allowedModels={allowedModels}
               disabled={isProcessing}
               selectedChunksInfo={
                 Object.keys(selectedChunks).length > 0

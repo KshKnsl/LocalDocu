@@ -7,13 +7,18 @@ import { Accordion, AccordionContent, AccordionItem, AccordionTrigger } from "@/
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
 import { SignIn, SignUp } from "@clerk/nextjs";
 import { useEffect, useState } from "react";
+import { useRouter } from "next/navigation";
 import { Check, Rocket, Globe, SlidersHorizontal } from "lucide-react";
 import ThemeSwitcher from "@/components/ui/theme-switcher";
 import { BackendConfigDialog } from "@/components/BackendConfig";
 
 export default function Home() {
   const [mounted, setMounted] = useState(false);
+  const router = useRouter();
   useEffect(() => { const t = setTimeout(() => setMounted(true), 10); return () => clearTimeout(t); }, []);
+  useEffect(() => {
+    router.push('/spaces');
+  }, []);
 
   return (
     <main className="w-full flex-1 flex flex-col items-center justify-center bg-background relative">
@@ -27,7 +32,7 @@ export default function Home() {
             </h1>
             <p className="max-w-xl text-pretty text-base text-muted-foreground md:text-lg">A privacy-first document summarizer that runs entirely locally using Ollama. No cloud uploads, no external APIs, no data leaks. Everything processes on your own hardware with open-source AI models you control.</p>
             <div className="flex flex-col sm:flex-row gap-3 w-full">
-              <a href="/chat" className="w-full sm:w-auto"><Button size="lg" className="w-full sm:w-auto inline-flex items-center gap-2"><Rocket className="w-4 h-4" />Start Using App</Button></a>
+              <a href="/spaces" className="w-full sm:w-auto"><Button size="lg" className="w-full sm:w-auto inline-flex items-center gap-2"><Rocket className="w-4 h-4" />Start Using App</Button></a>
               <a href="#signin" className="w-full sm:w-auto"><Button size="lg" variant="outline" className="w-full sm:w-auto">Sign In (Optional)</Button></a>
             </div>
           </div>

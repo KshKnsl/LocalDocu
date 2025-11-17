@@ -24,6 +24,8 @@ interface ChatInputProps {
   onViewChunks?: (documentId: string, documentName: string) => void;
   model: string;
   setModel: (model: string) => void;
+  modelLocked?: boolean;
+  allowedModels?: string[];
   disabled?: boolean;
   selectedChunksInfo?: string;
 }
@@ -40,18 +42,25 @@ export function ChatInput({
   onViewChunks,
   model,
   setModel,
+  modelLocked = false,
+  allowedModels,
   disabled = false,
   selectedChunksInfo,
 }: ChatInputProps) {
   const fileInputRef = useRef<HTMLInputElement>(null);
   const isCustomModel = !LOCAL_MODELS.some(m => m.name === model);
+  React.useEffect(() => {
+    if (allowedModels && allowedModels.length > 0 && !allowedModels.includes(model)) {
+      setModel(allowedModels[0]);
+    }
+  }, [allowedModels]);
 
   return (
     <div className="border-t bg-background p-2 w-full">
       <div className="mx-auto flex gap-2 items-center mb-2">
         <div className="flex items-center gap-2">
           <span className="text-xs text-muted-foreground">Model:</span>
-          <Select value={isCustomModel ? "custom" : model} onValueChange={setModel}>
+          <Select value={isCustomModel ? "custom" : model} onValueChange={(v) => !modelLocked && setModel(v)}>
             <SelectTrigger className="w-[180px] h-8">
               <SelectValue placeholder="Select model" />
             </SelectTrigger>
@@ -60,17 +69,20 @@ export function ChatInput({
                 <Input
                   type="text"
                   value={model}
-                  onChange={(e) => setModel(e.target.value)}
+                  onChange={(e) => !modelLocked && setModel(e.target.value)}
                   placeholder="Type custom model..."
                   className="h-8 text-sm"
                   onClick={(e) => e.stopPropagation()}
                   onKeyDown={(e) => e.stopPropagation()}
+                  disabled={modelLocked}
                 />
               </div>
-              {LOCAL_MODELS.map((m) => (
+              {(allowedModels ?? LOCAL_MODELS.map(m=>m.name)).map((mName) => {
+                const m = LOCAL_MODELS.find(x => x.name === mName) || {name: mName, company: '', bestAt: ''};
+                return (
                 <Tooltip key={m.name}>
                   <TooltipTrigger asChild>
-                    <SelectItem value={m.name}>{m.name}</SelectItem>
+                    <SelectItem value={m.name} disabled={modelLocked && !(allowedModels ?? []).includes(m.name)}>{m.name}</SelectItem>
                   </TooltipTrigger>
                   <TooltipContent sideOffset={8}>
                     <div style={{ whiteSpace: "pre-line" }}>
@@ -78,7 +90,8 @@ export function ChatInput({
                     </div>
                   </TooltipContent>
                 </Tooltip>
-              ))}
+                )
+              })}
               <SelectItem value="custom" className="hidden">custom</SelectItem>
             </SelectContent>
           </Select>

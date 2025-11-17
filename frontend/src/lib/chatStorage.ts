@@ -19,6 +19,8 @@ export interface ChatDocument {
   created_at: string; // ISO string
   fileWithUrl: FileWithUrl[];
   message_objects: MessageObject[];
+  description?: string;
+  models?: string[];
 }
 
 const STORAGE_KEY = "aidocu_chats";

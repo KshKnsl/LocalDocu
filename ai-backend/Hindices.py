@@ -28,6 +28,7 @@ from langchain.docstore.document import Document
 from langchain.retrievers import ContextualCompressionRetriever
 from langchain.retrievers.document_compressors import FlashrankRerank
 from langchain_community.document_loaders import PyMuPDFLoader
+from langchain_community.vectorstores.utils import filter_complex_metadata
 from langchain_experimental.text_splitter import SemanticChunker
 from langchain_huggingface import HuggingFaceEmbeddings
 from langchain_chroma import Chroma
@@ -73,37 +74,11 @@ OLLAMA_URL = "http://localhost:11434"
 
 
 def post_progress(document_id: str, status: str, progress: int = 0, **kwargs):
-    """Post progress update to progress tracking service (async, non-blocking)."""
+    """Post progress update to progress tracking service."""
     try:
-        payload = {
-            "documentId": document_id,
-            "status": status,
-            "progress": progress,
-            **kwargs
-        }
-        import threading
-        def _post():
-            try:
-                print(f"DEBUG: Sending progress payload: {json.dumps(payload)}") # Added log
-                response = requests.post(
-                    f"{PROGRESS_SERVICE_URL}/progress",
-                    json=payload,
-                    timeout=10  # Longer timeout for reliability
-                )
-                if response.status_code != 200:
-                    print(f"Warning: Progress service returned {response.status_code} for doc {document_id}") # Added doc_id
-                    print(f"Warning: Progress service response text: {response.text} for doc {document_id}") # New log
-                else:
-                    print(f"DEBUG: Progress service responded with: {response.status_code} for doc {document_id}") # Added log
-                    print(f"DEBUG: Progress service response text: {response.text} for doc {document_id}") # New log
-            except requests.exceptions.Timeout:
-                print(f"Warning: Progress service timeout (doc: {document_id})")
-            except Exception as e:
-                print(f"Warning: Progress service error: {e}")
-
-        thread = threading.Thread(target=_post, daemon=True)
-        thread.start()
-    except Exception as e:
+        payload = {"documentId": document_id, "status": status, "progress": progress, **kwargs}
+        threading.Thread(target=lambda: requests.post(f"{PROGRESS_SERVICE_URL}/progress", json=payload, timeout=10), daemon=True).start()
+    except:
         pass
 
 # --- Persistent Storage Paths (Hierarchical) ---
@@ -121,6 +96,55 @@ IMAGE_EXTENSIONS = {".jpg", ".jpeg", ".png", ".gif", ".bmp", ".webp"}
 # --- Global Reusable Components ---
 EMBEDDINGS_MODEL = HuggingFaceEmbeddings(model_name="all-MiniLM-L6-v2")
 GLOBAL_RERANKER = FlashrankRerank(top_n=5) # Default re-ranker
+
+def safe_metadata_value(value):
+    """Convert unsupported metadata types (lists, dicts, objects) to JSON strings or plain strings.
+
+    Chroma/Chromadb requires metadata values to be primitive types (str, int, float, bool, None) or SparseVector.
+    We ensure we never store lists/dicts directly by serializing them.
+    """
+    # Primitive safe types
+    if value is None or isinstance(value, (str, int, float, bool)):
+        return value
+    # For lists and dicts, try JSON serialization
+    try:
+        if isinstance(value, (list, dict)):
+            return json.dumps(value)
+    except Exception:
+        pass
+    # Fallback: convert to string
+    try:
+        return str(value)
+    except Exception:
+        return None
+
+
+def sanitize_metadata(metadata: dict) -> dict:
+    """Return a sanitized metadata dict where every value is a primitive or None.
+
+    - If metadata is not a dict, returns empty dict.
+    - For nested dict/list, serializes to JSON string.
+    """
+    if not isinstance(metadata, dict):
+        return {}
+    sanitized = {}
+    for k, v in metadata.items():
+        try:
+            sanitized[k] = safe_metadata_value(v)
+        except Exception:
+            sanitized[k] = None
+    return sanitized
+
+def is_image_file(filename: str) -> bool:
+    try:
+        return Path(filename).suffix.lower() in IMAGE_EXTENSIONS
+    except Exception:
+        return False
+
+def get_public_url() -> str:
+    if os.environ.get("PUBLIC_URL"):
+        return os.environ.get("PUBLIC_URL")
+    return globals().get("public_url", "http://localhost:8000")
 
 # ==============================================================================
 # 3. NEW: Pydantic Models for Structured Output
@@ -178,7 +202,6 @@ def deduplicate_references_and_update_answer(answer: str, references: List[Refer
 # ==============================================================================
 # 5. SYSTEM & OLLAMA UTILS
 # ==============================================================================
-# (This section is unchanged from the previous code)
 
 def stream_logs(proc, name):
     for line in iter(proc.stdout.readline, b''):
@@ -228,9 +251,6 @@ def get_llm(model_name: str):
         return ChatGoogleGenerativeAI(model="gemini-1.5-flash", api_key=GOOGLE_API_KEY)
     else:
         # Using a model known to be good at JSON mode
-        if "json" not in model_name:
-             print(f"Warning: Using '{model_name}'. For best structured output, try 'mistral:latest' or 'llama3:latest' with format=json.")
-
         return OllamaLLM(model=model_name, format="json", temperature=0)
 
 def generate_with_llm(prompt: str, model_name: str):
@@ -248,6 +268,9 @@ def _format_chunks_for_prompt(chunks: List[Document]) -> str:
     """Formats retrieved chunks into the string format"""
     context_strings = []
     for i, chunk in enumerate(chunks):
+        if not hasattr(chunk, 'metadata') or not isinstance(chunk.metadata, dict):
+            print(f"Warning: chunk {i} has invalid metadata, skipping")
+            continue
         source = chunk.metadata.get("source", "N/A")
         title = chunk.metadata.get("title", chunk.metadata.get("filename", source))
         page = chunk.metadata.get("page", chunk.metadata.get("page_number", "N/A"))
@@ -343,7 +366,6 @@ class HierarchicalRAGService:
     and all core RAG logic.
     """
     def __init__(self, summary_path, detailed_path, embeddings):
-        print("Initializing HierarchicalRAGService...")
         self.embeddings = embeddings
         self.summary_store = Chroma(
             collection_name="summary_store",
@@ -355,8 +377,6 @@ class HierarchicalRAGService:
             embedding_function=self.embeddings,
             persist_directory=detailed_path
         )
-        print(f"✅ Summary Store loaded: {self.summary_store._collection.count()} items")
-        print(f"✅ Detailed Store loaded: {self.detailed_store._collection.count()} items")
 
     # --- Ingestion Logic (Unchanged) ---
     def _load_and_split_pdf(self, pdf_bytes: bytes) -> List[Document]:
@@ -386,32 +406,46 @@ class HierarchicalRAGService:
                     with open(image_path, "wb") as f:
                         f.write(image_bytes)
                     summary = generate_image_summary(image_path)
+                    image_url = f"{get_public_url().rstrip('/')}/image/{img_id}"
                     page_images.append({
                         "id": img_id,
-                        "url": f"{getBackendUrl()}/image/{img_id}",
+                        "url": image_url,
                         "summary": summary,
                         "page": page_num + 1
                     })
                 except Exception as e:
-                    print(f"Error extracting image {img_index} on page {page_num + 1}: {e}")
+                    pass
             images_per_page[page_num + 1] = page_images
         pdf.close()
         os.remove(path)
 
-        # Assign images to documents based on page
+        # Assign images to documents based on page, and ensure all are Document objects
+        new_docs = []
         for doc in docs:
-            page_num = doc.metadata.get('page', 1)
-            doc.metadata["images"] = images_per_page.get(page_num, [])
+            page_num = getattr(doc, 'metadata', {}).get('page', 1) if hasattr(doc, 'metadata') else 1
+            images = images_per_page.get(page_num, [])
+            # If doc is not a Document, convert it
+            if not isinstance(doc, Document):
+                doc = Document(page_content=str(doc), metadata={})
+            # Ensure metadata is a dict
+            if not hasattr(doc, 'metadata') or not isinstance(doc.metadata, dict):
+                doc.metadata = {}
+            doc.metadata["images"] = images
+            new_docs.append(doc)
 
-        print("🧠 Applying Semantic Chunker...")
         splitter = SemanticChunker(self.embeddings, breakpoint_threshold_type="percentile")
-        chunks = splitter.split_documents(docs)
-        print(f"📄 Loaded {len(chunks)} semantic chunks.")
-        return chunks
+        chunks = splitter.split_documents(new_docs)
+        # Ensure all chunks are Document objects
+        safe_chunks = []
+        for c in chunks:
+            if isinstance(c, Document):
+                safe_chunks.append(c)
+            else:
+                safe_chunks.append(Document(page_content=str(c), metadata={}))
+        return safe_chunks
 
     async def _generate_summary_for_ingestion(self, chunks: List[Document], model_name: str) -> str:
         if not chunks: return "No text content found."
-        print(f"Generating ingestion summary for {len(chunks)} chunks...")
         semaphore = asyncio.Semaphore(10)
         async def summarize_chunk_async(chunk_text: str) -> str:
             prompt = f"Summarize the following text chunk in 2-3 key bullet points:\n\n{chunk_text}\n\nSummary:"
@@ -425,22 +459,31 @@ class HierarchicalRAGService:
             f"from the following list of chunk summaries.\n\nSummaries:\n{combined_summaries}\n\nOverall Summary Paragraph:"
         )
         final_summary = await asyncio.to_thread(generate_with_llm, synthesis_prompt, model_name)
-        print("✅ Ingestion summary generated.")
         return final_summary
 
     async def add_document_to_stores(self, pdf_bytes: bytes, doc_id: str, model_name: str):
         post_progress(doc_id, "loading", 5, message="Loading PDF...")
 
         chunks = self._load_and_split_pdf(pdf_bytes)
+        # Diagnostic logging: ensure chunks is a list of Document objects
+        try:
+            print(f"DEBUG: Received {len(chunks)} chunks from splitter")
+            for i, c in enumerate(chunks[:5]):
+                print(f"DEBUG chunk {i}: type={type(c)}, has_metadata={hasattr(c, 'metadata')}, metadata_type={type(getattr(c, 'metadata', None))}")
+        except Exception as e:
+            print(f"DEBUG: Could not inspect chunks: {e}")
         if not chunks:
             post_progress(doc_id, "failed", 0, message="No text content found")
             raise ValueError("No text content found in the document")
 
         post_progress(doc_id, "chunking", 20, message=f"Split into {len(chunks)} chunks", totalChunks=len(chunks))
 
-        # Associate original filename with all chunks for better citation
-        # Let's assume the first chunk has the source metadata
-        source_filename = chunks[0].metadata.get("source", f"doc_{doc_id}")
+        # Safely resolve source filename
+        if chunks and hasattr(chunks[0], 'metadata') and isinstance(chunks[0].metadata, dict):
+            source_filename = chunks[0].metadata.get("source", f"doc_{doc_id}")
+        else:
+            print(f"Warning: first chunk missing metadata or invalid type ({type(chunks[0])}), using fallback source filename")
+            source_filename = f"doc_{doc_id}"
 
         post_progress(doc_id, "summarizing", 40, message="Generating document summary...", totalChunks=len(chunks))
         summary_text = await self._generate_summary_for_ingestion(chunks, model_name)
@@ -454,67 +497,103 @@ class HierarchicalRAGService:
 
         post_progress(doc_id, "embedding_chunks", 75, message="Creating chunk embeddings...", totalChunks=len(chunks))
         for i, chunk in enumerate(chunks):
+            # Defensive conversion: ensure chunk is Document and has dict metadata
+            if not isinstance(chunk, Document):
+                print(f"Converting non-Document chunk at index {i} of type {type(chunk)} to Document")
+                chunk = Document(page_content=str(chunk), metadata={})
+                chunks[i] = chunk
+            if not hasattr(chunk, 'metadata') or not isinstance(chunk.metadata, dict):
+                chunk.metadata = {}
             chunk.metadata["doc_id"] = doc_id
             chunk.metadata["title"] = f"{Path(source_filename).name} (Page {chunk.metadata.get('page', i+1)})"
+            try:
+                # san is sanitized so lists/dicts converted to strings
+                chunk.metadata = sanitize_metadata(chunk.metadata)
+            except Exception as e:
+                print(f"Warning: sanitize_metadata failed for chunk {i}: {e}; using unfiltered metadata")
             if i % 5 == 0 or i == len(chunks) - 1:
                 progress = 75 + int((i + 1) / len(chunks) * 20)
                 post_progress(doc_id, "embedding_chunks", progress,
                             message=f"Embedding chunk {i+1}/{len(chunks)}...",
                             currentChunk=i+1, totalChunks=len(chunks))
 
+        # Final diagnostic: print first few sanitized metadata keys to confirm
+        try:
+            for i,c in enumerate(chunks[:5]):
+                print(f"DEBUG before add_documents chunk {i} metadata types: {[type(v) for v in c.metadata.values()]} keys={list(c.metadata.keys())}")
+        except Exception as e:
+            print(f"DEBUG: failed to print chunk metadata diagnostics: {e}")
+        # Final sanitization before sending to Chroma: ensure every metadata value is primitive
+        for i, ch in enumerate(chunks):
+            if not hasattr(ch, 'metadata') or not isinstance(ch.metadata, dict):
+                ch.metadata = {}
+            try:
+                ch.metadata = sanitize_metadata(ch.metadata)
+            except Exception as e:
+                print(f"Warning: final sanitize_metadata failed for chunk {i}: {e}; using empty metadata")
+                ch.metadata = {}
         chunk_ids = [f"{doc_id}_{i}" for i in range(len(chunks))]
-        self.detailed_store.add_documents(chunks, ids=chunk_ids)
+        try:
+            self.detailed_store.add_documents(chunks, ids=chunk_ids)
+        except Exception as e:
+            print("ERROR: adding documents to detailed_store failed", e)
+            # Print diagnostic metadata content and types for first few chunks
+            try:
+                for i, ch in enumerate(chunks[:10]):
+                    print(f"DEBUG add failure chunk {i} metadata types: {[type(v) for v in ch.metadata.values()]} metadata_preview={json.dumps(ch.metadata)[:200]}")
+            except Exception:
+                pass
+            post_progress(doc_id, "failed", 0, message=f"Failed to add documents: {e}")
+            raise
 
         post_progress(doc_id, "complete", 100, message="Document processing complete!", totalChunks=len(chunks))
-        print(f"✅ Document {doc_id} added to hierarchical stores.")
         return len(chunks)
 
     def get_chunks_by_doc_id(self, doc_id: str) -> List[Document]:
         results = self.detailed_store.get(where={"doc_id": doc_id}, include=["metadatas", "documents"])
-        if not results.get('documents'): return []
-        docs = [Document(page_content=text, metadata=results['metadatas'][i]) for i, text in enumerate(results['documents'])]
-        print(f"Found {len(docs)} chunks for doc_id {doc_id}")
+        print(f"DEBUG: detailed_store.get returned keys: {list(results.keys())}")
+        try:
+            # Print types for debugging
+            print(f"DEBUG: metadatas type={type(results.get('metadatas'))}, documents type={type(results.get('documents'))}")
+            if isinstance(results.get('documents'), list):
+                for i, d in enumerate(results.get('documents')[:5]):
+                    print(f"DEBUG doc {i} type={type(d)} content_preview={str(d)[:80]}")
+        except Exception as e:
+            print(f"DEBUG: could not inspect results from detailed_store.get: {e}")
+        if not results.get('documents') or not results.get('metadatas'):
+            return []
+        docs = []
+        for i, text in enumerate(results['documents']):
+            if i >= len(results['metadatas']):
+                continue
+            meta = results['metadatas'][i]
+            try:
+                if isinstance(text, str) and isinstance(meta, dict):
+                    sanitized_meta = sanitize_metadata(meta)
+                    docs.append(Document(page_content=text, metadata=sanitized_meta))
+                else:
+                    print(f"Warning: unexpected type for document {i}: text={type(text)}, meta={type(meta)}")
+            except Exception as e:
+                print(f"Error creating document {i}: {e}")
+                continue
         return docs
 
     # --- RAG Logic with Structured Citations ---
     async def query_rag(self, document_ids: List[str], question: str, model_name: str, top_k: int = 5, specific_chunks: Dict[str, List[int]] = None) -> Tuple[str, List[Dict[str, Any]]]:
-        """
-        Performs the 2-step Hierarchical RAG query using
-        structured output and IEEE-style citations.
-        Can optionally use specific user-selected chunks.
-        
-        Args:
-            specific_chunks: Dict mapping document_id to list of chunk indices to use
-        """
-        print(f"\n{'='*80}")
-        print(f"🔍 Starting Hierarchical RAG query")
-        print(f"{'='*80}")
-        print(f"📋 Question: {question}")
-        print(f"📁 Document IDs: {document_ids}")
-        print(f"🤖 Model: {model_name}")
-        print(f"🎯 Top K: {top_k}")
-        if specific_chunks:
-            print(f"📌 Using specific chunks: {specific_chunks}")
 
-        # === Step 1: Search SUMMARY_STORE (Unchanged) ===
-        summary_retriever = self.summary_store.as_retriever(
-            search_kwargs={'k': 20, 'filter': {'doc_id': {'$in': document_ids}}}
-        )
-        summary_compressor = ContextualCompressionRetriever(
-            base_compressor=GLOBAL_RERANKER, base_retriever=summary_retriever
-        )
-        print("... (Step 1) Re-ranking summaries...")
+        summary_retriever = self.summary_store.as_retriever(search_kwargs={'k': 20, 'filter': {'doc_id': {'$in': document_ids}}})
+        summary_compressor = ContextualCompressionRetriever(base_compressor=GLOBAL_RERANKER, base_retriever=summary_retriever)
         relevant_summaries = summary_compressor.invoke(question)
-        print(f"✓ Found {len(relevant_summaries)} relevant summaries")
-        relevant_doc_ids = list(set([doc.metadata['doc_id'] for doc in relevant_summaries]))
+        relevant_doc_ids = []
+        for doc in relevant_summaries:
+            if hasattr(doc, 'metadata') and isinstance(doc.metadata, dict) and 'doc_id' in doc.metadata:
+                relevant_doc_ids.append(doc.metadata['doc_id'])
+        relevant_doc_ids = list(set(relevant_doc_ids))
 
         if not relevant_doc_ids:
-            print("No relevant documents found in summary search.")
-            return "I couldn't find any relevant documents for your question.", []
-        print(f"... (Step 1) Found top relevant docs: {relevant_doc_ids}")
+            return "No relevant documents found.", []
 
         if specific_chunks:
-            print("... (Step 2) Using user-selected specific chunks...")
             relevant_chunks = []
             for doc_id in relevant_doc_ids:
                 if doc_id in specific_chunks:
@@ -523,176 +602,82 @@ class HierarchicalRAGService:
                     for idx in selected_indices:
                         if idx < len(all_chunks):
                             relevant_chunks.append(all_chunks[idx])
-            print(f"✓ Using {len(relevant_chunks)} user-selected chunks")
         else:
-            detailed_retriever = self.detailed_store.as_retriever(
-                search_kwargs={'k': 25, 'filter': {'doc_id': {'$in': relevant_doc_ids}}}
-            )
-            chunk_compressor = ContextualCompressionRetriever(
-                base_compressor=FlashrankRerank(top_n=top_k),
-                base_retriever=detailed_retriever
-            )
-            print("... (Step 2) Re-ranking detailed chunks...")
+            detailed_retriever = self.detailed_store.as_retriever(search_kwargs={'k': 25, 'filter': {'doc_id': {'$in': relevant_doc_ids}}})
+            chunk_compressor = ContextualCompressionRetriever(base_compressor=FlashrankRerank(top_n=top_k), base_retriever=detailed_retriever)
             relevant_chunks = chunk_compressor.invoke(question)
-            print(f"✓ Found {len(relevant_chunks)} relevant chunks after reranking")
+            # Ensure relevant_chunks are Document objects
+            for i, rc in enumerate(relevant_chunks):
+                if not isinstance(rc, Document):
+                    print(f"Converting non-Document relevant chunk at index {i} of type {type(rc)}")
+                    relevant_chunks[i] = Document(page_content=str(rc), metadata={})
+            print(f"DEBUG: relevant_chunks types after conversion: {[type(rc) for rc in relevant_chunks[:5]]}")
 
         if not relevant_chunks:
-            print("No relevant chunks found in detailed search.")
-            return "I found relevant documents, but no specific chunks matched your question.", []
+            return "No relevant chunks found.", []
 
-        # Print chunk details
-        print(f"\n📝 Chunk Details:")
-        for i, chunk in enumerate(relevant_chunks[:3], 1):  # Show first 3
-            print(f"  Chunk {i}:")
-            print(f"    - Title: {chunk.metadata.get('title', 'N/A')}")
-            print(f"    - Source: {chunk.metadata.get('source', 'N/A')}")
-            print(f"    - Page: {chunk.metadata.get('page', 'N/A')}")
-            print(f"    - Content preview: {chunk.page_content[:100]}...")
-
-        # === Step 3: Build Advanced Prompt & Call Structured LLM ===
-        print("... (Step 3) Building advanced RAG prompt...")
         context_string = _format_chunks_for_prompt(relevant_chunks)
         final_prompt = build_advanced_rag_prompt(question, context_string)
 
-        # Get the LLM *with* structured output
-        print(f"... (Step 3) Calling model '{model_name}' for structured JSON output...")
-
-        # We must use a model that supports JSON mode well, like mistral, llama3, or gpt/gemini
         llm_name_for_rag = model_name
-        if model_name.lower() != "remote" and model_name.lower() not in ["mistral", "llama3"]:
-            print(f"Switching RAG model from '{model_name}' to 'mistral' for better JSON support.")
+        if model_name.lower() not in ["remote", "mistral", "llama3"]:
             llm_name_for_rag = "mistral"
-
-        print(f"🤖 Using model: '{llm_name_for_rag}' for structured output")
 
         try:
             llm = get_llm(llm_name_for_rag)
             is_remote_model = llm_name_for_rag.lower() == "remote"
 
             if is_remote_model:
-                print("... Creating structured LLM instance (Google Gemini)...")
                 structured_llm = llm.with_structured_output(AIAnswer)
                 print(f"✓ Structured LLM created: {type(structured_llm)}")
                 ai_answer_response = await asyncio.to_thread(structured_llm.invoke, final_prompt)
                 print(f"✓ LLM response received: {type(ai_answer_response)}")
 
             else:
-                print("... Using JSON mode for Ollama model (no native structured output)...")
-                json_prompt = final_prompt + """\n\nIMPORTANT: Return your response as a valid JSON object with this exact structure:
-{
-  "answer": "your detailed answer here with [1], [2] citation markers",
-  "references": [
-    {"id": "1", "title": "document title", "source": "source path", "page": page_number, "snippet": "short excerpt from the source"},
-    {"id": "2", "title": "document title", "source": "source path", "page": page_number, "snippet": "short excerpt from the source"}
-  ]
-}
-
-Ensure all citation markers in your answer correspond to reference IDs. Include page numbers and snippets from the provided document metadata."""
-
-                print("... Invoking Ollama LLM with JSON instructions...")
+                json_prompt = final_prompt + """\n\nReturn JSON: {"answer": "...", "references": [{"id": "1", "title": "...", "source": "...", "page": 1, "snippet": "..."}]}"""
                 raw_response = await asyncio.to_thread(llm.invoke, json_prompt)
-
                 raw_response_content = getattr(raw_response, "content", str(raw_response))
                 print(f"✓ LLM response received (length: {len(raw_response_content)} chars)")
                 print(f"📄 Raw response preview: {raw_response_content[:300]}...")
 
-                import json
-                import re
+                import json, re
+                json_match = re.search(r'```(?:json)?\s*(\{.*?\})\s*```', raw_response_content, re.DOTALL) or re.search(r'\{.*"answer".*"references".*\}', raw_response_content, re.DOTALL)
+                if not json_match:
+                    raise ValueError("No JSON in response")
+                parsed_json = json.loads(json_match.group(1) if json_match.groups() else json_match.group(0))
+                references = [Reference(id=str(ref.get('id', i+1)), title=ref.get('title', 'Unknown'), source=ref.get('source', 'Unknown'), page=ref.get('page', 0), snippet=ref.get('snippet', '')) for i, ref in enumerate(parsed_json.get('references', []))]
+                ai_answer_response = AIAnswer(answer=parsed_json.get('answer', ''), references=references)
 
-                response_text = raw_response_content
-
-                json_match = re.search(r'```(?:json)?\s*(\{.*?\})\s*```', response_text, re.DOTALL)
-                if json_match:
-                    json_str = json_match.group(1)
-                    print("✓ Found JSON in code block")
-                else:
-                    json_match = re.search(r'\{.*"answer".*"references".*\}', response_text, re.DOTALL)
-                    if json_match:
-                        json_str = json_match.group(0)
-                        print("✓ Found raw JSON object")
-                    else:
-                        print("❌ No JSON structure found in response")
-                        raise ValueError("No JSON structure in response")
-
-                parsed_json = json.loads(json_str)
-                print(f"✓ JSON parsed successfully")
-
-                references = [
-                    Reference(
-                        id=str(ref.get('id', i+1)),
-                        title=ref.get('title', 'Unknown'),
-                        source=ref.get('source', 'Unknown'),
-                        page=ref.get('page', 0),
-                        snippet=ref.get('snippet', '')
-                    )
-                    for i, ref in enumerate(parsed_json.get('references', []))
-                ]
-
-                ai_answer_response = AIAnswer(
-                    answer=parsed_json.get('answer', ''),
-                    references=references
-                )
-                print(f"✓ Converted to AIAnswer object")
-
-            print(f"✓ Answer length: {len(ai_answer_response.answer)} chars")
-            print(f"✓ References count: {len(ai_answer_response.references)}")
-            print(f"📝 Answer preview: {ai_answer_response.answer[:200]}...")
-
-            print(f"\n{'─'*80}")
-            print(f"🔄 STEP 4: Post-processing & Citation Mapping")
-            print(f"{'─'*80}")
-            final_answer, final_refs = deduplicate_references_and_update_answer(
-                ai_answer_response.answer,
-                ai_answer_response.references
-            )
+            final_answer, final_refs = deduplicate_references_and_update_answer(ai_answer_response.answer, ai_answer_response.references)
 
             chunk_map = {}
             for chunk in relevant_chunks:
-                source = chunk.metadata.get("source", "")
-                if source:
-                    chunk_map[source] = chunk
-
+                if hasattr(chunk, 'metadata') and isinstance(chunk.metadata, dict):
+                    source = chunk.metadata.get("source", "")
+                    if source:
+                        chunk_map[source] = chunk
             final_refs_dict = []
             for i, ref in enumerate(final_refs):
                 chunk = chunk_map.get(ref.source)
-                citation_dict = {
+                page = ref.page or (chunk.metadata.get("page", 0) if chunk and hasattr(chunk, 'metadata') and isinstance(chunk.metadata, dict) else 0)
+                snippet = ref.snippet or (chunk.page_content[:200] if chunk else "")
+                full_text = chunk.page_content if chunk else ref.title
+                final_refs_dict.append({
                     "documentId": ref.source.split("/")[-1] if "/" in ref.source else ref.source,
-                    "page": ref.page or chunk.metadata.get("page", 0) if chunk else 0,
-                    "snippet": ref.snippet or (chunk.page_content[:200] if chunk else ""),
-                    "fullText": chunk.page_content if chunk else ref.title,
+                    "page": page,
+                    "snippet": snippet,
+                    "fullText": full_text,
                     "source": ref.title,
                     "rank": i + 1,
                     "score": None
-                }
-                final_refs_dict.append(citation_dict)
-            
-            print(f"✓ Mapped {len(final_refs_dict)} citations to frontend format")
+                })
 
             return final_answer, final_refs_dict
 
         except Exception as e:
-            print(f"\n{'='*80}")
-            print(f"❌ CRITICAL ERROR in Structured Output")
-            print(f"{'='*80}")
-            print(f"Error type: {type(e).__name__}")
-            print(f"Error message: {e}")
-            import traceback
-            print(f"Traceback:\n{traceback.format_exc()}")
-            print(f"\n{'─'*80}")
-            print(f"🔄 Failing over to simple text generation...")
-            print(f"{'─'*80}")
-            # Failover to simple text generation
-            print("... Building simple prompt (no citations)...")
             simple_context = "\n\n".join([c.page_content for c in relevant_chunks])
-            simple_prompt = f"Answer this question based on the context:\nQuestion: {question}\n\nContext:\n{simple_context}\n\nAnswer:"
-            print(f"📏 Simple prompt length: {len(simple_prompt)} characters")
-            print("... Calling LLM without structured output...")
-            failover_answer = generate_with_llm(simple_prompt, model_name) # Changed 'model' to 'model_name'
-            print(f"✓ Failover answer received: {len(failover_answer)} chars")
-            print(f"\n{'='*80}")
-            print(f"⚠️  RAG Complete (Failover Mode - No Citations)")
-            print(f"{'='*80}")
-            return failover_answer, []
+            simple_prompt = f"Answer: {question}\n\nContext:\n{simple_context}\n\nAnswer:"
+            return generate_with_llm(simple_prompt, model_name), []
 
 # ==============================================================================
 # 8. STREAMING SUMMARIZER (Preserved Feature)
@@ -720,7 +705,7 @@ except Exception as e:
 @app.on_event("startup")
 async def startup_event():
     if rag_service is None:
-        print("RAG service failed to initialize. Endpoints will be disabled.")
+        pass
 
 @app.get("/")
 def home():
@@ -759,14 +744,33 @@ async def get_chunks(request: Request):
     if not document_id: raise HTTPException(status_code=400, detail="documentId is required")
     chunks = rag_service.get_chunks_by_doc_id(document_id)
     if not chunks: raise HTTPException(status_code=404, detail=f"No chunks found for documentId {document_id}")
+    def _parse_images_field(md):
+        try:
+            if not md: return []
+            imgs = md.get("images")
+            if imgs is None:
+                return []
+            if isinstance(imgs, str):
+                try:
+                    parsed = json.loads(imgs)
+                    return parsed if isinstance(parsed, list) else [parsed]
+                except Exception:
+                    return []
+            elif isinstance(imgs, list):
+                return imgs
+            else:
+                return []
+        except Exception:
+            return []
+
     return JSONResponse(content={
         "documentId": document_id,
         "chunks": [
             {
                 "id": i,
                 "content": chunk.page_content,
-                "metadata": chunk.metadata,
-                "images": chunk.metadata.get("images", [])
+                "metadata": chunk.metadata if hasattr(chunk, 'metadata') and isinstance(chunk.metadata, dict) else {},
+                "images": _parse_images_field(chunk.metadata if hasattr(chunk, 'metadata') and isinstance(chunk.metadata, dict) else {})
             }
             for i, chunk in enumerate(chunks)
         ]
@@ -794,7 +798,6 @@ async def generate_text(request: Request):
 
     if text_ids:
         # --- Call the advanced RAG function ---
-        print(f"🎯 /generate \u2192 Hierarchical RAG query")
         max_citations = 7 # Get more chunks for the advanced prompt
 
         # Use await because query_rag is now an async function
@@ -808,7 +811,6 @@ async def generate_text(request: Request):
         return JSONResponse(content={"response": response_text, "citations": citations})
 
     # --- No-context Q&A Logic (Unchanged) ---
-    print("🎯 /generate \u2192 No context (direct to LLM)")
     response_text = generate_with_llm(prompt, model) # Uses simple text gen
     return JSONResponse(content={"response": response_text, "citations": []})
 
@@ -869,7 +871,6 @@ async def pull_model(request: Request):
         model = (await request.json()).get("name", OLLAMA_MODEL)
         if model.lower() == "remote":
             return {"message": "Using remote model, no pull needed."}
-        print(f"Pulling model: {model}...")
         resp = requests.post(f"{OLLAMA_URL}/api/pull", json={"name": model, "stream": False}, timeout=300)
         return JSONResponse(content=resp.json(), status_code=resp.status_code)
     except Exception as e:
@@ -881,55 +882,29 @@ async def pull_model(request: Request):
 
 try:
     start_ollama_service()
-    print("Pre-pulling 'mistral' for ingestion/RAG and 'llava' for vision...")
-    os.system(f"ollama pull mistral")
-    os.system("ollama pull llava")
-    print("✅ Default models pulled.")
-except Exception as e:
-    print(f"Failed to start Ollama: {e}")
+    os.system("ollama pull mistral && ollama pull llava")
+except:
+    pass
 
 FIXED_URL = "https://mari-unbequeathed-milkily.ngrok-free.app"
 public_url = "http://localhost:8000"
 ngrok_enabled = False
-ngrok_proc = None
 
 if NGROK_AUTHTOKEN and NGROK_AUTHTOKEN != "YOUR_NGROK_AUTHTOKEN":
-    if IN_COLAB:
-        get_ipython().system(f'ngrok config add-authtoken {NGROK_AUTHTOKEN}')
-    else:
-        os.system(f"ngrok config add-authtoken {NGROK_AUTHTOKEN}")
-
-    print("🌐 Starting ngrok tunnel with fixed URL...")
-    ngrok_proc = subprocess.Popen(
-        ["ngrok", "http", "--host-header=rewrite", "--log=stdout", "--url", FIXED_URL, "8000"],
-        stdout=subprocess.PIPE,
-        stderr=subprocess.PIPE
-    )
+    os.system(f"ngrok config add-authtoken {NGROK_AUTHTOKEN}")
+    ngrok_proc = subprocess.Popen(["ngrok", "http", "--host-header=rewrite", "--url", FIXED_URL, "8000"], stdout=subprocess.PIPE, stderr=subprocess.PIPE)
     public_url = FIXED_URL
     ngrok_enabled = True
-
     time.sleep(3)
-    print(f"✅ Public URL: {public_url}\n")
-else:
-    print("⚠️ Ngrok not configured. Server will only be accessible locally.")
+    print(f"Public URL: {public_url}")
 
 config = uvicorn.Config(app, host="0.0.0.0", port=8000, log_level="info", access_log=True)
 server = uvicorn.Server(config)
 
-def run_uvicorn():
-    print("🚀 FastAPI server starting on port 8000...")
-    asyncio.run(server.serve())
-
-threading.Thread(target=run_uvicorn, daemon=True).start()
-
-print("\n🎉 Your API is live! 🎉")
-print(f"Access it at: {public_url}")
+threading.Thread(target=lambda: asyncio.run(server.serve()), daemon=True).start()
 
 try:
     while True: time.sleep(300)
 except KeyboardInterrupt:
-    print("Shutting down server...")
     if ngrok_enabled and ngrok_proc:
         ngrok_proc.terminate()
-        ngrok_proc.wait()
-    print("Goodbye!")
