@@ -71,8 +71,7 @@ if not NGROK_AUTHTOKEN or NGROK_AUTHTOKEN == "YOUR_NGROK_AUTHTOKEN":
 
 OLLAMA_MODEL = os.environ.get("OLLAMA_MODEL", "mistral")
 OLLAMA_URL = "http://localhost:11434"
-CHUNK_SUMMARY_MODEL = os.environ.get("CHUNK_SUMMARY_MODEL", "mistral")
-SYNTHESIS_MODEL = os.environ.get("SYNTHESIS_MODEL", "")
+
 
 def post_progress(document_id: str, status: str, progress: int = 0, **kwargs):
     """Post progress update to progress tracking service."""
@@ -449,7 +448,7 @@ class HierarchicalRAGService:
         if not chunks: return "No text content found."
         async def summarize_chunk_async(chunk_text: str) -> str:
             prompt = f"Summarize the following text chunk in 2-3 key bullet points:\n\n{chunk_text}\n\nSummary:"
-            return await asyncio.to_thread(generate_with_llm, prompt, CHUNK_SUMMARY_MODEL)
+            return await asyncio.to_thread(generate_with_llm, prompt, model_name)
         intermediate_summaries = []
         for i in range(0, len(chunks), 5):
             batch = chunks[i:i+5]
@@ -461,8 +460,7 @@ class HierarchicalRAGService:
             f"Create a single, concise paragraph summarizing the key themes "
             f"from the following list of chunk summaries.\n\nSummaries:\n{combined_summaries}\n\nOverall Summary Paragraph:"
         )
-        synthesis_model_to_use = SYNTHESIS_MODEL if SYNTHESIS_MODEL else model_name
-        final_summary = await asyncio.to_thread(generate_with_llm, synthesis_prompt, synthesis_model_to_use)
+        final_summary = await asyncio.to_thread(generate_with_llm, synthesis_prompt, model_name)
         return final_summary
 
     async def add_document_to_stores(self, pdf_bytes: bytes, doc_id: str, model_name: str):
@@ -740,7 +738,7 @@ async def process(file: UploadFile):
         return {"documentId": doc_id, "status": "embeddings_created", "chunkCount": chunk_count, "isImage": False}
     except Exception as e:
         print(f"Error processing document: {e}")
-        return {"documentId": doc_id, "status": "error", "error": "Failed to process document", "message": str(e), "isImage": False}
+        return JSONResponse(status_code=500, content={"error": "Failed to process document", "message": str(e)})
 
 @app.post("/get_chunks")
 async def get_chunks(request: Request):
