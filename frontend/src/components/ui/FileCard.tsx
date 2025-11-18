@@ -3,6 +3,7 @@ import { Eye, X, BookOpen, Info } from "lucide-react";
 import { Switch } from "./switch";
 import { Button } from "./button";
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "./dialog";
+import { Tooltip, TooltipContent, TooltipTrigger } from "./tooltip";
 import type { FileWithUrl } from "./FileWithUrl";
 
 function StatusDot({ status }: { status?: string }) {
@@ -118,16 +119,23 @@ export const FileCard: React.FC<FileCardProps> = ({ file, onPreview, onRemove, o
         )}
       </div>
       {file.documentId && onViewChunks && (
-        <Button
-          onClick={() => {
-            setShowMetadata(false);
-            onViewChunks(file.documentId!, file.name);
-          }}
-          className="w-full mt-4"
-        >
-          <BookOpen className="h-4 w-4 mr-2" />
-          View Chunks
-        </Button>
+        <Tooltip>
+          <TooltipTrigger asChild>
+            <Button
+              onClick={() => {
+                setShowMetadata(false);
+                onViewChunks(file.documentId!, file.name);
+              }}
+              className="w-full mt-4"
+            >
+              <BookOpen className="h-4 w-4 mr-2" />
+              View Chunks
+            </Button>
+          </TooltipTrigger>
+          <TooltipContent>
+            <p>View document chunks and content</p>
+          </TooltipContent>
+        </Tooltip>
       )}
     </DialogContent>
   </Dialog>

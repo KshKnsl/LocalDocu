@@ -225,6 +225,8 @@ export function ChatInterface({ activeDocument }: ChatInterfaceProps) {
               uploadStatus: 'uploaded',
               statusMessage: isUsingCustomBackend() ? 'Ready' : 'Uploaded',
               localFile: isUsingCustomBackend() ? file : undefined,
+              localUrl: url,
+              downloadStatus: 'done',
             } : f)));
             return {
               name: filename || file.name,
@@ -239,7 +241,12 @@ export function ChatInterface({ activeDocument }: ChatInterfaceProps) {
               localFile: isUsingCustomBackend() ? file : undefined,
             } as FileWithUrl;
           } catch (err) {
-            setFiles((prev) => prev.map(f => (f.key === tempId && f.chatId === chatId ? { ...f, uploadStatus: 'failed', statusMessage: 'Upload failed' } : f)));
+            setFiles((prev) => prev.map(f => (f.key === tempId && f.chatId === chatId ? { 
+              ...f, 
+              uploadStatus: 'failed', 
+              statusMessage: 'Upload failed',
+              downloadStatus: 'failed' // Can't download if upload failed
+            } : f)));
             return {
               name: file.name,
               type: file.type,
@@ -247,6 +254,7 @@ export function ChatInterface({ activeDocument }: ChatInterfaceProps) {
               chatId,
               uploadStatus: 'failed',
               statusMessage: 'Upload failed',
+              downloadStatus: 'failed',
             } as FileWithUrl;
           }
         })
@@ -338,36 +346,15 @@ export function ChatInterface({ activeDocument }: ChatInterfaceProps) {
           toast.error(`Failed to process ${uploadedFile.name}: ${error instanceof Error ? error.message : 'Unknown error'}`);
         }
       }
-      try {
-        const mapping = await cloneChatFolderToLocal(
-          chatId,
-          uploaded.map(f => ({ name: f.name, type: f.type, key: f.key }))
-        );
-        setFiles((prev) => prev.map(f => {
-          if (f.chatId !== chatId) return f;
-          const uploadedFile = uploaded.find(u => u.key === f.key);
-          if (!uploadedFile) return f;
-          return {
-            ...f,
-            localUrl: mapping[uploadedFile.name] || f.localUrl,
-            documentId: uploadedFile.key ? documentIdByKey.get(uploadedFile.key) : f.documentId,
-            downloadStatus: mapping[uploadedFile.name] ? 'done' : 'failed',
-            statusMessage: mapping[uploadedFile.name] ? 'Available' : 'Download failed',
-          };
-        }));
-      } catch {
-        setFiles((prev) => prev.map(f => {
-          if (f.chatId !== chatId) return f;
-          const uploadedFile = uploaded.find(u => u.key === f.key);
-          if (!uploadedFile) return f;
-          return {
-            ...f,
-            documentId: uploadedFile.key ? documentIdByKey.get(uploadedFile.key) : f.documentId,
-            downloadStatus: 'failed',
-            statusMessage: 'Local copy not available',
-          };
-        }));
-      }
+      setFiles((prev) => prev.map(f => {
+        if (f.chatId !== chatId) return f;
+        const uploadedFile = uploaded.find(u => u.key === f.key);
+        if (!uploadedFile) return f;
+        return {
+          ...f,
+          documentId: uploadedFile.key ? documentIdByKey.get(uploadedFile.key) : f.documentId,
+        };
+      }));
     }
   };
 

@@ -163,26 +163,38 @@ export function ChatInput({
             <span>Send</span>
           </Button>
           <div className="flex gap-2 justify-center">
-            <Button
-              variant="outline"
-              size="icon"
-              onClick={() => fileInputRef.current?.click()}
-              className="shrink-0"
-              title="Attach files"
-              disabled={disabled}
-            >
-              <Paperclip className="h-4 w-4" />
-            </Button>
-            <Button
-              variant="outline"
-              size="icon"
-              onClick={onShowAttachments}
-              className="shrink-0"
-              title="View attachments"
-              disabled={disabled}
-            >
-              <Link2 className="h-4 w-4" />
-            </Button>
+            <Tooltip>
+              <TooltipTrigger asChild>
+                <Button
+                  variant="outline"
+                  size="icon"
+                  onClick={() => fileInputRef.current?.click()}
+                  className="shrink-0"
+                  disabled={disabled}
+                >
+                  <Paperclip className="h-4 w-4" />
+                </Button>
+              </TooltipTrigger>
+              <TooltipContent>
+                <p>Attach files</p>
+              </TooltipContent>
+            </Tooltip>
+            <Tooltip>
+              <TooltipTrigger asChild>
+                <Button
+                  variant="outline"
+                  size="icon"
+                  onClick={onShowAttachments}
+                  className="shrink-0"
+                  disabled={disabled}
+                >
+                  <Link2 className="h-4 w-4" />
+                </Button>
+              </TooltipTrigger>
+              <TooltipContent>
+                <p>View attached files</p>
+              </TooltipContent>
+            </Tooltip>
           </div>
         </div>
       </div>

@@ -8,7 +8,7 @@ import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from 
 import { SignIn, SignUp } from "@clerk/nextjs";
 import { useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
-import { Check, Rocket, Globe, SlidersHorizontal } from "lucide-react";
+import { Check, Rocket, Globe, SlidersHorizontal, Github } from "lucide-react";
 import ThemeSwitcher from "@/components/ui/theme-switcher";
 import { BackendConfigDialog } from "@/components/BackendConfig";
 
@@ -100,6 +100,25 @@ export default function Home() {
             <AccordionItem value="item-7"><AccordionTrigger className="rounded-md border px-4 py-3 text-left">Is there an API available?</AccordionTrigger><AccordionContent className="text-sm text-muted-foreground p-4 border-x border-b rounded-b-md">Yes, we provide RESTful APIs with comprehensive documentation, SDKs for popular languages (Python, JavaScript, Java), webhook support for async processing, and batch processing capabilities for high-volume use cases.</AccordionContent></AccordionItem>
             <AccordionItem value="item-8"><AccordionTrigger className="rounded-md border px-4 py-3 text-left">What about data privacy and security?</AccordionTrigger><AccordionContent className="text-sm text-muted-foreground p-4 border-x border-b rounded-b-md">All documents are encrypted in transit and at rest using AES-256. We offer on-premise deployment options, GDPR compliance, and data retention policies. Documents are never stored longer than necessary for processing.</AccordionContent></AccordionItem>
           </Accordion>
+        </div>
+      </section>
+      <section className={`mx-auto max-w-7xl px-4 py-8 border-t border-border/50 transition-all duration-300 ease-out ${mounted ? "opacity-100 translate-y-0" : "opacity-0 translate-y-3"}`} style={{ transitionDelay: mounted ? "100ms" : undefined }}>
+        <div className="flex flex-col sm:flex-row items-center justify-center gap-4 text-center sm:text-left">
+          <div className="flex items-center gap-2">
+            <Github className="w-5 h-5" />
+            <span className="text-sm font-medium">Open Source</span>
+          </div>
+          <p className="text-sm text-muted-foreground">
+            This project is open source and available on GitHub. 
+            <a 
+              href="https://github.com/KshKnsl/minorproject" 
+              target="_blank" 
+              rel="noopener noreferrer"
+              className="text-primary hover:underline ml-1"
+            >
+              View on GitHub →
+            </a>
+          </p>
         </div>
       </section>
     </main>
