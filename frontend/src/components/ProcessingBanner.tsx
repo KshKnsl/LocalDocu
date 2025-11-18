@@ -32,13 +32,13 @@ export function ProcessingBanner({ files, onDismiss }: ProcessingBannerProps) {
 
   return (
     <div className="space-y-4">
-      {allComplete && onDismiss && (
+      {onDismiss && (
         <div className="flex justify-end">
           <button 
             onClick={onDismiss}
             className="text-sm text-muted-foreground hover:text-foreground hover:underline"
           >
-            Close (auto-closing in 3s)
+            Close
           </button>
         </div>
       )}

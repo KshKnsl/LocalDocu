@@ -1,17 +1,20 @@
 import { NextRequest, NextResponse } from "next/server";
-import { GetObjectCommand } from "@aws-sdk/client-s3";
-import { s3Config } from "@/lib/s3Config";
 
 export async function GET(req: NextRequest) {
   const key = req.nextUrl.searchParams.get("key");
-  const out = await s3Config.client.send(new GetObjectCommand({ Bucket: s3Config.bucket, Key: key||"" }));
-  const filename = key?.split("/").pop() || "file";
-  return new NextResponse(out.Body as any, {
-    status: 200,
+  if (key?.startsWith("local-")) {
+    return new NextResponse("File is stored locally in browser. Use local download functionality.", {
+      status: 410, // Gone - resource is no longer available at this location
+      headers: {
+        "Content-Type": "text/plain",
+      },
+    });
+  }
+
+  return new NextResponse("Download functionality moved to local browser storage.", {
+    status: 410,
     headers: {
-      "Content-Type": out.ContentType || "application/octet-stream",
-      "Cache-Control": "private, no-store",
-      "Content-Disposition": `inline; filename="${filename}"`,
+      "Content-Type": "text/plain",
     },
   });
 }

@@ -33,9 +33,10 @@ export const cloneChatFolderToLocal = async (chatId: string, files: { name: stri
   const result: Record<string, string> = {};
   for (const f of files) {
     try {
-      if (!f.key) continue;
-      const res = await fetch(`/api/document/download?key=${encodeURIComponent(f.key)}`);
-      result[f.name] = await saveChatFileToLocal(chatId, f.name, await res.blob(), f.type);
+      const localUrl = await getChatFileLocalUrl(chatId, f.name);
+      if (localUrl) {
+        result[f.name] = localUrl;
+      }
     } catch {}
   }
   return result;

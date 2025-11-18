@@ -1,3 +1,5 @@
+import { saveChatFileToLocal } from "./localFiles";
+
 const getBackendUrl = () => typeof window !== "undefined" && localStorage.getItem("backendUrl") || "https://minor-project-6v6z.vercel.app/api";
 const getProgressServiceUrl = () => "https://minor-project-progress.vercel.app";
 export const isUsingCustomBackend = () => typeof window !== "undefined" && localStorage.getItem("backendMode") === "custom" && !!localStorage.getItem("backendUrl");
@@ -87,7 +89,14 @@ export const clearProgress = async (documentId: string) => {
 };
 
 export const uploadDocument = async (file: File, opts?: { chatFolder?: string }): Promise<UploadResult> => {
-  return { url: "", filename: file.name, key: `local-${Date.now()}-${file.name}` };
+  const chatId = opts?.chatFolder?.replace('chats/', '') || 'temp';
+  const localUrl = await saveChatFileToLocal(chatId, file.name, file, file.type);
+  
+  return { 
+    url: localUrl, 
+    filename: file.name, 
+    key: `local-${Date.now()}-${file.name}` 
+  };
 };
 
 export async function processDocument(key?: string, file?: File): Promise<ProcessingResult> {

@@ -13,7 +13,7 @@ import { Card } from "@/components/ui/card";
 import { ScrollArea } from "@/components/ui/scroll-area";
 import { FilePreview } from "./FilePreview";
 import { cn } from "@/lib/utils";
-import { Copy, Link2, MessageSquare, Bot } from "lucide-react";
+import { Copy, Link2, MessageSquare, Bot, X } from "lucide-react";
 import { MarkdownRenderer } from "./MarkdownRenderer";
 import { FileCard } from "@/components/ui/FileCard";
 import type { FileWithUrl } from "@/components/ui/FileWithUrl";
@@ -566,8 +566,8 @@ export function ChatInterface({ activeDocument }: ChatInterfaceProps) {
   return (
     <div className="flex w-full h-full">
       {/* Processing Dialog */}
-      <Dialog open={showProcessingDialog} onOpenChange={() => {}}>
-        <DialogContent className="sm:max-w-[600px]" onInteractOutside={(e) => e.preventDefault()}>
+      <Dialog open={showProcessingDialog} onOpenChange={setShowProcessingDialog}>
+        <DialogContent className="sm:max-w-[600px]">
           <DialogHeader>
             <DialogTitle className="flex items-center gap-2">
               {processingFiles.every(f => f.status === 'done' || f.status === 'failed') ? (
@@ -582,6 +582,18 @@ export function ChatInterface({ activeDocument }: ChatInterfaceProps) {
                 </>
               )}
             </DialogTitle>
+            <Button
+              variant="ghost"
+              size="icon"
+              className="absolute right-4 top-4 h-6 w-6"
+              onClick={() => {
+                setShowProcessingDialog(false);
+                setProcessingFiles([]);
+                setIsProcessing(false);
+              }}
+            >
+              <X className="h-4 w-4" />
+            </Button>
           </DialogHeader>
           <ProcessingBanner 
             files={processingFiles}
