@@ -135,18 +135,8 @@ export async function processDocument(key?: string, file?: File): Promise<Proces
 
   try {
     const res = await fetch(`${getBackendUrl()}/process`, { method: "POST", body: formData });
-    // Always parse JSON, regardless of status code
-    let data;
-    try {
-      data = await res.json();
-    } catch (e) {
-      data = { status: "error", error: "Invalid JSON response from backend", message: (e as any)?.message || String(e) };
-    }
-    // Rely on progress polling and response body, not HTTP status
-    if (data.status === "error") {
-      throw new Error(data.message || data.error || "Failed to process document");
-    }
-    return data;
+    if (!res.ok) throw new Error(await res.text() || "Failed to process document");
+    return res.json();
   } finally {
     if (pollTimer !== null) {
       clearInterval(pollTimer);
