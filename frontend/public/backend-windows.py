@@ -1,9 +1,4 @@
 #!/usr/bin/env python3
-"""
-Complete Local Backend Runner for Windows
-This script installs all dependencies, Ollama, pulls models, and runs the backend locally.
-No internet required after initial setup.
-"""
 
 import os
 import sys
@@ -14,53 +9,142 @@ import platform
 import tempfile
 import zipfile
 import shutil
+import psutil
 
-def run_command(cmd, shell=True, check=True):
-    """Run a command and return success."""
+def run_command(cmd, shell=True, check=True, timeout=300):
     try:
-        result = subprocess.run(cmd, shell=shell, check=check, capture_output=True, text=True)
+        result = subprocess.run(
+            cmd,
+            shell=shell,
+            check=check,
+            capture_output=True,
+            text=True,
+            timeout=timeout
+        )
         return True, result.stdout + result.stderr
+    except subprocess.TimeoutExpired:
+        return False, f"Command timed out after {timeout} seconds"
     except subprocess.CalledProcessError as e:
         return False, e.stderr
 
+def check_system_requirements():
+    print("Checking system requirements...")
+
+    try:
+        success, output = run_command("ver")
+        if success and "Version 10" in output:
+            print("Windows 10+ detected")
+        else:
+            print("Windows version check inconclusive, proceeding anyway")
+    except:
+        print("Could not check Windows version, proceeding anyway")
+
+    try:
+        success, output = run_command("wmic logicaldisk get size,freespace,caption")
+        if success:
+            lines = output.strip().split('\n')
+            for line in lines[1:]:
+                parts = line.split()
+                if len(parts) >= 3 and parts[0] == 'C:':
+                    free_space_bytes = int(parts[1])
+                    free_space_gb = free_space_bytes / (1024**3)
+                    if free_space_gb < 10:
+                        print(f"Only {free_space_gb:.1f}GB available on C:. At least 10GB required.")
+                        return False
+                    print(f"{free_space_gb:.1f}GB disk space available")
+                    break
+    except:
+        print("Could not check disk space, proceeding anyway")
+
+    try:
+        ram_gb = psutil.virtual_memory().total / (1024**3)
+        if ram_gb < 4:
+            print(f"Only {ram_gb:.1f}GB RAM detected. At least 4GB required.")
+            return False
+        print(f"{ram_gb:.1f}GB RAM detected")
+    except:
+        print("Could not check RAM, proceeding anyway")
+
+    return True
+
+def is_python_package_installed(package_name):
+    try:
+        __import__(package_name.replace('-', '_'))
+        return True
+    except ImportError:
+        return False
+
 def install_python_packages():
-    """Install required Python packages."""
-    print("📦 Installing Python dependencies...")
+    print("Installing Python dependencies...")
+
+    print("Upgrading pip...")
+    success, _ = run_command(f"{sys.executable} -m pip install --upgrade pip")
+    if not success:
+        print("Failed to upgrade pip, continuing anyway")
+
     packages = [
         "fastapi", "uvicorn", "pyngrok", "requests", "boto3", "python-multipart",
         "aiofiles", "langchain", "langchain-community", "chromadb", "sentence-transformers",
         "PyMuPDF", "langchain-huggingface", "langchain-chroma", "langchain-google-genai",
         "langchain-ollama", "langchain-experimental", "flashrank", "pydantic", "python-dotenv"
     ]
-    cmd = f"{sys.executable} -m pip install {' '.join(packages)}"
-    success, output = run_command(cmd)
-    if success:
-        print("✅ Python packages installed successfully")
+
+    packages_to_install = []
+    for package in packages:
+        if not is_python_package_installed(package):
+            packages_to_install.append(package)
+
+    if packages_to_install:
+        print(f"Installing {len(packages_to_install)} packages: {', '.join(packages_to_install[:5])}{'...' if len(packages_to_install) > 5 else ''}")
+        cmd = f"{sys.executable} -m pip install {' '.join(packages_to_install)}"
+        success, output = run_command(cmd, timeout=600)
+        if success:
+            print("Python packages installed successfully")
+        else:
+            print(f"Failed to install Python packages: {output}")
+            return False
     else:
-        print(f"❌ Failed to install Python packages: {output}")
-        return False
+        print("All Python packages already installed")
+
     return True
 
+def is_ollama_installed():
+    success, _ = run_command("ollama --version", check=False)
+    return success
+
 def install_ollama():
-    """Download and install Ollama for Windows."""
-    print("🦙 Installing Ollama...")
+    print("Installing Ollama...")
+
+    if is_ollama_installed():
+        print("Ollama already installed")
+        return True
+
     try:
-        # Download Ollama installer
+        print("Downloading Ollama...")
         url = "https://github.com/ollama/ollama/releases/latest/download/ollama-windows-amd64.zip"
         with tempfile.NamedTemporaryFile(suffix='.zip', delete=False) as tmp:
-            response = requests.get(url, stream=True)
+            response = requests.get(url, stream=True, timeout=300)
             response.raise_for_status()
+
+            total_size = int(response.headers.get('content-length', 0))
+            downloaded = 0
+
             with open(tmp.name, 'wb') as f:
                 for chunk in response.iter_content(chunk_size=8192):
                     f.write(chunk)
+                    downloaded += len(chunk)
+                    if total_size > 0:
+                        progress = int(50 * downloaded / total_size)
+                        print(f"\rDownload progress: [{'=' * progress}{' ' * (50-progress)}] {2*progress}%", end='', flush=True)
+            print()
+
             zip_path = tmp.name
 
-        # Extract to a temporary directory
+        print("Extracting Ollama...")
         extract_dir = tempfile.mkdtemp()
         with zipfile.ZipFile(zip_path, 'r') as zip_ref:
             zip_ref.extractall(extract_dir)
 
-        # Find the ollama.exe
         ollama_exe = None
         for root, dirs, files in os.walk(extract_dir):
             if 'ollama.exe' in files:
@@ -68,125 +152,145 @@ def install_ollama():
                 break
 
         if not ollama_exe:
-            print("❌ Ollama executable not found in downloaded package")
+            print("Ollama executable not found in downloaded package")
             return False
 
-        # Copy to a permanent location (e.g., user's home directory)
-        ollama_dir = os.path.join(os.path.expanduser('~'), 'ollama')
-        os.makedirs(ollama_dir, exist_ok=True)
-        shutil.copy2(ollama_exe, os.path.join(ollama_dir, 'ollama.exe'))
+        program_files = os.environ.get('ProgramFiles', 'C:\\Program Files')
+        ollama_dir = os.path.join(program_files, 'Ollama')
 
-        # Add to PATH for current session
+        try:
+            os.makedirs(ollama_dir, exist_ok=True)
+            shutil.copy2(ollama_exe, os.path.join(ollama_dir, 'ollama.exe'))
+        except PermissionError:
+            print("Cannot install to Program Files, using user directory...")
+            ollama_dir = os.path.join(os.path.expanduser('~'), 'ollama')
+            os.makedirs(ollama_dir, exist_ok=True)
+            shutil.copy2(ollama_exe, os.path.join(ollama_dir, 'ollama.exe'))
+
         os.environ['PATH'] = ollama_dir + os.pathsep + os.environ.get('PATH', '')
 
-        # Clean up
         os.remove(zip_path)
         shutil.rmtree(extract_dir)
 
-        print("✅ Ollama installed successfully")
-        return True
+        if is_ollama_installed():
+            print("Ollama installed successfully")
+            return True
+        else:
+            print("Ollama installation verification failed")
+            return False
+
     except Exception as e:
-        print(f"❌ Failed to install Ollama: {e}")
+        print(f"Failed to install Ollama: {e}")
         return False
 
 def pull_models():
-    """Pull required Ollama models."""
-    print("📥 Pulling Ollama models (mistral and llava)...")
-    models = ["mistral", "llava"]
+    print("Pulling Ollama models (gemma3:1b and llava)...")
+
+    models = ["gemma3:1b", "llava"]
+
     for model in models:
-        print(f"Pulling {model}...")
-        success, output = run_command(f"ollama pull {model}")
+        print(f"Checking if {model} is already available...")
+        success, _ = run_command(f"ollama list | findstr {model}", check=False)
         if success:
-            print(f"✅ {model} pulled successfully")
+            print(f"{model} already available")
+            continue
+
+        print(f"Pulling {model}...")
+        success, output = run_command(f"ollama pull {model}", timeout=1800)
+        if success:
+            print(f"{model} pulled successfully")
         else:
-            print(f"❌ Failed to pull {model}: {output}")
+            print(f"Failed to pull {model}: {output}")
             return False
     return True
 
 def create_env_file():
-    """Create .env file with default settings."""
     env_content = """# Backend Configuration
-OLLAMA_MODEL=mistral
+OLLAMA_MODEL=gemma3:1b
 OLLAMA_URL=http://localhost:11434
 
-# Optional: Set your Google API key for remote model fallback
-# GOOGLE_API_KEY=your_google_api_key_here
 
-# Optional: Set ngrok authtoken for public access
-# NGROK_AUTHTOKEN=your_ngrok_token_here
 
-# Progress service URL (optional)
-# PROGRESS_SERVICE_URL=https://your-progress-service.vercel.app
 """
     with open('.env', 'w') as f:
         f.write(env_content)
-    print("✅ Created .env file with default configuration")
+    print("Created .env file with default configuration")
+
+def wait_for_ollama_service(timeout=60):
+    print("Waiting for Ollama service to start...")
+    for i in range(timeout):
+        try:
+            response = requests.get("http://localhost:11434/api/tags", timeout=5)
+            if response.status_code == 200:
+                print("Ollama service is ready")
+                return True
+        except:
+            pass
+        time.sleep(1)
+        if (i + 1) % 10 == 0:
+            print(f"   Still waiting... ({i + 1}/{timeout}s)")
+    print("Ollama service failed to start within timeout")
+    return False
 
 def main():
-    print("🚀 Starting complete local backend setup for Windows...")
-    print("=" * 60)
+    print("Starting complete automated local backend setup for Windows...")
+    print("=" * 70)
 
-    # Check Python version
     if sys.version_info < (3, 8):
-        print("❌ Python 3.8 or higher is required")
-        return
+        print("Python 3.8 or higher is required")
+        sys.exit(1)
 
-    print(f"🐍 Python version: {sys.version}")
-    print(f"🖥️  Platform: {platform.platform()}")
+    print(f"Python version: {sys.version}")
+    print(f"Platform: {platform.platform()}")
 
-    # Install dependencies
+    if not check_system_requirements():
+        print("System requirements not met. Please upgrade your system.")
+        sys.exit(1)
+
     if not install_python_packages():
-        return
+        sys.exit(1)
 
-    # Install Ollama
     if not install_ollama():
-        return
+        sys.exit(1)
 
-    # Pull models
+    print("Starting Ollama service...")
+    success, _ = run_command("net start ollama 2>nul || ollama serve", check=False)
+    if not success:
+        print("Could not start Ollama via service, trying direct start...")
+
+    if not wait_for_ollama_service():
+        print("Ollama service not ready, but continuing setup...")
+
     if not pull_models():
-        return
+        sys.exit(1)
 
-    # Create .env file
     create_env_file()
 
-    print("=" * 60)
-    print("✅ Setup complete! Starting backend server...")
-    print("🌐 Backend will be available at: http://localhost:8000")
-    print("📝 Edit .env file to configure API keys or ngrok if needed")
-    print("🛑 Press Ctrl+C to stop the server")
-    print("=" * 60)
+    print("=" * 70)
+    print("Automated setup complete!")
+    print("Backend will be available at: http://localhost:8000")
+    print("Configuration saved to .env file")
+    print("Press Ctrl+C to stop the server")
+    print("=" * 70)
 
-    # Now run the backend code
     exec_backend_code()
 
 def exec_backend_code():
     """Execute the backend code inline."""
-    # ==============================================================================
-    # 0. INSTALLS (Colab only - comment out for local use)
-    # ==============================================================================
-    # Uncomment the following lines if running in Google Colab:
-    # !curl -fsSL https://ollama.com/install.sh | sh
-    # !pip install fastapi uvicorn pyngrok requests boto3 python-multipart aiofiles langchain langchain-community chromadb sentence-transformers PyMuPDF langchain-huggingface langchain-chroma langchain-google-genai langchain-ollama langchain-experimental flashrank pydantic python-dotenv
 
-    # ==============================================================================
-    # 1. IMPORTS
-    # ==============================================================================
     import os, signal, psutil, gc, time, sys, subprocess, threading, asyncio, json, base64
     from pathlib import Path
     from uuid import uuid4
     from typing import List, Dict, Any, Tuple
     from dotenv import load_dotenv
 
-    # Load environment variables from .env file
     load_dotenv()
 
-    # --- FastAPI & Server ---
     from fastapi import FastAPI, UploadFile, Form, Request, HTTPException
     from fastapi.responses import JSONResponse, StreamingResponse, FileResponse
     import uvicorn
     from pyngrok import ngrok
 
-    # --- LangChain Core ---
     from langchain.docstore.document import Document
     from langchain.retrievers import ContextualCompressionRetriever
     from langchain.retrievers.document_compressors import FlashrankRerank
@@ -200,19 +304,14 @@ def exec_backend_code():
     from pydantic import BaseModel, Field
     import fitz
 
-    # --- Colab Support ---
     try:
         from google.colab import userdata
         IN_COLAB = True
     except ImportError:
         IN_COLAB = False
 
-    # ==============================================================================
-    # 2. CONFIGURATION
-    # ==============================================================================
     print("Loading configuration...")
 
-    # --- API Keys & Models ---
     if IN_COLAB:
         try:
             GOOGLE_API_KEY = userdata.get("GOOGLE_API_KEY")
@@ -232,7 +331,7 @@ def exec_backend_code():
     if not NGROK_AUTHTOKEN or NGROK_AUTHTOKEN == "YOUR_NGROK_AUTHTOKEN":
         print("WARNING: NGROK_AUTHTOKEN not configured properly. Set it in .env file.")
 
-    OLLAMA_MODEL = os.environ.get("OLLAMA_MODEL", "mistral")
+    OLLAMA_MODEL = os.environ.get("OLLAMA_MODEL", "gemma3:1b")
     OLLAMA_URL = "http://localhost:11434"
 
 
@@ -244,7 +343,6 @@ def exec_backend_code():
         except:
             pass
 
-    # --- Persistent Storage Paths (Hierarchical) ---
     PERSIST_BASE = os.path.abspath("./chroma_store")
     SUMMARY_STORE_PATH = os.path.join(PERSIST_BASE, "summary_store")
     DETAILED_STORE_PATH = os.path.join(PERSIST_BASE, "detailed_store")
@@ -256,7 +354,6 @@ def exec_backend_code():
 
     IMAGE_EXTENSIONS = {".jpg", ".jpeg", ".png", ".gif", ".bmp", ".webp"}
 
-    # --- Global Reusable Components ---
     EMBEDDINGS_MODEL = HuggingFaceEmbeddings(model_name="all-MiniLM-L6-v2")
     GLOBAL_RERANKER = FlashrankRerank(top_n=5) # Default re-ranker
 
@@ -266,16 +363,13 @@ def exec_backend_code():
         Chroma/Chromadb requires metadata values to be primitive types (str, int, float, bool, None) or SparseVector.
         We ensure we never store lists/dicts directly by serializing them.
         """
-        # Primitive safe types
         if value is None or isinstance(value, (str, int, float, bool)):
             return value
-        # For lists and dicts, try JSON serialization
         try:
             if isinstance(value, (list, dict)):
                 return json.dumps(value)
         except Exception:
             pass
-        # Fallback: convert to string
         try:
             return str(value)
         except Exception:
@@ -309,9 +403,6 @@ def exec_backend_code():
             return os.environ.get("PUBLIC_URL")
         return globals().get("public_url", "http://localhost:8000")
 
-    # ==============================================================================
-    # 3. NEW: Pydantic Models for Structured Output
-    # ==============================================================================
 
     class Reference(BaseModel):
         """Pydantic model for a single citation reference."""
@@ -326,9 +417,6 @@ def exec_backend_code():
         answer: str = Field(..., description="The detailed answer to the user's query, with IEEE-style citations like [1], [2].")
         references: List[Reference] = Field(..., description="A list of Reference objects used in the answer.")
 
-    # ==============================================================================
-    # 4. NEW: Citation Deduplication Utility
-    # ==============================================================================
 
     def deduplicate_references_and_update_answer(answer: str, references: List[Reference]) -> tuple[str, List[Reference]]:
         """
@@ -340,7 +428,6 @@ def exec_backend_code():
         unique_refs = {}
         id_mapping = {}
 
-        # Create unique references and map old IDs to new IDs
         new_id_counter = 1
         for ref in references:
             if ref.source not in unique_refs:
@@ -352,19 +439,14 @@ def exec_backend_code():
 
         updated_answer = answer
 
-        # Sort keys by length (desc) to replace "[10]" before "[1]"
         sorted_old_ids = sorted(id_mapping.keys(), key=len, reverse=True)
 
         for old_id in sorted_old_ids:
             new_id = id_mapping[old_id]
-            # Replace citations (e.g., [1], [2], etc.)
             updated_answer = updated_answer.replace(f'[{old_id}]', f'[{new_id}]')
 
         return updated_answer, list(unique_refs.values())
 
-    # ==============================================================================
-    # 5. SYSTEM & OLLAMA UTILS
-    # ==============================================================================
 
     def stream_logs(proc, name):
         for line in iter(proc.stdout.readline, b''):
@@ -377,15 +459,15 @@ def exec_backend_code():
     def start_ollama_service():
         ollama_proc = subprocess.Popen(["ollama", "serve"], stdout=subprocess.PIPE, stderr=subprocess.PIPE)
         threading.Thread(target=stream_logs, args=(ollama_proc, "Ollama"), daemon=True).start()
-        print("🦙 Starting Ollama service...")
+        print("Starting Ollama service...")
         for _ in range(40):
             try:
                 if requests.get(OLLAMA_URL).status_code == 200:
-                    print("✅ Ollama is running locally!\n")
+                    print("Ollama is running locally!\n")
                     return True
             except:
                 time.sleep(2)
-        raise RuntimeError("❌ Ollama failed to start in time.")
+        raise RuntimeError("Ollama failed to start in time.")
 
     def generate_image_summary(image_path: str, model: str = "llava") -> str:
         """Generate a detailed description of an image using a vision model."""
@@ -404,21 +486,16 @@ def exec_backend_code():
         except Exception as e:
             return f"Error: {str(e)}"
 
-    # ==============================================================================
-    # 6. SHARED LLM & RAG PROMPT LOGIC (MODIFIED)
-    # ==============================================================================
 
     def get_llm(model_name: str):
         """Unified function to get an LLM instance."""
         if model_name.lower() == "remote":
             return ChatGoogleGenerativeAI(model="gemini-1.5-flash", api_key=GOOGLE_API_KEY)
         else:
-            # Using a model known to be good at JSON mode
             return OllamaLLM(model=model_name, format="json", temperature=0)
 
     def generate_with_llm(prompt: str, model_name: str):
         """Unified function to invoke an LLM for *non-structured* text."""
-        # Use a basic model for simple generation
         if model_name.lower() == "remote":
             llm = ChatGoogleGenerativeAI(model="gemini-1.5-flash", api_key=GOOGLE_API_KEY)
         else:
@@ -438,7 +515,6 @@ def exec_backend_code():
             title = chunk.metadata.get("title", chunk.metadata.get("filename", source))
             page = chunk.metadata.get("page", chunk.metadata.get("page_number", "N/A"))
 
-            # Give each chunk a unique "Title" for citation
             chunk_title = f"{title} (Page {page}, Chunk {i+1})"
             chunk.metadata["sense_title"] = chunk_title
 
@@ -519,9 +595,6 @@ Page Content Chunk: \n\nMachine learning is a subset of AI.
 **YOUR JSON RESPONSE:**
 """
 
-    # ==============================================================================
-    # 7. CORE: HIERARCHICAL RAG SERVICE (MODIFIED)
-    # ==============================================================================
 
     class HierarchicalRAGService:
         """
@@ -541,7 +614,6 @@ Page Content Chunk: \n\nMachine learning is a subset of AI.
                 persist_directory=detailed_path
             )
 
-        # --- Ingestion Logic (Unchanged) ---
         def _load_and_split_pdf(self, pdf_bytes: bytes) -> List[Document]:
             with tempfile.NamedTemporaryFile(delete=False, suffix=".pdf") as tmp:
                 tmp.write(pdf_bytes)
@@ -569,12 +641,13 @@ Page Content Chunk: \n\nMachine learning is a subset of AI.
                         with open(image_path, "wb") as f:
                             f.write(image_bytes)
                         summary = generate_image_summary(image_path)
-                        image_url = f"{get_public_url().rstrip('/')}/image/{img_id}"
+                        image_url = f"{get_public_url().rstrip('/')}/image_bytes/{img_id}"
                         page_images.append({
                             "id": img_id,
                             "url": image_url,
                             "summary": summary,
-                            "page": page_num + 1
+                            "page": page_num + 1,
+                            "ext": image_ext
                         })
                     except Exception as e:
                         pass
@@ -582,15 +655,12 @@ Page Content Chunk: \n\nMachine learning is a subset of AI.
             pdf.close()
             os.remove(path)
 
-            # Assign images to documents based on page, and ensure all are Document objects
             new_docs = []
             for doc in docs:
                 page_num = getattr(doc, 'metadata', {}).get('page', 1) if hasattr(doc, 'metadata') else 1
                 images = images_per_page.get(page_num, [])
-                # If doc is not a Document, convert it
                 if not isinstance(doc, Document):
                     doc = Document(page_content=str(doc), metadata={})
-                # Ensure metadata is a dict
                 if not hasattr(doc, 'metadata') or not isinstance(doc.metadata, dict):
                     doc.metadata = {}
                 doc.metadata["images"] = images
@@ -598,7 +668,6 @@ Page Content Chunk: \n\nMachine learning is a subset of AI.
 
             splitter = SemanticChunker(self.embeddings, breakpoint_threshold_type="percentile")
             chunks = splitter.split_documents(new_docs)
-            # Ensure all chunks are Document objects
             safe_chunks = []
             for c in chunks:
                 if isinstance(c, Document):
@@ -628,7 +697,6 @@ Page Content Chunk: \n\nMachine learning is a subset of AI.
             post_progress(doc_id, "loading", 5, message="Loading PDF...")
 
             chunks = self._load_and_split_pdf(pdf_bytes)
-            # Diagnostic logging: ensure chunks is a list of Document objects
             try:
                 print(f"DEBUG: Received {len(chunks)} chunks from splitter")
                 for i, c in enumerate(chunks[:5]):
@@ -641,7 +709,6 @@ Page Content Chunk: \n\nMachine learning is a subset of AI.
 
             post_progress(doc_id, "chunking", 20, message=f"Split into {len(chunks)} chunks", totalChunks=len(chunks))
 
-            # Safely resolve source filename
             if chunks and hasattr(chunks[0], 'metadata') and isinstance(chunks[0].metadata, dict):
                 source_filename = chunks[0].metadata.get("source", f"doc_{doc_id}")
             else:
@@ -660,7 +727,6 @@ Page Content Chunk: \n\nMachine learning is a subset of AI.
 
             post_progress(doc_id, "embedding_chunks", 75, message="Creating chunk embeddings...", totalChunks=len(chunks))
             for i, chunk in enumerate(chunks):
-                # Defensive conversion: ensure chunk is Document and has dict metadata
                 if not isinstance(chunk, Document):
                     print(f"Converting non-Document chunk at index {i} of type {type(chunk)} to Document")
                     chunk = Document(page_content=str(chunk), metadata={})
@@ -670,7 +736,6 @@ Page Content Chunk: \n\nMachine learning is a subset of AI.
                 chunk.metadata["doc_id"] = doc_id
                 chunk.metadata["title"] = f"{Path(source_filename).name} (Page {chunk.metadata.get('page', i+1)})"
                 try:
-                    # san is sanitized so lists/dicts converted to strings
                     chunk.metadata = sanitize_metadata(chunk.metadata)
                 except Exception as e:
                     print(f"Warning: sanitize_metadata failed for chunk {i}: {e}; using unfiltered metadata")
@@ -680,13 +745,11 @@ Page Content Chunk: \n\nMachine learning is a subset of AI.
                                 message=f"Embedding chunk {i+1}/{len(chunks)}...",
                                 currentChunk=i+1, totalChunks=len(chunks))
 
-            # Final diagnostic: print first few sanitized metadata keys to confirm
             try:
                 for i,c in enumerate(chunks[:5]):
                     print(f"DEBUG before add_documents chunk {i} metadata types: {[type(v) for v in c.metadata.values()]} keys={list(c.metadata.keys())}")
             except Exception as e:
                 print(f"DEBUG: failed to print chunk metadata diagnostics: {e}")
-            # Final sanitization before sending to Chroma: ensure every metadata value is primitive
             for i, ch in enumerate(chunks):
                 if not hasattr(ch, 'metadata') or not isinstance(ch.metadata, dict):
                     ch.metadata = {}
@@ -700,7 +763,6 @@ Page Content Chunk: \n\nMachine learning is a subset of AI.
                 self.detailed_store.add_documents(chunks, ids=chunk_ids)
             except Exception as e:
                 print("ERROR: adding documents to detailed_store failed", e)
-                # Print diagnostic metadata content and types for first few chunks
                 try:
                     for i, ch in enumerate(chunks[:10]):
                         print(f"DEBUG add failure chunk {i} metadata types: {[type(v) for v in ch.metadata.values()]} metadata_preview={json.dumps(ch.metadata)[:200]}")
@@ -716,7 +778,6 @@ Page Content Chunk: \n\nMachine learning is a subset of AI.
             results = self.detailed_store.get(where={"doc_id": doc_id}, include=["metadatas", "documents"])
             print(f"DEBUG: detailed_store.get returned keys: {list(results.keys())}")
             try:
-                # Print types for debugging
                 print(f"DEBUG: metadatas type={type(results.get('metadatas'))}, documents type={type(results.get('documents'))}")
                 if isinstance(results.get('documents'), list):
                     for i, d in enumerate(results.get('documents')[:5]):
@@ -741,7 +802,6 @@ Page Content Chunk: \n\nMachine learning is a subset of AI.
                     continue
             return docs
 
-        # --- RAG Logic with Structured Citations ---
         async def query_rag(self, document_ids: List[str], question: str, model_name: str, top_k: int = 5, specific_chunks: Dict[str, List[int]] = None) -> Tuple[str, List[Dict[str, Any]]]:
 
             summary_retriever = self.summary_store.as_retriever(search_kwargs={'k': 20, 'filter': {'doc_id': {'$in': document_ids}}})
@@ -769,7 +829,6 @@ Page Content Chunk: \n\nMachine learning is a subset of AI.
                 detailed_retriever = self.detailed_store.as_retriever(search_kwargs={'k': 25, 'filter': {'doc_id': {'$in': relevant_doc_ids}}})
                 chunk_compressor = ContextualCompressionRetriever(base_compressor=FlashrankRerank(top_n=top_k), base_retriever=detailed_retriever)
                 relevant_chunks = chunk_compressor.invoke(question)
-                # Ensure relevant_chunks are Document objects
                 for i, rc in enumerate(relevant_chunks):
                     if not isinstance(rc, Document):
                         print(f"Converting non-Document relevant chunk at index {i} of type {type(rc)}")
@@ -842,18 +901,11 @@ Page Content Chunk: \n\nMachine learning is a subset of AI.
                 simple_prompt = f"Answer: {question}\n\nContext:\n{simple_context}\n\nAnswer:"
                 return generate_with_llm(simple_prompt, model_name), []
 
-    # ==============================================================================
-    # 8. STREAMING SUMMARIZER (Preserved Feature)
-    # ==============================================================================
-    # (This section is unchanged from the previous code)
 
-    # ==============================================================================
-    # 9. FASTAPI APP & ENDPOINTS (MODIFIED)
-    # ==============================================================================
 
     print("Starting FastAPI app...")
 
-    app = FastAPI(title="🦙 Hierarchical RAG API with Structured Citations")
+    app = FastAPI(title="Hierarchical RAG API with Structured Citations")
 
     try:
         rag_service = HierarchicalRAGService(
@@ -869,6 +921,10 @@ Page Content Chunk: \n\nMachine learning is a subset of AI.
     async def startup_event():
         if rag_service is None:
             pass
+
+    @app.get("/health")
+    def health_check():
+        return {"status": "healthy", "message": "Backend is running"}
 
     @app.get("/")
     def home():
@@ -886,7 +942,7 @@ Page Content Chunk: \n\nMachine learning is a subset of AI.
             doc_id = f"img_{uuid4().hex}"
             image_path = os.path.join(IMAGE_STORE, f"{doc_id}{Path(file.filename).suffix}")
             with open(image_path, "wb") as f: f.write(await file.read())
-            print(f"🖼️ Image saved: {image_path}")
+            print(f"Image saved: {image_path}")
             return {"documentId": doc_id, "status": "image_saved", "isImage": True, "imagePath": image_path}
 
         doc_id = f"doc_{uuid4().hex}"
@@ -956,14 +1012,11 @@ Page Content Chunk: \n\nMachine learning is a subset of AI.
         text_ids = [doc_id for doc_id in document_ids if doc_id.startswith("doc_")]
 
         if image_ids:
-            # Image Q&A logic is preserved
             return await process_image_query(image_ids, text_ids, prompt, model)
 
         if text_ids:
-            # --- Call the advanced RAG function ---
             max_citations = 7 # Get more chunks for the advanced prompt
 
-            # Use await because query_rag is now an async function
             response_text, citations = await rag_service.query_rag(
                 document_ids=text_ids,
                 question=prompt,
@@ -973,7 +1026,6 @@ Page Content Chunk: \n\nMachine learning is a subset of AI.
             )
             return JSONResponse(content={"response": response_text, "citations": citations})
 
-        # --- No-context Q&A Logic (Unchanged) ---
         response_text = generate_with_llm(prompt, model) # Uses simple text gen
         return JSONResponse(content={"response": response_text, "citations": []})
 
@@ -1008,7 +1060,6 @@ Page Content Chunk: \n\nMachine learning is a subset of AI.
 
         if text_ids and rag_service:
             print("... Image query also performing RAG on text documents ...")
-            # Await the async RAG query
             context, citations = await rag_service.query_rag(text_ids, prompt, model, top_k=3)
             additional_context = f"\n\nAdditional context from documents:\n{context}"
 
@@ -1018,16 +1069,16 @@ Page Content Chunk: \n\nMachine learning is a subset of AI.
         return JSONResponse(content={"response": final_response, "citations": citations, "usedVisionModel": True, "visionModel": vision_model})
 
 
-    @app.get("/image/{image_id}")
-    async def get_image(image_id: str):
-        """Serve an image by its ID."""
-        for ext in IMAGE_EXTENSIONS:
-            image_path = os.path.join(IMAGE_STORE, f"{image_id}{ext}")
-            if os.path.exists(image_path):
-                return FileResponse(image_path, media_type=f"image/{ext[1:]}")
-        raise HTTPException(status_code=404, detail="Image not found")
-
-
+@app.get("/image_bytes/{image_id}")
+async def get_image_bytes(image_id: str):
+    """Serve an image by its ID as bytes."""
+    for ext in IMAGE_EXTENSIONS:
+        image_path = os.path.join(IMAGE_STORE, f"{image_id}{ext}")
+        if os.path.exists(image_path):
+            with open(image_path, "rb") as f:
+                data = f.read()
+            return Response(data, media_type=f"image/{ext[1:]}")
+    raise HTTPException(status_code=404, detail="Image not found")
     @app.post("/pull")
     async def pull_model(request: Request):
         try:
@@ -1039,13 +1090,10 @@ Page Content Chunk: \n\nMachine learning is a subset of AI.
         except Exception as e:
             return JSONResponse(status_code=500, content={"error": str(e)})
 
-    # ==============================================================================
-    # 10. SERVER STARTUP
-    # ==============================================================================
 
     try:
         start_ollama_service()
-        os.system("ollama pull mistral && ollama pull llava")
+        os.system("ollama pull gemma3:1b && ollama pull llava")
     except:
         pass
 

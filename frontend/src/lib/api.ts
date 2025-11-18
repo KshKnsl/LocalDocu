@@ -41,24 +41,19 @@ export async function sendExternalChatMessage({ prompt, model = "mistral", strea
     buffer = lines.pop() || ""; // keep incomplete line for next chunk
     for (const line of lines) {
       if (!line.trim()) continue;
-      try {
-        const json = JSON.parse(line);
-        if (json.response !== undefined) {
-          result += json.response;
-          if (onStreamChunk) onStreamChunk(json.response);
-        }
-      } catch (e) {
-      }
-    }
-  }
-  if (buffer.trim()) {
-    try {
-      const json = JSON.parse(buffer);
+      const json = JSON.parse(line);
       if (json.response !== undefined) {
         result += json.response;
         if (onStreamChunk) onStreamChunk(json.response);
       }
-    } catch (e) {}
+    }
+  }
+  if (buffer.trim()) {
+    const json = JSON.parse(buffer);
+    if (json.response !== undefined) {
+      result += json.response;
+      if (onStreamChunk) onStreamChunk(json.response);
+    }
   }
   return { response: result, citations: [] };
 }
@@ -77,15 +72,13 @@ export type ProgressData = {
 };
 
 export const getProgress = async (documentId?: string) => {
-  try {
-    const url = documentId ? `${getProgressServiceUrl()}/progress?documentId=${encodeURIComponent(documentId)}` : `${getProgressServiceUrl()}/progress`;
-    const res = await fetch(url);
-    return res.ok ? (await res.json()).progress : null;
-  } catch { return null; }
+  const url = documentId ? `${getProgressServiceUrl()}/progress?documentId=${encodeURIComponent(documentId)}` : `${getProgressServiceUrl()}/progress`;
+  const res = await fetch(url);
+  return res.ok ? (await res.json()).progress : null;
 };
 
 export const clearProgress = async (documentId: string) => {
-  try { await fetch(`${getProgressServiceUrl()}/progress/${encodeURIComponent(documentId)}`, { method: "DELETE" }); } catch {}
+  await fetch(`${getProgressServiceUrl()}/progress/${encodeURIComponent(documentId)}`, { method: "DELETE" });
 };
 
 export const uploadDocument = async (file: File, opts?: { chatFolder?: string }): Promise<UploadResult> => {

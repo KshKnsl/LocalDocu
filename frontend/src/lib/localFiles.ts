@@ -32,12 +32,10 @@ export const getChatFileLocalUrl = async (chatId: string, filename: string): Pro
 export const cloneChatFolderToLocal = async (chatId: string, files: { name: string; type?: string; key?: string }[]): Promise<Record<string, string>> => {
   const result: Record<string, string> = {};
   for (const f of files) {
-    try {
-      const localUrl = await getChatFileLocalUrl(chatId, f.name);
-      if (localUrl) {
-        result[f.name] = localUrl;
-      }
-    } catch {}
+    const localUrl = await getChatFileLocalUrl(chatId, f.name);
+    if (localUrl) {
+      result[f.name] = localUrl;
+    }
   }
   return result;
 };

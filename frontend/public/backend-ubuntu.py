@@ -1,10 +1,4 @@
 #!/usr/bin/env python3
-"""
-Complete Local Backend Runner for Ubuntu
-This script installs all dependencies, Ollama, pulls models, and runs the backend locally.
-No internet required after initial setup.
-"""
-
 import os
 import sys
 import subprocess
@@ -13,149 +7,301 @@ import requests
 import platform
 import tempfile
 import shutil
+import getpass
+import pty
+import select
 
-def run_command(cmd, shell=True, check=True):
-    """Run a command and return success."""
+def run_command(cmd, shell=True, check=True, input_text=None, timeout=300):
     try:
-        result = subprocess.run(cmd, shell=shell, check=check, capture_output=True, text=True)
+        if input_text:
+            result = subprocess.run(
+                cmd,
+                shell=shell,
+                check=check,
+                capture_output=True,
+                text=True,
+                input=input_text,
+                timeout=timeout
+            )
+        else:
+            result = subprocess.run(
+                cmd,
+                shell=shell,
+                check=check,
+                capture_output=True,
+                text=True,
+                timeout=timeout
+            )
         return True, result.stdout + result.stderr
+    except subprocess.TimeoutExpired:
+        return False, f"Command timed out after {timeout} seconds"
     except subprocess.CalledProcessError as e:
         return False, e.stderr
 
+def run_sudo_command(cmd, password=None, timeout=300):
+    if password is None:
+        password = getpass.getpass("Enter sudo password: ")
+    full_cmd = f"echo '{password}' | sudo -S {cmd}"
+    return run_command(full_cmd, timeout=timeout)
+
+def check_system_requirements():
+    print("Checking system requirements...")
+
+    try:
+        success, output = run_command("lsb_release -rs")
+        if success:
+            version = float(output.strip())
+            if version < 18.04:
+                print(f"Ubuntu {version} detected. Ubuntu 18.04+ required.")
+                return False
+            print(f"Ubuntu {version} detected")
+        else:
+            print("Could not determine Ubuntu version, proceeding anyway")
+    except:
+        print("Could not check Ubuntu version, proceeding anyway")
+
+    try:
+        success, output = run_command("df / | tail -1 | awk '{print $4}'")
+        if success:
+            available_kb = int(output.strip())
+            available_gb = available_kb / (1024 * 1024)
+            if available_gb < 10:
+                print(f"Only {available_gb:.1f}GB available. At least 10GB required.")
+                return False
+            print(f"{available_gb:.1f}GB disk space available")
+    except:
+        print("Could not check disk space, proceeding anyway")
+
+    try:
+        success, output = run_command("free -g | grep Mem | awk '{print $2}'")
+        if success:
+            ram_gb = int(output.strip())
+            if ram_gb < 4:
+                print(f"Only {ram_gb}GB RAM detected. At least 4GB required.")
+                return False
+            print(f"{ram_gb}GB RAM detected")
+    except:
+        print("Could not check RAM, proceeding anyway")
+
+    return True
+
+def is_package_installed(package_name):
+    success, _ = run_command(f"dpkg -l {package_name} | grep -q ^ii", check=False)
+    return success
+
+def is_snap_installed(snap_name):
+    success, _ = run_command(f"snap list {snap_name}", check=False)
+    return success
+
+def is_python_package_installed(package_name):
+    try:
+        __import__(package_name.replace('-', '_'))
+        return True
+    except ImportError:
+        return False
+
+def install_system_dependencies(password):
+    print("Installing system dependencies...")
+
+    deps_to_install = []
+    if not is_package_installed("python3-pip"):
+        deps_to_install.append("python3-pip")
+    if not is_package_installed("python3-dev"):
+        deps_to_install.append("python3-dev")
+    if not is_package_installed("build-essential"):
+        deps_to_install.append("build-essential")
+
+    if deps_to_install:
+        print(f"Installing: {', '.join(deps_to_install)}")
+        success, output = run_sudo_command(f"apt update && apt install -y {' '.join(deps_to_install)}", password)
+        if not success:
+            print(f"Failed to install system dependencies: {output}")
+            return False
+        print("System dependencies installed")
+    else:
+        print("System dependencies already installed")
+
+    return True
+
 def install_python_packages():
-    """Install required Python packages."""
-    print("📦 Installing Python dependencies...")
+    print("Installing Python dependencies...")
+
+    print("Upgrading pip...")
+    success, _ = run_command(f"{sys.executable} -m pip install --upgrade pip")
+    if not success:
+        print("Failed to upgrade pip, continuing anyway")
+
     packages = [
         "fastapi", "uvicorn", "pyngrok", "requests", "boto3", "python-multipart",
         "aiofiles", "langchain", "langchain-community", "chromadb", "sentence-transformers",
         "PyMuPDF", "langchain-huggingface", "langchain-chroma", "langchain-google-genai",
         "langchain-ollama", "langchain-experimental", "flashrank", "pydantic", "python-dotenv"
     ]
-    cmd = f"{sys.executable} -m pip install {' '.join(packages)}"
-    success, output = run_command(cmd)
-    if success:
-        print("✅ Python packages installed successfully")
+
+    packages_to_install = []
+    for package in packages:
+        if not is_python_package_installed(package):
+            packages_to_install.append(package)
+
+    if packages_to_install:
+        print(f"Installing {len(packages_to_install)} packages: {', '.join(packages_to_install[:5])}{'...' if len(packages_to_install) > 5 else ''}")
+        cmd = f"{sys.executable} -m pip install {' '.join(packages_to_install)}"
+        success, output = run_command(cmd, timeout=600)
+        if success:
+            print("Python packages installed successfully")
+        else:
+            print(f"Failed to install Python packages: {output}")
+            return False
     else:
-        print(f"❌ Failed to install Python packages: {output}")
-        return False
+        print("All Python packages already installed")
+
     return True
 
-def install_ollama():
-    """Install Ollama using snap or apt."""
-    print("🦙 Installing Ollama...")
-    # Try snap first (Ubuntu 20.04+)
-    success, output = run_command("sudo snap install ollama")
-    if success:
-        print("✅ Ollama installed via snap")
+def install_ollama(password):
+    print("Installing Ollama...")
+
+    if is_snap_installed("ollama"):
+        print("Ollama already installed via snap")
         return True
 
-    # Fallback to apt
-    success, output = run_command("sudo apt update && sudo apt install -y ollama")
+    print("Trying to install Ollama via snap...")
+    success, output = run_sudo_command("snap install ollama", password)
     if success:
-        print("✅ Ollama installed via apt")
+        print("Ollama installed via snap")
         return True
 
-    print(f"❌ Failed to install Ollama: {output}")
+    print("Snap failed, trying apt...")
+    success, output = run_sudo_command("apt update && apt install -y ollama", password)
+    if success:
+        print("Ollama installed via apt")
+        return True
+
+    print(f"Failed to install Ollama: {output}")
     return False
 
 def pull_models():
-    """Pull required Ollama models."""
-    print("📥 Pulling Ollama models (mistral and llava)...")
-    models = ["mistral", "llava"]
+    print("Pulling Ollama models (gemma3:1b and llava)...")
+
+    models = ["gemma3:1b", "llava"]
+
     for model in models:
-        print(f"Pulling {model}...")
-        success, output = run_command(f"ollama pull {model}")
+        print(f"Checking if {model} is already available...")
+        success, _ = run_command(f"ollama list | grep -q {model}", check=False)
         if success:
-            print(f"✅ {model} pulled successfully")
+            print(f"{model} already available")
+            continue
+
+        print(f"Pulling {model}...")
+        success, output = run_command(f"ollama pull {model}", timeout=1800)
+        if success:
+            print(f"{model} pulled successfully")
         else:
-            print(f"❌ Failed to pull {model}: {output}")
+            print(f"Failed to pull {model}: {output}")
             return False
     return True
 
 def create_env_file():
-    """Create .env file with default settings."""
     env_content = """# Backend Configuration
-OLLAMA_MODEL=mistral
+OLLAMA_MODEL=gemma3:1b
 OLLAMA_URL=http://localhost:11434
 
-# Optional: Set your Google API key for remote model fallback
-# GOOGLE_API_KEY=your_google_api_key_here
 
-# Optional: Set ngrok authtoken for public access
-# NGROK_AUTHTOKEN=your_ngrok_token_here
 
-# Progress service URL (optional)
-# PROGRESS_SERVICE_URL=https://your-progress-service.vercel.app
 """
     with open('.env', 'w') as f:
         f.write(env_content)
-    print("✅ Created .env file with default configuration")
+    print("Created .env file with default configuration")
+
+def wait_for_ollama_service(timeout=60):
+    print("Waiting for Ollama service to start...")
+    for i in range(timeout):
+        try:
+            response = requests.get("http://localhost:11434/api/tags", timeout=5)
+            if response.status_code == 200:
+                print("Ollama service is ready")
+                return True
+        except:
+            pass
+        time.sleep(1)
+        if (i + 1) % 10 == 0:
+            print(f"   Still waiting... ({i + 1}/{timeout}s)")
+    print("Ollama service failed to start within timeout")
+    return False
 
 def main():
-    print("🚀 Starting complete local backend setup for Ubuntu...")
-    print("=" * 60)
+    print("Starting complete automated local backend setup for Ubuntu...")
+    print("=" * 70)
 
-    # Check Python version
     if sys.version_info < (3, 8):
-        print("❌ Python 3.8 or higher is required")
-        return
+        print("Python 3.8 or higher is required")
+        sys.exit(1)
 
-    print(f"🐍 Python version: {sys.version}")
-    print(f"🖥️  Platform: {platform.platform()}")
+    print(f"Python version: {sys.version}")
+    print(f"Platform: {platform.platform()}")
 
-    # Install dependencies
+    if not check_system_requirements():
+        print("System requirements not met. Please upgrade your system.")
+        sys.exit(1)
+
+    print("\nThis setup requires sudo access for system installations.")
+    print("Please enter your sudo password when prompted.")
+    try:
+        sudo_password = getpass.getpass("Sudo password: ")
+        success, _ = run_sudo_command("echo 'Testing sudo access'", sudo_password)
+        if not success:
+            print("Invalid sudo password")
+            sys.exit(1)
+    except KeyboardInterrupt:
+        print("\nSetup cancelled by user")
+        sys.exit(1)
+
+    if not install_system_dependencies(sudo_password):
+        sys.exit(1)
+
     if not install_python_packages():
-        return
+        sys.exit(1)
 
-    # Install Ollama
-    if not install_ollama():
-        return
+    if not install_ollama(sudo_password):
+        sys.exit(1)
 
-    # Pull models
+    print("Starting Ollama service...")
+    success, _ = run_command("systemctl --user start ollama 2>/dev/null || ollama serve", check=False)
+    if not success:
+        print("Could not start Ollama via systemctl, trying direct start...")
+
+    if not wait_for_ollama_service():
+        print("Ollama service not ready, but continuing setup...")
+
     if not pull_models():
-        return
+        sys.exit(1)
 
-    # Create .env file
     create_env_file()
 
-    print("=" * 60)
-    print("✅ Setup complete! Starting backend server...")
-    print("🌐 Backend will be available at: http://localhost:8000")
-    print("📝 Edit .env file to configure API keys or ngrok if needed")
-    print("🛑 Press Ctrl+C to stop the server")
-    print("=" * 60)
+    print("=" * 70)
+    print("Automated setup complete!")
+    print("Backend will be available at: http://localhost:8000")
+    print("Configuration saved to .env file")
+    print("Press Ctrl+C to stop the server")
+    print("=" * 70)
 
-    # Now run the backend code
     exec_backend_code()
 
 def exec_backend_code():
     """Execute the backend code inline."""
-    # ==============================================================================
-    # 0. INSTALLS (Colab only - comment out for local use)
-    # ==============================================================================
-    # Uncomment the following lines if running in Google Colab:
-    # !curl -fsSL https://ollama.com/install.sh | sh
-    # !pip install fastapi uvicorn pyngrok requests boto3 python-multipart aiofiles langchain langchain-community chromadb sentence-transformers PyMuPDF langchain-huggingface langchain-chroma langchain-google-genai langchain-ollama langchain-experimental flashrank pydantic python-dotenv
 
-    # ==============================================================================
-    # 1. IMPORTS
-    # ==============================================================================
     import os, signal, psutil, gc, time, sys, subprocess, threading, asyncio, json, base64
     from pathlib import Path
     from uuid import uuid4
     from typing import List, Dict, Any, Tuple
     from dotenv import load_dotenv
 
-    # Load environment variables from .env file
     load_dotenv()
 
-    # --- FastAPI & Server ---
     from fastapi import FastAPI, UploadFile, Form, Request, HTTPException
-    from fastapi.responses import JSONResponse, StreamingResponse, FileResponse
+    from fastapi.responses import JSONResponse, StreamingResponse, FileResponse, Response
     import uvicorn
     from pyngrok import ngrok
 
-    # --- LangChain Core ---
     from langchain.docstore.document import Document
     from langchain.retrievers import ContextualCompressionRetriever
     from langchain.retrievers.document_compressors import FlashrankRerank
@@ -169,19 +315,14 @@ def exec_backend_code():
     from pydantic import BaseModel, Field
     import fitz
 
-    # --- Colab Support ---
     try:
         from google.colab import userdata
         IN_COLAB = True
     except ImportError:
         IN_COLAB = False
 
-    # ==============================================================================
-    # 2. CONFIGURATION
-    # ==============================================================================
     print("Loading configuration...")
 
-    # --- API Keys & Models ---
     if IN_COLAB:
         try:
             GOOGLE_API_KEY = userdata.get("GOOGLE_API_KEY")
@@ -201,7 +342,7 @@ def exec_backend_code():
     if not NGROK_AUTHTOKEN or NGROK_AUTHTOKEN == "YOUR_NGROK_AUTHTOKEN":
         print("WARNING: NGROK_AUTHTOKEN not configured properly. Set it in .env file.")
 
-    OLLAMA_MODEL = os.environ.get("OLLAMA_MODEL", "mistral")
+    OLLAMA_MODEL = os.environ.get("OLLAMA_MODEL", "gemma3:1b")
     OLLAMA_URL = "http://localhost:11434"
 
 
@@ -213,7 +354,6 @@ def exec_backend_code():
         except:
             pass
 
-    # --- Persistent Storage Paths (Hierarchical) ---
     PERSIST_BASE = os.path.abspath("./chroma_store")
     SUMMARY_STORE_PATH = os.path.join(PERSIST_BASE, "summary_store")
     DETAILED_STORE_PATH = os.path.join(PERSIST_BASE, "detailed_store")
@@ -225,7 +365,6 @@ def exec_backend_code():
 
     IMAGE_EXTENSIONS = {".jpg", ".jpeg", ".png", ".gif", ".bmp", ".webp"}
 
-    # --- Global Reusable Components ---
     EMBEDDINGS_MODEL = HuggingFaceEmbeddings(model_name="all-MiniLM-L6-v2")
     GLOBAL_RERANKER = FlashrankRerank(top_n=5) # Default re-ranker
 
@@ -235,16 +374,13 @@ def exec_backend_code():
         Chroma/Chromadb requires metadata values to be primitive types (str, int, float, bool, None) or SparseVector.
         We ensure we never store lists/dicts directly by serializing them.
         """
-        # Primitive safe types
         if value is None or isinstance(value, (str, int, float, bool)):
             return value
-        # For lists and dicts, try JSON serialization
         try:
             if isinstance(value, (list, dict)):
                 return json.dumps(value)
         except Exception:
             pass
-        # Fallback: convert to string
         try:
             return str(value)
         except Exception:
@@ -278,9 +414,6 @@ def exec_backend_code():
             return os.environ.get("PUBLIC_URL")
         return globals().get("public_url", "http://localhost:8000")
 
-    # ==============================================================================
-    # 3. NEW: Pydantic Models for Structured Output
-    # ==============================================================================
 
     class Reference(BaseModel):
         """Pydantic model for a single citation reference."""
@@ -295,9 +428,6 @@ def exec_backend_code():
         answer: str = Field(..., description="The detailed answer to the user's query, with IEEE-style citations like [1], [2].")
         references: List[Reference] = Field(..., description="A list of Reference objects used in the answer.")
 
-    # ==============================================================================
-    # 4. NEW: Citation Deduplication Utility
-    # ==============================================================================
 
     def deduplicate_references_and_update_answer(answer: str, references: List[Reference]) -> tuple[str, List[Reference]]:
         """
@@ -309,7 +439,6 @@ def exec_backend_code():
         unique_refs = {}
         id_mapping = {}
 
-        # Create unique references and map old IDs to new IDs
         new_id_counter = 1
         for ref in references:
             if ref.source not in unique_refs:
@@ -321,19 +450,14 @@ def exec_backend_code():
 
         updated_answer = answer
 
-        # Sort keys by length (desc) to replace "[10]" before "[1]"
         sorted_old_ids = sorted(id_mapping.keys(), key=len, reverse=True)
 
         for old_id in sorted_old_ids:
             new_id = id_mapping[old_id]
-            # Replace citations (e.g., [1], [2], etc.)
             updated_answer = updated_answer.replace(f'[{old_id}]', f'[{new_id}]')
 
         return updated_answer, list(unique_refs.values())
 
-    # ==============================================================================
-    # 5. SYSTEM & OLLAMA UTILS
-    # ==============================================================================
 
     def stream_logs(proc, name):
         for line in iter(proc.stdout.readline, b''):
@@ -373,21 +497,16 @@ def exec_backend_code():
         except Exception as e:
             return f"Error: {str(e)}"
 
-    # ==============================================================================
-    # 6. SHARED LLM & RAG PROMPT LOGIC (MODIFIED)
-    # ==============================================================================
 
     def get_llm(model_name: str):
         """Unified function to get an LLM instance."""
         if model_name.lower() == "remote":
             return ChatGoogleGenerativeAI(model="gemini-1.5-flash", api_key=GOOGLE_API_KEY)
         else:
-            # Using a model known to be good at JSON mode
             return OllamaLLM(model=model_name, format="json", temperature=0)
 
     def generate_with_llm(prompt: str, model_name: str):
         """Unified function to invoke an LLM for *non-structured* text."""
-        # Use a basic model for simple generation
         if model_name.lower() == "remote":
             llm = ChatGoogleGenerativeAI(model="gemini-1.5-flash", api_key=GOOGLE_API_KEY)
         else:
@@ -407,7 +526,6 @@ def exec_backend_code():
             title = chunk.metadata.get("title", chunk.metadata.get("filename", source))
             page = chunk.metadata.get("page", chunk.metadata.get("page_number", "N/A"))
 
-            # Give each chunk a unique "Title" for citation
             chunk_title = f"{title} (Page {page}, Chunk {i+1})"
             chunk.metadata["sense_title"] = chunk_title
 
@@ -488,9 +606,6 @@ Page Content Chunk: \n\nMachine learning is a subset of AI.
 **YOUR JSON RESPONSE:**
 """
 
-    # ==============================================================================
-    # 7. CORE: HIERARCHICAL RAG SERVICE (MODIFIED)
-    # ==============================================================================
 
     class HierarchicalRAGService:
         """
@@ -510,7 +625,6 @@ Page Content Chunk: \n\nMachine learning is a subset of AI.
                 persist_directory=detailed_path
             )
 
-        # --- Ingestion Logic (Unchanged) ---
         def _load_and_split_pdf(self, pdf_bytes: bytes) -> List[Document]:
             with tempfile.NamedTemporaryFile(delete=False, suffix=".pdf") as tmp:
                 tmp.write(pdf_bytes)
@@ -538,12 +652,13 @@ Page Content Chunk: \n\nMachine learning is a subset of AI.
                         with open(image_path, "wb") as f:
                             f.write(image_bytes)
                         summary = generate_image_summary(image_path)
-                        image_url = f"{get_public_url().rstrip('/')}/image/{img_id}"
+                        image_url = f"{get_public_url().rstrip('/')}/image_bytes/{img_id}"
                         page_images.append({
                             "id": img_id,
                             "url": image_url,
                             "summary": summary,
-                            "page": page_num + 1
+                            "page": page_num + 1,
+                            "ext": image_ext
                         })
                     except Exception as e:
                         pass
@@ -551,15 +666,12 @@ Page Content Chunk: \n\nMachine learning is a subset of AI.
             pdf.close()
             os.remove(path)
 
-            # Assign images to documents based on page, and ensure all are Document objects
             new_docs = []
             for doc in docs:
                 page_num = getattr(doc, 'metadata', {}).get('page', 1) if hasattr(doc, 'metadata') else 1
                 images = images_per_page.get(page_num, [])
-                # If doc is not a Document, convert it
                 if not isinstance(doc, Document):
                     doc = Document(page_content=str(doc), metadata={})
-                # Ensure metadata is a dict
                 if not hasattr(doc, 'metadata') or not isinstance(doc.metadata, dict):
                     doc.metadata = {}
                 doc.metadata["images"] = images
@@ -567,7 +679,6 @@ Page Content Chunk: \n\nMachine learning is a subset of AI.
 
             splitter = SemanticChunker(self.embeddings, breakpoint_threshold_type="percentile")
             chunks = splitter.split_documents(new_docs)
-            # Ensure all chunks are Document objects
             safe_chunks = []
             for c in chunks:
                 if isinstance(c, Document):
@@ -597,7 +708,6 @@ Page Content Chunk: \n\nMachine learning is a subset of AI.
             post_progress(doc_id, "loading", 5, message="Loading PDF...")
 
             chunks = self._load_and_split_pdf(pdf_bytes)
-            # Diagnostic logging: ensure chunks is a list of Document objects
             try:
                 print(f"DEBUG: Received {len(chunks)} chunks from splitter")
                 for i, c in enumerate(chunks[:5]):
@@ -610,7 +720,6 @@ Page Content Chunk: \n\nMachine learning is a subset of AI.
 
             post_progress(doc_id, "chunking", 20, message=f"Split into {len(chunks)} chunks", totalChunks=len(chunks))
 
-            # Safely resolve source filename
             if chunks and hasattr(chunks[0], 'metadata') and isinstance(chunks[0].metadata, dict):
                 source_filename = chunks[0].metadata.get("source", f"doc_{doc_id}")
             else:
@@ -629,7 +738,6 @@ Page Content Chunk: \n\nMachine learning is a subset of AI.
 
             post_progress(doc_id, "embedding_chunks", 75, message="Creating chunk embeddings...", totalChunks=len(chunks))
             for i, chunk in enumerate(chunks):
-                # Defensive conversion: ensure chunk is Document and has dict metadata
                 if not isinstance(chunk, Document):
                     print(f"Converting non-Document chunk at index {i} of type {type(chunk)} to Document")
                     chunk = Document(page_content=str(chunk), metadata={})
@@ -639,7 +747,6 @@ Page Content Chunk: \n\nMachine learning is a subset of AI.
                 chunk.metadata["doc_id"] = doc_id
                 chunk.metadata["title"] = f"{Path(source_filename).name} (Page {chunk.metadata.get('page', i+1)})"
                 try:
-                    # san is sanitized so lists/dicts converted to strings
                     chunk.metadata = sanitize_metadata(chunk.metadata)
                 except Exception as e:
                     print(f"Warning: sanitize_metadata failed for chunk {i}: {e}; using unfiltered metadata")
@@ -649,13 +756,11 @@ Page Content Chunk: \n\nMachine learning is a subset of AI.
                                 message=f"Embedding chunk {i+1}/{len(chunks)}...",
                                 currentChunk=i+1, totalChunks=len(chunks))
 
-            # Final diagnostic: print first few sanitized metadata keys to confirm
             try:
                 for i,c in enumerate(chunks[:5]):
                     print(f"DEBUG before add_documents chunk {i} metadata types: {[type(v) for v in c.metadata.values()]} keys={list(c.metadata.keys())}")
             except Exception as e:
                 print(f"DEBUG: failed to print chunk metadata diagnostics: {e}")
-            # Final sanitization before sending to Chroma: ensure every metadata value is primitive
             for i, ch in enumerate(chunks):
                 if not hasattr(ch, 'metadata') or not isinstance(ch.metadata, dict):
                     ch.metadata = {}
@@ -669,7 +774,6 @@ Page Content Chunk: \n\nMachine learning is a subset of AI.
                 self.detailed_store.add_documents(chunks, ids=chunk_ids)
             except Exception as e:
                 print("ERROR: adding documents to detailed_store failed", e)
-                # Print diagnostic metadata content and types for first few chunks
                 try:
                     for i, ch in enumerate(chunks[:10]):
                         print(f"DEBUG add failure chunk {i} metadata types: {[type(v) for v in ch.metadata.values()]} metadata_preview={json.dumps(ch.metadata)[:200]}")
@@ -685,7 +789,6 @@ Page Content Chunk: \n\nMachine learning is a subset of AI.
             results = self.detailed_store.get(where={"doc_id": doc_id}, include=["metadatas", "documents"])
             print(f"DEBUG: detailed_store.get returned keys: {list(results.keys())}")
             try:
-                # Print types for debugging
                 print(f"DEBUG: metadatas type={type(results.get('metadatas'))}, documents type={type(results.get('documents'))}")
                 if isinstance(results.get('documents'), list):
                     for i, d in enumerate(results.get('documents')[:5]):
@@ -710,7 +813,6 @@ Page Content Chunk: \n\nMachine learning is a subset of AI.
                     continue
             return docs
 
-        # --- RAG Logic with Structured Citations ---
         async def query_rag(self, document_ids: List[str], question: str, model_name: str, top_k: int = 5, specific_chunks: Dict[str, List[int]] = None) -> Tuple[str, List[Dict[str, Any]]]:
 
             summary_retriever = self.summary_store.as_retriever(search_kwargs={'k': 20, 'filter': {'doc_id': {'$in': document_ids}}})
@@ -738,7 +840,6 @@ Page Content Chunk: \n\nMachine learning is a subset of AI.
                 detailed_retriever = self.detailed_store.as_retriever(search_kwargs={'k': 25, 'filter': {'doc_id': {'$in': relevant_doc_ids}}})
                 chunk_compressor = ContextualCompressionRetriever(base_compressor=FlashrankRerank(top_n=top_k), base_retriever=detailed_retriever)
                 relevant_chunks = chunk_compressor.invoke(question)
-                # Ensure relevant_chunks are Document objects
                 for i, rc in enumerate(relevant_chunks):
                     if not isinstance(rc, Document):
                         print(f"Converting non-Document relevant chunk at index {i} of type {type(rc)}")
@@ -811,14 +912,7 @@ Page Content Chunk: \n\nMachine learning is a subset of AI.
                 simple_prompt = f"Answer: {question}\n\nContext:\n{simple_context}\n\nAnswer:"
                 return generate_with_llm(simple_prompt, model_name), []
 
-    # ==============================================================================
-    # 8. STREAMING SUMMARIZER (Preserved Feature)
-    # ==============================================================================
-    # (This section is unchanged from the previous code)
 
-    # ==============================================================================
-    # 9. FASTAPI APP & ENDPOINTS (MODIFIED)
-    # ==============================================================================
 
     print("Starting FastAPI app...")
 
@@ -838,6 +932,10 @@ Page Content Chunk: \n\nMachine learning is a subset of AI.
     async def startup_event():
         if rag_service is None:
             pass
+
+    @app.get("/health")
+    def health_check():
+        return {"status": "healthy", "message": "Backend is running"}
 
     @app.get("/")
     def home():
@@ -925,14 +1023,11 @@ Page Content Chunk: \n\nMachine learning is a subset of AI.
         text_ids = [doc_id for doc_id in document_ids if doc_id.startswith("doc_")]
 
         if image_ids:
-            # Image Q&A logic is preserved
             return await process_image_query(image_ids, text_ids, prompt, model)
 
         if text_ids:
-            # --- Call the advanced RAG function ---
             max_citations = 7 # Get more chunks for the advanced prompt
 
-            # Use await because query_rag is now an async function
             response_text, citations = await rag_service.query_rag(
                 document_ids=text_ids,
                 question=prompt,
@@ -942,7 +1037,6 @@ Page Content Chunk: \n\nMachine learning is a subset of AI.
             )
             return JSONResponse(content={"response": response_text, "citations": citations})
 
-        # --- No-context Q&A Logic (Unchanged) ---
         response_text = generate_with_llm(prompt, model) # Uses simple text gen
         return JSONResponse(content={"response": response_text, "citations": []})
 
@@ -977,7 +1071,6 @@ Page Content Chunk: \n\nMachine learning is a subset of AI.
 
         if text_ids and rag_service:
             print("... Image query also performing RAG on text documents ...")
-            # Await the async RAG query
             context, citations = await rag_service.query_rag(text_ids, prompt, model, top_k=3)
             additional_context = f"\n\nAdditional context from documents:\n{context}"
 
@@ -987,13 +1080,15 @@ Page Content Chunk: \n\nMachine learning is a subset of AI.
         return JSONResponse(content={"response": final_response, "citations": citations, "usedVisionModel": True, "visionModel": vision_model})
 
 
-    @app.get("/image/{image_id}")
-    async def get_image(image_id: str):
-        """Serve an image by its ID."""
+    @app.get("/image_bytes/{image_id}")
+    async def get_image_bytes(image_id: str):
+        """Serve an image by its ID as bytes."""
         for ext in IMAGE_EXTENSIONS:
             image_path = os.path.join(IMAGE_STORE, f"{image_id}{ext}")
             if os.path.exists(image_path):
-                return FileResponse(image_path, media_type=f"image/{ext[1:]}")
+                with open(image_path, "rb") as f:
+                    data = f.read()
+                return Response(data, media_type=f"image/{ext[1:]}")
         raise HTTPException(status_code=404, detail="Image not found")
 
 
@@ -1008,13 +1103,10 @@ Page Content Chunk: \n\nMachine learning is a subset of AI.
         except Exception as e:
             return JSONResponse(status_code=500, content={"error": str(e)})
 
-    # ==============================================================================
-    # 10. SERVER STARTUP
-    # ==============================================================================
 
     try:
         start_ollama_service()
-        os.system("ollama pull mistral && ollama pull llava")
+        os.system("ollama pull gemma3:1b && ollama pull llava")
     except:
         pass
 

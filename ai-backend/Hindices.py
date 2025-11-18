@@ -881,14 +881,11 @@ async def get_image_bytes(image_id: str):
 
 @app.post("/pull")
 async def pull_model(request: Request):
-    try:
-        model = (await request.json()).get("name", OLLAMA_MODEL)
-        if model.lower() == "remote":
-            return {"message": "Using remote model, no pull needed."}
-        resp = requests.post(f"{OLLAMA_URL}/api/pull", json={"name": model, "stream": False}, timeout=300)
-        return JSONResponse(content=resp.json(), status_code=resp.status_code)
-    except Exception as e:
-        return JSONResponse(status_code=500, content={"error": str(e)})
+    model = (await request.json()).get("name", OLLAMA_MODEL)
+    if model.lower() == "remote":
+        return {"message": "Using remote model, no pull needed."}
+    resp = requests.post(f"{OLLAMA_URL}/api/pull", json={"name": model, "stream": False}, timeout=300)
+    return JSONResponse(content=resp.json(), status_code=resp.status_code)
 
 # ==============================================================================
 # 10. SERVER STARTUP
@@ -897,8 +894,9 @@ async def pull_model(request: Request):
 try:
     start_ollama_service()
     # os.system("ollama pull mistral && ollama pull llava && ollama pull gemma3:1b")
-except:
-    pass
+except Exception as e:
+    print(f"Failed to start Ollama service: {e}")
+    raise
 
 FIXED_URL = "https://mari-unbequeathed-milkily.ngrok-free.app"
 public_url = "http://localhost:8000"

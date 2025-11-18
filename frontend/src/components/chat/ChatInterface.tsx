@@ -177,23 +177,19 @@ export function ChatInterface({ initialChatId }: ChatInterfaceProps) {
         setShowProcessingDialog
       );
 
-      try {
-        const mapping = await cloneChatFolderToLocal(
-          chatId,
-          files.map(f => ({ name: f.name, type: f.type, key: f.key }))
-        );
-        setFiles((prev) => prev.map(f => {
-          if (f.chatId !== chatId) return f;
-          return {
-            ...f,
-            localUrl: mapping[f.name] || f.localUrl,
-            downloadStatus: mapping[f.name] ? 'done' : 'failed',
-            statusMessage: mapping[f.name] ? 'Available' : 'Download failed',
-          };
-        }));
-      } catch {
-        // ignore download errors
-      }
+      const mapping = await cloneChatFolderToLocal(
+        chatId,
+        files.map(f => ({ name: f.name, type: f.type, key: f.key }))
+      );
+      setFiles((prev) => prev.map(f => {
+        if (f.chatId !== chatId) return f;
+        return {
+          ...f,
+          localUrl: mapping[f.name] || f.localUrl,
+          downloadStatus: mapping[f.name] ? 'done' : 'failed',
+          statusMessage: mapping[f.name] ? 'Available' : 'Download failed',
+        };
+      }));
     }
   };
 
