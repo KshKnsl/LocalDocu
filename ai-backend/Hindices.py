@@ -20,6 +20,7 @@ load_dotenv()
 # --- FastAPI & Server ---
 from fastapi import FastAPI, UploadFile, Form, Request, HTTPException
 from fastapi.responses import JSONResponse, StreamingResponse, FileResponse
+from fastapi.middleware.cors import CORSMiddleware
 import uvicorn
 from pyngrok import ngrok
 
@@ -696,6 +697,14 @@ print("Starting FastAPI app...")
 
 app = FastAPI(title="🦙 Hierarchical RAG API with Structured Citations")
 
+app.add_middleware(
+    CORSMiddleware,
+    allow_origins=["*"], 
+    allow_credentials=True,
+    allow_methods=["*"],
+    allow_headers=["*"],
+)
+
 try:
     rag_service = HierarchicalRAGService(
         summary_path=SUMMARY_STORE_PATH,
@@ -711,14 +720,9 @@ async def startup_event():
     if rag_service is None:
         pass
 
-@app.get("/")
-def home():
-    if rag_service is None: raise HTTPException(status_code=500, detail="RAG Service is not operational.")
-    return {
-        "message": "Hierarchical RAG API with Structured Citations - Active",
-        "summary_store_count": rag_service.summary_store._collection.count(),
-        "detailed_store_count": rag_service.detailed_store._collection.count()
-    }
+@app.get("/health")
+def health_check():
+    return {"status": "healthy", "message": "Backend is running"}
 
 @app.post("/process")
 async def process(file: UploadFile):
@@ -865,18 +869,13 @@ from fastapi.responses import Response
 
 @app.get("/image_bytes/{image_id}")
 async def get_image_bytes(image_id: str):
-    """Serve an image by its ID as bytes with CORS headers (for proxy)."""
+    """Serve an image by its ID as bytes."""
     for ext in IMAGE_EXTENSIONS:
         image_path = os.path.join(IMAGE_STORE, f"{image_id}{ext}")
         if os.path.exists(image_path):
             with open(image_path, "rb") as f:
                 data = f.read()
-            headers = {
-                "Access-Control-Allow-Origin": "*",
-                "Access-Control-Allow-Methods": "GET, OPTIONS",
-                "Access-Control-Allow-Headers": "*",
-            }
-            return Response(data, media_type=f"image/{ext[1:]}", headers=headers)
+            return Response(data, media_type=f"image/{ext[1:]}")
     raise HTTPException(status_code=404, detail="Image not found")
 
 

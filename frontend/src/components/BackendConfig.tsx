@@ -14,7 +14,7 @@ const DEFAULT_BACKEND = "https://minor-project-6v6z.vercel.app/api"
 
 export function BackendConfig() {
   const [backendMode, setBackendMode] = useState<"default" | "custom">("default")
-  const [customUrl, setCustomUrl] = useState("")
+  const [customUrl, setCustomUrl] = useState("http://localhost:8000")
   const [isTestingConnection, setIsTestingConnection] = useState(false)
   const [connectionStatus, setConnectionStatus] = useState<"idle" | "success" | "error">("idle")
 
@@ -51,13 +51,13 @@ export function BackendConfig() {
     const urlToSave = backendMode === "custom" ? customUrl : DEFAULT_BACKEND
     if (backendMode === "custom" && !customUrl) return toast.error("Please enter a backend URL")
 
-    if (await testConnection(urlToSave)) {
-      localStorage.setItem("backendUrl", urlToSave)
-      localStorage.setItem("backendMode", backendMode)
-      if (typeof window !== "undefined") (window as any).NEXT_PUBLIC_BACKEND_URL = urlToSave
-      toast.success("Configuration saved!", { description: "Page will reload" })
-      setTimeout(() => window.location.reload(), 1500)
-    }
+    await testConnection(urlToSave)
+
+    localStorage.setItem("backendUrl", urlToSave)
+    localStorage.setItem("backendMode", backendMode)
+    if (typeof window !== "undefined") (window as any).NEXT_PUBLIC_BACKEND_URL = urlToSave
+    toast.success("Configuration saved!", { description: "Page will reload" })
+    setTimeout(() => window.location.reload(), 1500)
   }
 
 
