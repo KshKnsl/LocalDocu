@@ -125,22 +125,24 @@ export function FileList({ files, onRemove, previewFile, onToggleEnabled, onView
                       </span>
                     </div>
                   )}
-                  <Button
-                    variant="outline"
-                    size="sm"
-                    onClick={() => {
-                      console.log('FileList Chunks clicked:', { 
-                        onViewChunks: !!onViewChunks, 
-                        documentId: file.documentId, 
-                        name: file.name 
-                      });
-                      onViewChunks?.(file.documentId || '', file.name);
-                    }}
-                    className="gap-1.5 flex-1 sm:flex-none"
-                  >
-                    <BookOpen className="h-3.5 w-3.5" />
-                    <span className="sm:inline">Chunks</span>
-                  </Button>
+                  {onViewChunks && file.documentId && (
+                    <Button
+                      variant="outline"
+                      size="sm"
+                      onClick={() => {
+                        console.log('FileList Chunks clicked:', { 
+                          onViewChunks: !!onViewChunks, 
+                          documentId: file.documentId, 
+                          name: file.name 
+                        });
+                        onViewChunks(file.documentId || '', file.name);
+                      }}
+                      className="gap-1.5 flex-1 sm:flex-none"
+                    >
+                      <BookOpen className="h-3.5 w-3.5" />
+                      <span className="sm:inline">Chunks</span>
+                    </Button>
+                  )}
                   {previewFile && file.processingStatus === 'done' && (
                     <Button
                       variant="outline"

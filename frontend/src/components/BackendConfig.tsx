@@ -106,7 +106,7 @@ export function BackendConfig() {
         <div className="space-y-3">
           <label className="text-sm font-medium">Backend Mode</label>
           
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
+          <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
             {/* Default Backend Option */}
             <Card 
               className={`cursor-pointer transition-all ${
@@ -190,7 +190,7 @@ export function BackendConfig() {
               </div>
             </div>
             
-            <div className="grid grid-cols-3 gap-2">
+            <div className="grid grid-cols-1 sm:grid-cols-3 gap-2">
               <Button 
                 size="sm" 
                 variant="outline"
@@ -266,7 +266,7 @@ export function BackendConfig() {
   )
 }
 
-export function BackendConfigDialog() {
+export function BackendConfigDialog({ collapsed = false }: { collapsed?: boolean }) {
   const [status, setStatus] = useState<"idle" | "success" | "error">("idle")
 
   useEffect(() => {
@@ -295,14 +295,18 @@ export function BackendConfigDialog() {
   return (
     <Dialog>
       <DialogTrigger asChild>
-        <Button variant="outline" size="sm" className="w-full gap-2 justify-start">
+        <Button variant="outline" size="sm" className={`w-full gap-2 justify-start ${collapsed ? 'px-2' : ''}`}>
           <div className={`w-2 h-2 rounded-full ${statusColor}`} />
-          <Server className="w-4 h-4" />
-          <span className="flex-1 text-left">Backend Settings</span>
-          <span className="text-xs text-muted-foreground">{statusText}</span>
+          {!collapsed && <Server className="w-4 h-4" />}
+          {!collapsed && (
+            <>
+              <span className="flex-1 text-left">Backend Settings</span>
+              <span className="text-xs text-muted-foreground">{statusText}</span>
+            </>
+          )}
         </Button>
       </DialogTrigger>
-      <DialogContent className="max-w-2xl max-h-[90vh] overflow-y-auto">
+      <DialogContent className="max-w-[95vw] sm:max-w-2xl max-h-[90vh] overflow-y-auto">
         <DialogHeader>
           <DialogTitle>Backend Configuration</DialogTitle>
         </DialogHeader>

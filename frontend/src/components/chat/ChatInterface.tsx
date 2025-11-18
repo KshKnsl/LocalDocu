@@ -82,7 +82,7 @@ export function ChatInterface({ initialChatId }: ChatInterfaceProps) {
   const messages = currentChatId ? getChatById(currentChatId)?.message_objects || [] : [];
   const currentChat = currentChatId ? getChatById(currentChatId) : undefined;
   const allowedModels = currentChat?.models;
-  const modelLocked = Array.isArray(allowedModels) && allowedModels.length > 0;
+  const modelLocked = false;
 
   useEffect(() => {
     if (initialChatId) {
@@ -541,6 +541,11 @@ export function ChatInterface({ initialChatId }: ChatInterfaceProps) {
                 : getAllAttachedFiles()}
               onRemove={() => {}}
               previewFile={setPreviewFile}
+              onViewChunks={(docId, docName) => {
+                setChunkViewerDocId(docId);
+                setChunkViewerDocName(docName);
+                setShowChunkViewer(true);
+              }}
               onToggleEnabled={(index, enabled) => {
                 if (currentChatId) {
                   const chat = getChatById(currentChatId);

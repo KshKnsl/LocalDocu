@@ -243,7 +243,7 @@ export function ChatSidebar({
       <div className="border-t bg-muted/50 p-4">
         {isSidebarOpen ? (
           <div className="space-y-3">
-            <BackendConfigDialog />
+            <BackendConfigDialog collapsed={false} />
              <div className="flex items-center justify-between gap-2">
               <div className="flex items-center gap-2">
                 <Switch
@@ -262,6 +262,9 @@ export function ChatSidebar({
           </div>
         ) : (
           <div className="flex flex-col items-center gap-2">
+            <div className="w-full max-w-[200px]">
+              <BackendConfigDialog collapsed={true} />
+            </div>
             <Switch
               checked={stream}
               onCheckedChange={handleStreamToggle}

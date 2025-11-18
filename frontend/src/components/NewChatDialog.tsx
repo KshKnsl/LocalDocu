@@ -18,7 +18,7 @@ interface NewChatDialogProps {
 export default function NewChatDialog({ open, onOpenChange, onCreate }: NewChatDialogProps) {
   const [title, setTitle] = useState("");
   const [description, setDescription] = useState("");
-  const [selectedModels, setSelectedModels] = useState<string[]>(["remote"]);
+  const [selectedModels, setSelectedModels] = useState<string[]>(["remote", "mistral", "llava"]);
   const [isCreating, setIsCreating] = useState(false);
 
   const toggleModel = (modelName: string) => {
@@ -38,7 +38,7 @@ export default function NewChatDialog({ open, onOpenChange, onCreate }: NewChatD
       await onCreate({ chatId, title: title.trim(), description: description.trim(), models: selectedModels });
       setTitle("");
       setDescription("");
-      setSelectedModels(["remote"]);
+      setSelectedModels(["remote", "mistral", "llava"]);
       onOpenChange(false);
     } catch (error) {
       console.error("Failed to create chat:", error);
@@ -64,8 +64,18 @@ export default function NewChatDialog({ open, onOpenChange, onCreate }: NewChatD
           </div>
           <div>
             <label className="text-sm text-muted-foreground">Select Models (required)</label>
+            <div className="flex justify-end mt-1">
+              <Button
+                variant="ghost"
+                size="sm"
+                onClick={() => setSelectedModels(LOCAL_MODELS.map(m => m.name))}
+                className="text-xs h-6 px-2"
+              >
+                Select All
+              </Button>
+            </div>
             <div className="grid grid-cols-2 gap-2 mt-2">
-              {LOCAL_MODELS.map((m) => (
+              {LOCAL_MODELS.filter(m => m.name !== "remote").map((m) => (
                 <div key={m.name} className="flex items-center gap-2">
                   <Checkbox checked={selectedModels.includes(m.name)} onCheckedChange={() => toggleModel(m.name)} id={`model-${m.name}`} />
                   <div>
