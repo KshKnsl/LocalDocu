@@ -406,12 +406,11 @@ class HierarchicalRAGService:
                     with open(image_path, "wb") as f:
                         f.write(image_bytes)
                     summary = generate_image_summary(image_path)
-                    image_url = f"{get_public_url().rstrip('/')}/image/{img_id}"
                     page_images.append({
                         "id": img_id,
-                        "url": image_url,
                         "summary": summary,
-                        "page": page_num + 1
+                        "page": page_num + 1,
+                        "ext": image_ext
                     })
                 except Exception as e:
                     pass
