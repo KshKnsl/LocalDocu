@@ -825,6 +825,7 @@ async def process_image_query(image_ids: list, text_ids: list, prompt: str, mode
     Image Q&A function with optional RAG context from text documents.
     """
     vision_model = "llava"
+    print(f"Image queries: forcing vision model='{vision_model}', ignoring requested model='{model}'")
     responses = []
 
     for img_id in image_ids:
@@ -860,13 +861,23 @@ async def process_image_query(image_ids: list, text_ids: list, prompt: str, mode
     return JSONResponse(content={"response": final_response, "citations": citations, "usedVisionModel": True, "visionModel": vision_model})
 
 
-@app.get("/image/{image_id}")
-async def get_image(image_id: str):
-    """Serve an image by its ID."""
+
+from fastapi.responses import Response
+
+@app.get("/image_bytes/{image_id}")
+async def get_image_bytes(image_id: str):
+    """Serve an image by its ID as bytes with CORS headers (for proxy)."""
     for ext in IMAGE_EXTENSIONS:
         image_path = os.path.join(IMAGE_STORE, f"{image_id}{ext}")
         if os.path.exists(image_path):
-            return FileResponse(image_path, media_type=f"image/{ext[1:]}")
+            with open(image_path, "rb") as f:
+                data = f.read()
+            headers = {
+                "Access-Control-Allow-Origin": "*",
+                "Access-Control-Allow-Methods": "GET, OPTIONS",
+                "Access-Control-Allow-Headers": "*",
+            }
+            return Response(data, media_type=f"image/{ext[1:]}", headers=headers)
     raise HTTPException(status_code=404, detail="Image not found")
 
 

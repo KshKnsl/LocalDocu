@@ -184,16 +184,20 @@ export function ChunkViewer({ isOpen, onClose, documentId, documentName, onApply
                         <div className="mt-3 space-y-2">
                           <div className="text-xs font-medium text-muted-foreground">Images:</div>
                           <div className="grid grid-cols-1 gap-2">
-                            {chunk.images.map((img, imgIndex) => (
-                              <div key={img.id} className="border rounded p-2 bg-muted/50">
-                                <img
-                                  src={img.url}
-                                  alt={`Image ${imgIndex + 1}`}
-                                  className="max-w-full h-auto max-h-32 object-contain rounded"
-                                />
-                                <p className="text-xs mt-1 text-muted-foreground">{img.summary}</p>
-                              </div>
-                            ))}
+                            {chunk.images.map((img, imgIndex) => {
+                              const backendUrl = (typeof window !== "undefined" && localStorage.getItem("backendUrl")) || "";
+                              const imageSrc = backendUrl ? `${backendUrl.replace(/\/$/, "")}/image_bytes/${img.id}` : img.url;
+                              return (
+                                <div key={img.id} className="border rounded p-2 bg-muted/50">
+                                  <img
+                                    src={imageSrc}
+                                    alt={`Image ${imgIndex + 1}`}
+                                    className="max-w-full h-auto max-h-32 object-contain rounded"
+                                  />
+                                  <p className="text-xs mt-1 text-muted-foreground">{img.summary}</p>
+                                </div>
+                              );
+                            })}
                           </div>
                         </div>
                       )}

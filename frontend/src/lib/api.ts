@@ -103,12 +103,15 @@ export async function processDocument(key?: string, file?: File): Promise<Proces
     formData.append("file", file);
   } else if (key) {
     const downloadRes = await fetch(`/api/document/download?key=${encodeURIComponent(key)}`);
-    if (!downloadRes.ok) throw new Error(await downloadRes.text() || "Failed to download document for processing");
-    const blob = await downloadRes.blob();
-    const cd = downloadRes.headers.get("Content-Disposition") || "";
-    const match = cd.match(/filename="?([^";]+)"?/i);
-    const filename = match?.[1] || `document-${Date.now()}`;
-    formData.append("file", new File([blob], filename, { type: blob.type || "application/octet-stream" }));
+    if (downloadRes.ok) {
+      const blob = await downloadRes.blob();
+      const cd = downloadRes.headers.get("Content-Disposition") || "";
+      const match = cd.match(/filename="?([^";]+)"?/i);
+      const filename = match?.[1] || `document-${Date.now()}`;
+      formData.append("file", new File([blob], filename, { type: blob.type || "application/octet-stream" }));
+    } else {
+      return { documentId: key || "", status: "skipped", chunkCount: 0 };
+    }
   } else {
     throw new Error("Either key or file must be provided");
   }
