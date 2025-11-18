@@ -70,7 +70,7 @@ if not GOOGLE_API_KEY or GOOGLE_API_KEY == "YOUR_GOOGLE_API_KEY":
 if not NGROK_AUTHTOKEN or NGROK_AUTHTOKEN == "YOUR_NGROK_AUTHTOKEN":
     print("WARNING: NGROK_AUTHTOKEN not configured properly. Set it in .env file.")
 
-OLLAMA_MODEL = os.environ.get("OLLAMA_MODEL", "mistral")
+OLLAMA_MODEL = os.environ.get("OLLAMA_MODEL", "gemma3:1b")
 OLLAMA_URL = "http://localhost:11434"
 
 
@@ -896,7 +896,7 @@ async def pull_model(request: Request):
 
 try:
     start_ollama_service()
-    os.system("ollama pull mistral && ollama pull llava")
+    os.system("ollama pull mistral && ollama pull llava && ollama pull gemma3:1b")
 except:
     pass
 

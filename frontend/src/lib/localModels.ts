@@ -14,5 +14,5 @@ export const LOCAL_MODELS: LocalModelInfo[] = [
     { name: "qwen2", company: "Alibaba", bestAt: "Multilingual, general" },
     { name: "deepseek-coder", company: "DeepSeek", bestAt: "Code & debugging" },
     { name: "llava", company: "Llava.ai", bestAt: "Vision & images" },
-    { name: "gemma", company: "Google", bestAt: "Efficient reasoning" },
+    { name: "gemma3:1b", company: "Google", bestAt: "Lightweight, efficient" },
 ];
