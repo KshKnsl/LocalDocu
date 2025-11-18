@@ -154,7 +154,13 @@ export function FilePreview({ file, onClose, className, onViewChunks }: FilePrev
           </Card>
         );
       case 'image': {
-        const imgSrc = typeof file === 'string' ? file : content;
+        let imgSrc = typeof file === 'string' ? file : content;
+        if (imgSrc && imgSrc.startsWith('img_')) {
+          const backendUrl = (typeof window !== "undefined" && localStorage.getItem("backendUrl")) || "";
+          if (backendUrl) {
+            imgSrc = `${backendUrl.replace(/\/$/, "")}/image_bytes/${imgSrc}`;
+          }
+        }
         if (!imgSrc) return null;
         return (
           <div className="w-full h-[calc(100vh-10rem)] bg-white/5 dark:bg-black/20 rounded-lg overflow-auto">

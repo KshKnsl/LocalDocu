@@ -20,6 +20,7 @@ load_dotenv()
 # --- FastAPI & Server ---
 from fastapi import FastAPI, UploadFile, Form, Request, HTTPException
 from fastapi.responses import JSONResponse, StreamingResponse, FileResponse
+from fastapi.middleware.cors import CORSMiddleware
 import uvicorn
 from pyngrok import ngrok
 
@@ -71,8 +72,7 @@ if not NGROK_AUTHTOKEN or NGROK_AUTHTOKEN == "YOUR_NGROK_AUTHTOKEN":
 
 OLLAMA_MODEL = os.environ.get("OLLAMA_MODEL", "mistral")
 OLLAMA_URL = "http://localhost:11434"
-CHUNK_SUMMARY_MODEL = os.environ.get("CHUNK_SUMMARY_MODEL", "mistral")
-SYNTHESIS_MODEL = os.environ.get("SYNTHESIS_MODEL", "")
+
 
 def post_progress(document_id: str, status: str, progress: int = 0, **kwargs):
     """Post progress update to progress tracking service."""
@@ -407,12 +407,11 @@ class HierarchicalRAGService:
                     with open(image_path, "wb") as f:
                         f.write(image_bytes)
                     summary = generate_image_summary(image_path)
-                    image_url = f"{get_public_url().rstrip('/')}/image/{img_id}"
                     page_images.append({
                         "id": img_id,
-                        "url": image_url,
                         "summary": summary,
-                        "page": page_num + 1
+                        "page": page_num + 1,
+                        "ext": image_ext
                     })
                 except Exception as e:
                     pass
@@ -449,7 +448,7 @@ class HierarchicalRAGService:
         if not chunks: return "No text content found."
         async def summarize_chunk_async(chunk_text: str) -> str:
             prompt = f"Summarize the following text chunk in 2-3 key bullet points:\n\n{chunk_text}\n\nSummary:"
-            return await asyncio.to_thread(generate_with_llm, prompt, CHUNK_SUMMARY_MODEL)
+            return await asyncio.to_thread(generate_with_llm, prompt, model_name)
         intermediate_summaries = []
         for i in range(0, len(chunks), 5):
             batch = chunks[i:i+5]
@@ -461,8 +460,7 @@ class HierarchicalRAGService:
             f"Create a single, concise paragraph summarizing the key themes "
             f"from the following list of chunk summaries.\n\nSummaries:\n{combined_summaries}\n\nOverall Summary Paragraph:"
         )
-        synthesis_model_to_use = SYNTHESIS_MODEL if SYNTHESIS_MODEL else model_name
-        final_summary = await asyncio.to_thread(generate_with_llm, synthesis_prompt, synthesis_model_to_use)
+        final_summary = await asyncio.to_thread(generate_with_llm, synthesis_prompt, model_name)
         return final_summary
 
     async def add_document_to_stores(self, pdf_bytes: bytes, doc_id: str, model_name: str):
@@ -699,6 +697,14 @@ print("Starting FastAPI app...")
 
 app = FastAPI(title="🦙 Hierarchical RAG API with Structured Citations")
 
+app.add_middleware(
+    CORSMiddleware,
+    allow_origins=["*"], 
+    allow_credentials=True,
+    allow_methods=["*"],
+    allow_headers=["*"],
+)
+
 try:
     rag_service = HierarchicalRAGService(
         summary_path=SUMMARY_STORE_PATH,
@@ -714,14 +720,9 @@ async def startup_event():
     if rag_service is None:
         pass
 
-@app.get("/")
-def home():
-    if rag_service is None: raise HTTPException(status_code=500, detail="RAG Service is not operational.")
-    return {
-        "message": "Hierarchical RAG API with Structured Citations - Active",
-        "summary_store_count": rag_service.summary_store._collection.count(),
-        "detailed_store_count": rag_service.detailed_store._collection.count()
-    }
+@app.get("/health")
+def health_check():
+    return {"status": "healthy", "message": "Backend is running"}
 
 @app.post("/process")
 async def process(file: UploadFile):
@@ -740,7 +741,7 @@ async def process(file: UploadFile):
         return {"documentId": doc_id, "status": "embeddings_created", "chunkCount": chunk_count, "isImage": False}
     except Exception as e:
         print(f"Error processing document: {e}")
-        return {"documentId": doc_id, "status": "error", "error": "Failed to process document", "message": str(e), "isImage": False}
+        return JSONResponse(status_code=500, content={"error": "Failed to process document", "message": str(e)})
 
 @app.post("/get_chunks")
 async def get_chunks(request: Request):
@@ -827,6 +828,7 @@ async def process_image_query(image_ids: list, text_ids: list, prompt: str, mode
     Image Q&A function with optional RAG context from text documents.
     """
     vision_model = "llava"
+    print(f"Image queries: forcing vision model='{vision_model}', ignoring requested model='{model}'")
     responses = []
 
     for img_id in image_ids:
@@ -862,13 +864,18 @@ async def process_image_query(image_ids: list, text_ids: list, prompt: str, mode
     return JSONResponse(content={"response": final_response, "citations": citations, "usedVisionModel": True, "visionModel": vision_model})
 
 
-@app.get("/image/{image_id}")
-async def get_image(image_id: str):
-    """Serve an image by its ID."""
+
+from fastapi.responses import Response
+
+@app.get("/image_bytes/{image_id}")
+async def get_image_bytes(image_id: str):
+    """Serve an image by its ID as bytes."""
     for ext in IMAGE_EXTENSIONS:
         image_path = os.path.join(IMAGE_STORE, f"{image_id}{ext}")
         if os.path.exists(image_path):
-            return FileResponse(image_path, media_type=f"image/{ext[1:]}")
+            with open(image_path, "rb") as f:
+                data = f.read()
+            return Response(data, media_type=f"image/{ext[1:]}")
     raise HTTPException(status_code=404, detail="Image not found")
 
 

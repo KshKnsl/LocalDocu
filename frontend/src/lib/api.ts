@@ -87,31 +87,17 @@ export const clearProgress = async (documentId: string) => {
 };
 
 export const uploadDocument = async (file: File, opts?: { chatFolder?: string }): Promise<UploadResult> => {
-  if (isUsingCustomBackend()) return { url: "", filename: file.name, key: `local-${Date.now()}-${file.name}` };
-  const formData = new FormData();
-  formData.append("file", file);
-  formData.append("contentType", file.type);
-  if (opts?.chatFolder) formData.append("folder", opts.chatFolder);
-  const res = await fetch("/api/document/upload", { method: "POST", body: formData });
-  if (!res.ok) throw new Error(await res.text() || "Failed to upload");
-  return res.json();
+  return { url: "", filename: file.name, key: `local-${Date.now()}-${file.name}` };
 };
 
 export async function processDocument(key?: string, file?: File): Promise<ProcessingResult> {
-  const formData = new FormData();
-  if (file) {
-    formData.append("file", file);
-  } else if (key) {
-    const downloadRes = await fetch(`/api/document/download?key=${encodeURIComponent(key)}`);
-    if (!downloadRes.ok) throw new Error(await downloadRes.text() || "Failed to download document for processing");
-    const blob = await downloadRes.blob();
-    const cd = downloadRes.headers.get("Content-Disposition") || "";
-    const match = cd.match(/filename="?([^";]+)"?/i);
-    const filename = match?.[1] || `document-${Date.now()}`;
-    formData.append("file", new File([blob], filename, { type: blob.type || "application/octet-stream" }));
-  } else {
-    throw new Error("Either key or file must be provided");
+  if (!file) {
+    // No file provided, skip processing
+    return { documentId: key || "", status: "skipped", chunkCount: 0 };
   }
+
+  const formData = new FormData();
+  formData.append("file", file);
 
   let pollTimer: number | null = null;
   if (typeof window !== "undefined" && !isUsingCustomBackend()) {

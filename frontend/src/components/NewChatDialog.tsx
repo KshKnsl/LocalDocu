@@ -19,7 +19,6 @@ export default function NewChatDialog({ open, onOpenChange, onCreate }: NewChatD
   const [title, setTitle] = useState("");
   const [description, setDescription] = useState("");
   const [selectedModels, setSelectedModels] = useState<string[]>(["remote"]);
-  const [customModel, setCustomModel] = useState("");
   const [isCreating, setIsCreating] = useState(false);
 
   const toggleModel = (modelName: string) => {
@@ -29,22 +28,17 @@ export default function NewChatDialog({ open, onOpenChange, onCreate }: NewChatD
     });
   };
 
-  const canCreate = title.trim().length > 0 && (selectedModels.length > 0 || customModel.trim().length > 0);
+  const canCreate = title.trim().length > 0 && selectedModels.length > 0;
 
   const handleCreate = async () => {
     if (!canCreate || isCreating) return;
     setIsCreating(true);
     try {
       const chatId = Math.random().toString(36).substring(7);
-      const models = [...selectedModels];
-      if (customModel.trim()) {
-        models.push(customModel.trim());
-      }
-      await onCreate({ chatId, title: title.trim(), description: description.trim(), models });
+      await onCreate({ chatId, title: title.trim(), description: description.trim(), models: selectedModels });
       setTitle("");
       setDescription("");
       setSelectedModels(["remote"]);
-      setCustomModel("");
       onOpenChange(false);
     } catch (error) {
       console.error("Failed to create chat:", error);
@@ -82,11 +76,6 @@ export default function NewChatDialog({ open, onOpenChange, onCreate }: NewChatD
               ))}
             </div>
             <p className="text-xs text-muted-foreground mt-1">You can select multiple models now; these will be locked for this chat and cannot be changed later.</p>
-          </div>
-          <div>
-            <label className="text-sm text-muted-foreground">Custom Model (optional)</label>
-            <Input value={customModel} onChange={(e) => setCustomModel(e.target.value)} placeholder="Enter custom model name" />
-            <p className="text-xs text-muted-foreground mt-1">Enter a custom model name if not listed above.</p>
           </div>
         </div>
         <DialogFooter>
