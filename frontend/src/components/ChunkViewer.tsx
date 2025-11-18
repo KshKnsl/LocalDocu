@@ -26,6 +26,7 @@ export function ChunkViewer({ isOpen, onClose, documentId, documentName, onApply
   const [loading, setLoading] = useState(false);
   const [searchQuery, setSearchQuery] = useState('');
   const [filteredChunks, setFilteredChunks] = useState<DocumentChunk[]>([]);
+  const [expandedChunks, setExpandedChunks] = useState<Set<number>>(new Set());
 
   useEffect(() => {
     if (isOpen && documentId) {
@@ -81,6 +82,16 @@ export function ChunkViewer({ isOpen, onClose, documentId, documentName, onApply
     setSelectedChunks(new Set());
   };
 
+  const toggleExpanded = (chunkId: number) => {
+    const newExpanded = new Set(expandedChunks);
+    if (newExpanded.has(chunkId)) {
+      newExpanded.delete(chunkId);
+    } else {
+      newExpanded.add(chunkId);
+    }
+    setExpandedChunks(newExpanded);
+  };
+
   const handleApply = () => {
     if (selectedChunks.size === 0) {
       toast.warning('No chunks selected', {
@@ -94,7 +105,7 @@ export function ChunkViewer({ isOpen, onClose, documentId, documentName, onApply
 
   return (
     <Dialog open={isOpen} onOpenChange={onClose}>
-      <DialogContent className="max-w-4xl h-[80vh] flex flex-col">
+      <DialogContent className="max-w-[95vw] sm:max-w-4xl max-h-[90vh] flex flex-col">
         <DialogHeader>
           <DialogTitle>View & Select Chunks</DialogTitle>
           <DialogDescription>
@@ -177,9 +188,22 @@ export function ChunkViewer({ isOpen, onClose, documentId, documentName, onApply
                           </span>
                         )}
                       </div>
-                      <p className="text-sm line-clamp-3 whitespace-pre-wrap break-words">
+                      <p className={`text-sm whitespace-pre-wrap break-words ${expandedChunks.has(chunk.id) ? '' : 'line-clamp-3'}`}>
                         {chunk.content}
                       </p>
+                      {chunk.content.length > 200 && (
+                        <Button
+                          variant="ghost"
+                          size="sm"
+                          onClick={(e) => {
+                            e.stopPropagation();
+                            toggleExpanded(chunk.id);
+                          }}
+                          className="mt-1 h-6 px-2 text-xs"
+                        >
+                          {expandedChunks.has(chunk.id) ? 'Show less' : 'Show more'}
+                        </Button>
+                      )}
                       {chunk.images && chunk.images.length > 0 && (
                         <div className="mt-3 space-y-2">
                           <div className="text-xs font-medium text-muted-foreground">Images:</div>

@@ -145,7 +145,7 @@ export default function SpacesPage() {
         )}
       </main>
       <Dialog open={deleteDialogOpen} onOpenChange={setDeleteDialogOpen}>
-        <DialogContent><DialogHeader><DialogTitle>Delete Document Space?</DialogTitle><DialogDescription>This action cannot be undone. This will permanently delete the document space and all its messages and files.</DialogDescription></DialogHeader>
+        <DialogContent className="max-w-[95vw] sm:max-w-md"><DialogHeader><DialogTitle>Delete Document Space?</DialogTitle><DialogDescription>This action cannot be undone. This will permanently delete the document space and all its messages and files.</DialogDescription></DialogHeader>
           <DialogFooter><Button variant="outline" onClick={() => setDeleteDialogOpen(false)}>Cancel</Button>
             <Button variant="outline" className="text-destructive hover:text-destructive hover:bg-destructive/10" onClick={handleDeleteConfirm}>Delete</Button>
           </DialogFooter>

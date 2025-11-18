@@ -49,7 +49,7 @@ export default function NewChatDialog({ open, onOpenChange, onCreate }: NewChatD
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent>
+      <DialogContent className="max-w-[95vw] sm:max-w-2xl">
         <DialogHeader>
           <DialogTitle>Create a New Chat</DialogTitle>
         </DialogHeader>

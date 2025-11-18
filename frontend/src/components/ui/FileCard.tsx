@@ -79,7 +79,7 @@ export const FileCard: React.FC<FileCardProps> = ({ file, onPreview, onRemove, o
   </div>
   
   <Dialog open={showMetadata} onOpenChange={setShowMetadata}>
-    <DialogContent className="max-w-lg">
+    <DialogContent className="max-w-[95vw] sm:max-w-lg">
       <DialogHeader>
         <DialogTitle>Document Metadata</DialogTitle>
       </DialogHeader>

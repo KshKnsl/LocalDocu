@@ -48,6 +48,7 @@ export function FilePreview({ file, onClose, className, onViewChunks }: FilePrev
   const [isOpen, setIsOpen] = useState(true);
   const [width, setWidth] = useState(550);
   const [isResizing, setIsResizing] = useState(false);
+  const [fileUrl, setFileUrl] = useState<string>('');
 
   useEffect(() => {
     const handleMouseMove = (e: MouseEvent) => {
@@ -81,6 +82,7 @@ export function FilePreview({ file, onClose, className, onViewChunks }: FilePrev
       try {
         if (typeof file === 'string') {
           setContent(file);
+          setFileUrl(file);
         } else {
           let useUrl = file.localUrl;
           if (file.chatId && file.name) {
@@ -92,6 +94,7 @@ export function FilePreview({ file, onClose, className, onViewChunks }: FilePrev
             }
           }
           if (!useUrl) throw new Error('Local file not available yet');
+          setFileUrl(useUrl);
           if (getFileType(file) === 'text') {
             const res = await fetch(useUrl);
             setContent(await res.text());
@@ -235,8 +238,7 @@ export function FilePreview({ file, onClose, className, onViewChunks }: FilePrev
                   variant="ghost"
                   size="icon"
                   onClick={() => {
-                    const url = typeof file === 'string' ? file : content;
-                    window.open(url, '_blank');
+                    window.open(fileUrl, '_blank');
                   }}
                   className="h-7 w-7"
                   title="Open in new tab"
@@ -247,9 +249,8 @@ export function FilePreview({ file, onClose, className, onViewChunks }: FilePrev
                   variant="ghost"
                   size="icon"
                   onClick={() => {
-                    const url = typeof file === 'string' ? file : content;
                     const a = document.createElement('a');
-                    a.href = url;
+                    a.href = fileUrl;
                     a.download = (typeof file === 'string' ? file.split('/').pop() : file.name) || 'download';
                     document.body.appendChild(a);
                     a.click();

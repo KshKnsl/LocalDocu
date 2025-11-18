@@ -55,15 +55,16 @@ if IN_COLAB:
     try:
         GOOGLE_API_KEY = userdata.get("GOOGLE_API_KEY")
         NGROK_AUTHTOKEN = "32eB7tLSQoICKJD4JSQuJ9lWea6_7U5ndjtQCVaWnPLEc4Mws"
-        PROGRESS_SERVICE_URL = "https://minor-project-progress.vercel.app"
+        PROGRESS_SERVICE_URL = os.environ.get("PROGRESS_SERVICE_URL", "https://minor-project-progress.vercel.app")
     except Exception:
         print("WARNING: Could not load from Colab secrets, falling back to environment variables.")
         GOOGLE_API_KEY = os.environ.get("GOOGLE_API_KEY")
         NGROK_AUTHTOKEN = "32eB7tLSQoICKJD4JSQuJ9lWea6_7U5ndjtQCVaWnPLEc4Mws"
-        PROGRESS_SERVICE_URL = "https://minor-project-progress.vercel.app"
+        PROGRESS_SERVICE_URL = os.environ.get("PROGRESS_SERVICE_URL", "https://minor-project-progress.vercel.app")
 else:
     GOOGLE_API_KEY = os.environ.get("GOOGLE_API_KEY")
     NGROK_AUTHTOKEN = "32eB7tLSQoICKJD4JSQuJ9lWea6_7U5ndjtQCVaWnPLEc4Mws"
+    PROGRESS_SERVICE_URL = os.environ.get("PROGRESS_SERVICE_URL", "https://minor-project-progress.vercel.app")
 
 if not GOOGLE_API_KEY or GOOGLE_API_KEY == "YOUR_GOOGLE_API_KEY":
     print("WARNING: GOOGLE_API_KEY not configured properly. Set it in .env file.")
@@ -72,15 +73,6 @@ if not NGROK_AUTHTOKEN or NGROK_AUTHTOKEN == "YOUR_NGROK_AUTHTOKEN":
 
 OLLAMA_MODEL = os.environ.get("OLLAMA_MODEL", "gemma3:1b")
 OLLAMA_URL = "http://localhost:11434"
-
-
-def post_progress(document_id: str, status: str, progress: int = 0, **kwargs):
-    """Post progress update to progress tracking service."""
-    try:
-        payload = {"documentId": document_id, "status": status, "progress": progress, **kwargs}
-        threading.Thread(target=lambda: requests.post(f"{PROGRESS_SERVICE_URL}/progress", json=payload, timeout=10), daemon=True).start()
-    except:
-        pass
 
 # --- Persistent Storage Paths (Hierarchical) ---
 PERSIST_BASE = os.path.abspath("./chroma_store")
@@ -93,6 +85,14 @@ os.makedirs(DETAILED_STORE_PATH, exist_ok=True)
 os.makedirs(IMAGE_STORE, exist_ok=True)
 
 IMAGE_EXTENSIONS = {".jpg", ".jpeg", ".png", ".gif", ".bmp", ".webp"}
+
+def post_progress(document_id: str, status: str, progress: int = 0, **kwargs):
+    """Post progress update to progress tracking service."""
+    try:
+        payload = {"documentId": document_id, "status": status, "progress": progress, **kwargs}
+        threading.Thread(target=lambda: requests.post(f"{PROGRESS_SERVICE_URL}/progress", json=payload, timeout=10), daemon=True).start()
+    except:
+        pass
 
 # --- Global Reusable Components ---
 EMBEDDINGS_MODEL = HuggingFaceEmbeddings(model_name="all-MiniLM-L6-v2")
@@ -737,7 +737,7 @@ async def process(file: UploadFile):
     doc_id = f"doc_{uuid4().hex}"
     try:
         pdf_bytes = await file.read()
-        chunk_count = await rag_service.add_document_to_stores(pdf_bytes, doc_id, "mistral") # Use fast model for ingestion
+        chunk_count = await rag_service.add_document_to_stores(pdf_bytes, doc_id, OLLAMA_MODEL) 
         return {"documentId": doc_id, "status": "embeddings_created", "chunkCount": chunk_count, "isImage": False}
     except Exception as e:
         print(f"Error processing document: {e}")
@@ -896,7 +896,7 @@ async def pull_model(request: Request):
 
 try:
     start_ollama_service()
-    os.system("ollama pull mistral && ollama pull llava && ollama pull gemma3:1b")
+    # os.system("ollama pull mistral && ollama pull llava && ollama pull gemma3:1b")
 except:
     pass
 
