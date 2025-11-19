@@ -1,4 +1,4 @@
-# MinorProject: Private Local AI Document Summarizer
+# LocalDocu: Private Local AI Document Summarizer
 
 A **100% private, fully local** AI-powered document summarization and Q&A platform. Your documents never leave your machine - everything runs locally using Ollama and open-source models.
 
@@ -25,11 +25,11 @@ A **100% private, fully local** AI-powered document summarization and Q&A platfo
 
 ### Option 1: Automated Setup (Recommended)
 
-Download the unified backend executable from [GitHub Releases](https://github.com/KshKnsl/MinorProject/releases):
+Download the unified backend zip from [GitHub Releases](https://github.com/KshKnsl/LocalDocu/releases):
 
-- **Universal**: `backend-unified` (works on Windows, macOS, and Linux)
+- **Universal**: `backend-unified.zip` (works on Windows, macOS, and Linux)
 
-Run the executable - it will automatically:
+Extract the zip file and run the executable inside - it will automatically:
 - Detect your operating system
 - Install Python dependencies
 - Set up Ollama with the official install script
@@ -123,7 +123,7 @@ Open [http://localhost:3000](http://localhost:3000) in your browser.
 ## 📁 Project Structure
 
 ```
-MinorProject/
+LocalDocu/
 ├── ai-backend/              # FastAPI backend (legacy)
 │   ├── Hindices.py         # Legacy backend application
 │   ├── requirements.txt    # Python dependencies
@@ -133,7 +133,7 @@ MinorProject/
 │   │   ├── app/            # Next.js app router
 │   │   ├── components/     # React components
 │   │   └── lib/            # Utilities
-│   ├── public/             # Static files & unified executable
+│   ├── public/             # Static files & unified backend
 │   │   ├── backend-unified.py  # Cross-platform backend script
 │   │   └── ...
 │   ├── package.json
@@ -224,9 +224,9 @@ npm start
 
 #### Backend Executables
 The project includes automated GitHub Actions to build a unified executable that works on all platforms:
-- Universal executable: `backend-unified`
+- Universal executable: `backend-unified.zip`
 
-Download from [Releases](https://github.com/KshKnsl/MinorProject/releases)
+Download from [Releases](https://github.com/KshKnsl/LocalDocu/releases)
 
 ### Docker (Future)
 Docker support planned for easier deployment.
@@ -345,8 +345,8 @@ MIT License - see [LICENSE](LICENSE) file for details.
 
 ## 📞 Support
 
-- **Issues**: [GitHub Issues](https://github.com/KshKnsl/MinorProject/issues)
-- **Discussions**: [GitHub Discussions](https://github.com/KshKnsl/MinorProject/discussions)
+- **Issues**: [GitHub Issues](https://github.com/KshKnsl/LocalDocu/issues)
+- **Discussions**: [GitHub Discussions](https://github.com/KshKnsl/LocalDocu/discussions)
 - **Documentation**: See individual README files in subdirectories
 
 ---

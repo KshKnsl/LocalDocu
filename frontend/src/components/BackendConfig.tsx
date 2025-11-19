@@ -10,7 +10,7 @@ import { Download, Server, Check, X, Loader2 } from "lucide-react"
 import { toast } from "sonner"
 import { downloadBackendFile } from "@/lib/downloadUtils"
 
-const DEFAULT_BACKEND = "https://minor-project-6v6z.vercel.app/api"
+const DEFAULT_BACKEND = "https://localdocu-proxy.vercel.app/api"
 
 export function BackendConfig() {
   const [backendMode, setBackendMode] = useState<"default" | "custom">("default")
@@ -222,8 +222,9 @@ export function BackendConfig() {
             <div className="p-3 rounded-lg bg-muted text-xs space-y-2">
               <p className="font-medium">Quick Setup:</p>
               <ol className="list-decimal list-inside space-y-1 text-muted-foreground">
-                <li>Download the backend executable for your OS above</li>
-                <li>Run the downloaded executable (double-click or run in terminal)</li>
+                <li>Download the backend zip file for your OS above</li>
+                <li>Extract the zip file to a folder</li>
+                <li>Run the executable inside the extracted folder</li>
                 <li>Follow the on-screen instructions to set up ngrok (optional)</li>
                 <li>Copy the URL and paste it above, then save</li>
               </ol>
@@ -304,7 +305,7 @@ export function BackendConfigDialog({ collapsed = false }: { collapsed?: boolean
           )}
         </Button>
       </DialogTrigger>
-      <DialogContent className="w-[95vw] max-w-none sm:max-w-2xl max-h-[90vh] overflow-y-auto">
+      <DialogContent className="w-[95vw] max-w-none sm:max-w-2xl max-h-[90vh] overflow-y-auto p-0">
         <BackendConfig />
       </DialogContent>
     </Dialog>

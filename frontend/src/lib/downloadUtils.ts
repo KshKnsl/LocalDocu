@@ -9,13 +9,13 @@ const trigger = (url: string, name?: string) => {
 
 export const downloadBackendFile = async (os: "windows" | "mac" | "linux") => {
   try {
-    const response = await fetch("https://api.github.com/repos/KshKnsl/MinorProject/releases/latest");
+    const response = await fetch("https://api.github.com/repos/KshKnsl/LocalDocu/releases/latest");
     if (!response.ok) throw new Error("Failed to fetch release");
     const release = await response.json();
-    const asset = release.assets.find((a: any) => a.name === "backend-unified");
+    const asset = release.assets.find((a: any) => a.name === "backend-unified.zip");
     if (!asset) throw new Error("Asset not found");
     trigger(asset.browser_download_url, asset.name);
-    toast.success(`Unified backend downloaded`, { description: "Run the executable to set up (works on any OS)" });
+    toast.success(`Unified backend downloaded`, { description: "Extract the zip and run the executable (works on any OS)" });
   } catch (error) {
     toast.error("Failed to download backend", { description: "Please try again later" });
     console.error(error);

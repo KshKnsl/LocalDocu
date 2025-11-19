@@ -1,7 +1,7 @@
 import { saveChatFileToLocal } from "./localFiles";
 
-const getBackendUrl = () => typeof window !== "undefined" && localStorage.getItem("backendUrl") || "https://minor-project-6v6z.vercel.app/api";
-const getProgressServiceUrl = () => "https://minor-project-progress.vercel.app";
+const getBackendUrl = () => typeof window !== "undefined" && localStorage.getItem("backendUrl") || "https://localdocu-proxy.vercel.app/api";
+const getProgressServiceUrl = () => "https://localdocu-progress.vercel.app";
 export const isUsingCustomBackend = () => typeof window !== "undefined" && localStorage.getItem("backendMode") === "custom" && !!localStorage.getItem("backendUrl");
 
 export const loadModel = async (modelName: string) => {

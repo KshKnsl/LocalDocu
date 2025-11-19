@@ -53,14 +53,14 @@ print("Loading configuration...")
 if IN_COLAB:
     try:
         NGROK_AUTHTOKEN = "32eB7tLSQoICKJD4JSQuJ9lWea6_7U5ndjtQCVaWnPLEc4Mws"
-        PROGRESS_SERVICE_URL = os.environ.get("PROGRESS_SERVICE_URL", "https://minor-project-progress.vercel.app")
+        PROGRESS_SERVICE_URL = os.environ.get("PROGRESS_SERVICE_URL", "https://localdocu-progress.vercel.app")
     except Exception:
         print("WARNING: Could not load from Colab secrets, falling back to environment variables.")
         NGROK_AUTHTOKEN = "32eB7tLSQoICKJD4JSQuJ9lWea6_7U5ndjtQCVaWnPLEc4Mws"
-        PROGRESS_SERVICE_URL = os.environ.get("PROGRESS_SERVICE_URL", "https://minor-project-progress.vercel.app")
+        PROGRESS_SERVICE_URL = os.environ.get("PROGRESS_SERVICE_URL", "https://localdocu-progress.vercel.app")
 else:
     NGROK_AUTHTOKEN = "32eB7tLSQoICKJD4JSQuJ9lWea6_7U5ndjtQCVaWnPLEc4Mws"
-    PROGRESS_SERVICE_URL = os.environ.get("PROGRESS_SERVICE_URL", "https://minor-project-progress.vercel.app")
+    PROGRESS_SERVICE_URL = os.environ.get("PROGRESS_SERVICE_URL", "https://localdocu-progress.vercel.app")
 
 if not NGROK_AUTHTOKEN or NGROK_AUTHTOKEN == "YOUR_NGROK_AUTHTOKEN":
     print("WARNING: NGROK_AUTHTOKEN not configured properly. Set it in .env file.")

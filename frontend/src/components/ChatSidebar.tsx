@@ -140,8 +140,8 @@ export function ChatSidebar({
             New Chat
           </Button>
         ) : (
-          <Button size="icon" onClick={onNewChatStart} className="w-full" title="Docu">
-            <img src="/logo.png" alt="Docu" className="w-6 h-6" />
+          <Button size="icon" onClick={onNewChatStart} className="w-full" title="LocalDocu">
+            <img src="/logo.png" alt="LocalDocu" className="w-6 h-6" />
           </Button>
         )}
         <div className="absolute -right-[18px] top-2 z-50">

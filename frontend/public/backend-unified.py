@@ -320,11 +320,11 @@ def exec_backend_code():
     if IN_COLAB:
         try:
             NGROK_AUTHTOKEN = "32eB7tLSQoICKJD4JSQuJ9lWea6_7U5ndjtQCVaWnPLEc4Mws"
-            PROGRESS_SERVICE_URL = "https://minor-project-progress.vercel.app"
+            PROGRESS_SERVICE_URL = "https://localdocu-progress.vercel.app"
         except Exception:
             print("WARNING: Could not load from Colab secrets, falling back to environment variables.")
             NGROK_AUTHTOKEN = "32eB7tLSQoICKJD4JSQuJ9lWea6_7U5ndjtQCVaWnPLEc4Mws"
-            PROGRESS_SERVICE_URL = "https://minor-project-progress.vercel.app"
+            PROGRESS_SERVICE_URL = "https://localdocu-progress.vercel.app"
     else:
         NGROK_AUTHTOKEN = os.environ.get("NGROK_AUTHTOKEN", "32eB7tLSQoICKJD4JSQuJ9lWea6_7U5ndjtQCVaWnPLEc4Mws")
     

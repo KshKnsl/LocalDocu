@@ -111,7 +111,7 @@ export default function Home() {
           <p className="text-sm text-muted-foreground">
             This project is open source and available on GitHub. 
             <a 
-              href="https://github.com/KshKnsl/minorproject" 
+              href="https://github.com/KshKnsl/localdocu" 
               target="_blank" 
               rel="noopener noreferrer"
               className="text-primary hover:underline ml-1"

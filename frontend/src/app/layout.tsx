@@ -5,7 +5,7 @@ import { ThemeProvider } from "next-themes";
 import { Toaster } from "sonner";
 
 export const metadata: Metadata = {
-  title: "Docu - Private Local RAG",
+  title: "LocalDocu - Private Local RAG",
   description: "100% Private, fully local document AI assistant. Your documents never leave your machine. Run entirely on your own hardware with RAG.",
   icons: {
     icon: "/logo.png"
