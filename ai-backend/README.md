@@ -10,7 +10,7 @@ A production-ready FastAPI backend implementing hierarchical RAG (Retrieval-Augm
 - **Structured Citations**: IEEE-style citations with reference deduplication
 - **Streaming Summarization**: Progressive document summarization with chunk-level updates
 - **Multi-Modal Support**: Text documents (PDF) + image understanding (via LLaVA)
-- **Local & Remote LLMs**: Supports Ollama (local) and Google Gemini (remote)
+- **Local LLMs**: Supports Ollama for local inference
 
 ## Prerequisites
 
@@ -31,7 +31,7 @@ cd ai-backend
 ```bash
 pip install fastapi uvicorn pyngrok requests boto3 python-multipart aiofiles \
   langchain langchain-community chromadb sentence-transformers PyMuPDF \
-  langchain-huggingface langchain-chroma langchain-google-genai \
+  langchain-huggingface langchain-chroma \
   langchain-ollama langchain-experimental flashrank-retriever pydantic
 ```
 
@@ -45,7 +45,6 @@ cp .env.example .env
 
 Edit `.env`:
 ```bash
-GOOGLE_API_KEY=your_actual_google_api_key
 NGROK_AUTHTOKEN=your_actual_ngrok_token
 ```
 
@@ -190,7 +189,7 @@ curl -X POST "http://localhost:8000/pull" \
 
 All settings can be configured via environment variables (see `.env.example`):
 
-- **API Keys**: `GOOGLE_API_KEY`, `NGROK_AUTHTOKEN`
+- **API Keys**: `NGROK_AUTHTOKEN`
 - **Models**: `OLLAMA_MODEL`, `EMBEDDINGS_MODEL`
 - **Storage**: `PERSIST_BASE`, `IMAGE_STORE`
 - **RAG**: `RERANKER_TOP_N`, `MAX_CITATIONS`

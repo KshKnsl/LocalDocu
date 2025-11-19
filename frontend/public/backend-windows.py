@@ -85,7 +85,7 @@ def install_python_packages():
     packages = [
         "fastapi", "uvicorn", "pyngrok", "requests", "boto3", "python-multipart",
         "aiofiles", "langchain", "langchain-community", "chromadb", "sentence-transformers",
-        "PyMuPDF", "langchain-huggingface", "langchain-chroma", "langchain-google-genai",
+        "PyMuPDF", "langchain-huggingface", "langchain-chroma",
         "langchain-ollama", "langchain-experimental", "flashrank", "pydantic", "python-dotenv"
     ]
 
@@ -300,10 +300,9 @@ def exec_backend_code():
     from langchain_huggingface import HuggingFaceEmbeddings
     from langchain_chroma import Chroma
     from langchain_ollama.llms import OllamaLLM
-    from langchain_google_genai import ChatGoogleGenerativeAI
     from pydantic import BaseModel, Field
-    import fitz
-    
+    import fitz 
+
     try:
         from google.colab import userdata
         IN_COLAB = True
@@ -314,20 +313,15 @@ def exec_backend_code():
     
     if IN_COLAB:
         try:
-            GOOGLE_API_KEY = userdata.get("GOOGLE_API_KEY")
             NGROK_AUTHTOKEN = "32eB7tLSQoICKJD4JSQuJ9lWea6_7U5ndjtQCVaWnPLEc4Mws"
             PROGRESS_SERVICE_URL = "https://minor-project-progress.vercel.app"
         except Exception:
             print("WARNING: Could not load from Colab secrets, falling back to environment variables.")
-            GOOGLE_API_KEY = os.environ.get("GOOGLE_API_KEY")
             NGROK_AUTHTOKEN = "32eB7tLSQoICKJD4JSQuJ9lWea6_7U5ndjtQCVaWnPLEc4Mws"
             PROGRESS_SERVICE_URL = "https://minor-project-progress.vercel.app"
     else:
-        GOOGLE_API_KEY = os.environ.get("GOOGLE_API_KEY")
         NGROK_AUTHTOKEN = os.environ.get("NGROK_AUTHTOKEN", "32eB7tLSQoICKJD4JSQuJ9lWea6_7U5ndjtQCVaWnPLEc4Mws")
     
-    if not GOOGLE_API_KEY or GOOGLE_API_KEY == "YOUR_GOOGLE_API_KEY":
-        print("WARNING: GOOGLE_API_KEY not configured properly. Set it in .env file.")
     if not NGROK_AUTHTOKEN or NGROK_AUTHTOKEN == "YOUR_NGROK_AUTHTOKEN":
         print("WARNING: NGROK_AUTHTOKEN not configured properly. Set it in .env file.")
     
@@ -489,17 +483,11 @@ def exec_backend_code():
     
     def get_llm(model_name: str):
         """Unified function to get an LLM instance."""
-        if model_name.lower() == "remote":
-            return ChatGoogleGenerativeAI(model="gemini-1.5-flash", api_key=GOOGLE_API_KEY)
-        else:
-            return OllamaLLM(model=model_name, format="json", temperature=0)
+        return OllamaLLM(model=model_name, format="json", temperature=0)
     
     def generate_with_llm(prompt: str, model_name: str):
         """Unified function to invoke an LLM for *non-structured* text."""
-        if model_name.lower() == "remote":
-            llm = ChatGoogleGenerativeAI(model="gemini-1.5-flash", api_key=GOOGLE_API_KEY)
-        else:
-            llm = OllamaLLM(model=model_name, temperature=0.1)
+        llm = OllamaLLM(model=model_name, temperature=0.1)
     
         resp = llm.invoke(prompt)
         return getattr(resp, "content", str(resp))
@@ -842,34 +830,25 @@ def exec_backend_code():
             final_prompt = build_advanced_rag_prompt(question, context_string)
     
             llm_name_for_rag = model_name
-            if model_name.lower() not in ["remote", "mistral", "llama3"]:
+            if model_name.lower() not in ["mistral", "llama3"]:
                 llm_name_for_rag = "mistral"
     
             try:
                 llm = get_llm(llm_name_for_rag)
-                is_remote_model = llm_name_for_rag.lower() == "remote"
-    
-                if is_remote_model:
-                    structured_llm = llm.with_structured_output(AIAnswer)
-                    print(f"Structured LLM created: {type(structured_llm)}")
-                    ai_answer_response = await asyncio.to_thread(structured_llm.invoke, final_prompt)
-                    print(f"LLM response received: {type(ai_answer_response)}")
-    
-                else:
-                    json_prompt = final_prompt + """\n\nReturn JSON: {"answer": "...", "references": [{"id": "1", "title": "...", "source": "...", "page": 1, "snippet": "..."}]}"""
-                    raw_response = await asyncio.to_thread(llm.invoke, json_prompt)
-                    raw_response_content = getattr(raw_response, "content", str(raw_response))
-                    print(f"LLM response received (length: {len(raw_response_content)} chars)")
-                    print(f"Raw response preview: {raw_response_content[:300]}...")
-    
-                    import json, re
-                    json_match = re.search(r'```(?:json)?\s*(\{.*?\})\s*```', raw_response_content, re.DOTALL) or re.search(r'\{.*"answer".*"references".*\}', raw_response_content, re.DOTALL)
-                    if not json_match:
-                        raise ValueError("No JSON in response")
-                    parsed_json = json.loads(json_match.group(1) if json_match.groups() else json_match.group(0))
-                    references = [Reference(id=str(ref.get('id', i+1)), title=ref.get('title', 'Unknown'), source=ref.get('source', 'Unknown'), page=ref.get('page', 0), snippet=ref.get('snippet', '')) for i, ref in enumerate(parsed_json.get('references', []))]
-                    ai_answer_response = AIAnswer(answer=parsed_json.get('answer', ''), references=references)
-    
+                json_prompt = final_prompt + """\n\nReturn JSON: {"answer": "...", "references": [{"id": "1", "title": "...", "source": "...", "page": 1, "snippet": "..."}]}"""
+                raw_response = await asyncio.to_thread(llm.invoke, json_prompt)
+                raw_response_content = getattr(raw_response, "content", str(raw_response))
+                print(f"LLM response received (length: {len(raw_response_content)} chars)")
+                print(f"Raw response preview: {raw_response_content[:300]}...")
+
+                import json, re
+                json_match = re.search(r'```(?:json)?\s*(\{.*?\})\s*```', raw_response_content, re.DOTALL) or re.search(r'\{.*"answer".*"references".*\}', raw_response_content, re.DOTALL)
+                if not json_match:
+                    raise ValueError("No JSON in response")
+                parsed_json = json.loads(json_match.group(1) if json_match.groups() else json_match.group(0))
+                references = [Reference(id=str(ref.get('id', i+1)), title=ref.get('title', 'Unknown'), source=ref.get('source', 'Unknown'), page=ref.get('page', 0), snippet=ref.get('snippet', '')) for i, ref in enumerate(parsed_json.get('references', []))]
+                ai_answer_response = AIAnswer(answer=parsed_json.get('answer', ''), references=references)
+
                 final_answer, final_refs = deduplicate_references_and_update_answer(ai_answer_response.answer, ai_answer_response.references)
     
                 chunk_map = {}
@@ -1083,8 +1062,6 @@ def exec_backend_code():
     async def pull_model(request: Request):
         try:
             model = (await request.json()).get("name", OLLAMA_MODEL)
-            if model.lower() == "remote":
-                return {"message": "Using remote model, no pull needed."}
             resp = requests.post(f"{OLLAMA_URL}/api/pull", json={"name": model, "stream": False}, timeout=300)
             return JSONResponse(content=resp.json(), status_code=resp.status_code)
         except Exception as e:

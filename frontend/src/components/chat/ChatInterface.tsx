@@ -49,7 +49,7 @@ export function ChatInterface({ initialChatId }: ChatInterfaceProps) {
   const [currentChatId, setCurrentChatId] = useState<string | undefined>(initialChatId);
   const [input, setInput] = useState("");
   const [files, setFiles] = useState<FileWithUrl[]>([]);
-  const [model, setModel] = useState("remote");
+  const [model, setModel] = useState("mistral");
   const [previewFile, setPreviewFile] = useState<FileWithUrl | string | null>(null);
   const [showAttachments, setShowAttachments] = useState(false);
   const [chats, setChats] = useState<ChatDocument[]>(() => getAllChats());

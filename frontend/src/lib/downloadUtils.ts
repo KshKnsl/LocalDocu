@@ -7,10 +7,24 @@ const trigger = (url: string, name?: string) => {
   document.body.removeChild(a);
 };
 
-export const downloadBackendFile = (os: "windows" | "mac" | "linux") => {
-  const files = { windows: "/backend-windows.py", mac: "/backend-mac.py", linux: "/backend-ubuntu.py" };
-  trigger(files[os], `backend-${os}.py`);
-  toast.success(`Backend downloaded for ${os}`, { description: "See file for setup instructions" });
+export const downloadBackendFile = async (os: "windows" | "mac" | "linux") => {
+  try {
+    const response = await fetch("https://api.github.com/repos/KshKnsl/MinorProject/releases/latest");
+    if (!response.ok) throw new Error("Failed to fetch release");
+    const release = await response.json();
+    const assetNames = {
+      windows: "backend-windows.exe",
+      linux: "backend-ubuntu",
+      mac: "backend-mac"
+    };
+    const asset = release.assets.find((a: any) => a.name === assetNames[os]);
+    if (!asset) throw new Error("Asset not found");
+    trigger(asset.browser_download_url, asset.name);
+    toast.success(`Backend downloaded for ${os}`, { description: "Run the executable to set up" });
+  } catch (error) {
+    toast.error("Failed to download backend", { description: "Please try again later" });
+    console.error(error);
+  }
 };
 
 export const downloadJSON = (data: unknown, filename: string) => {

@@ -1,0 +1,122 @@
+name: Build Backend Executables
+
+on:
+  push:
+    branches:
+      - main
+    paths:
+      - 'frontend/public/backend-*.py'
+      - '.github/workflows/build.yml'
+
+jobs:
+  build-windows:
+    runs-on: windows-latest
+    steps:
+    - uses: actions/checkout@v4
+    - name: Set up Python
+      uses: actions/setup-python@v4
+      with:
+        python-version: '3.11'
+    - name: Install dependencies
+      run: |
+        python -m pip install --upgrade pip
+        pip install pyinstaller
+        pip install fastapi uvicorn pyngrok requests boto3 python-multipart aiofiles langchain langchain-community chromadb sentence-transformers PyMuPDF langchain-huggingface langchain-chroma langchain-ollama langchain-experimental flashrank pydantic python-dotenv psutil
+    - name: Build executable
+      run: |
+        pyinstaller --onefile --name backend-windows frontend/public/backend-windows.py
+    - name: Upload artifact
+      uses: actions/upload-artifact@v4
+      with:
+        name: backend-windows-exe
+        path: dist/backend-windows.exe
+
+  build-ubuntu:
+    runs-on: ubuntu-latest
+    steps:
+    - uses: actions/checkout@v4
+    - name: Set up Python
+      uses: actions/setup-python@v4
+      with:
+        python-version: '3.11'
+    - name: Install dependencies
+      run: |
+        python -m pip install --upgrade pip
+        pip install pyinstaller
+        pip install fastapi uvicorn pyngrok requests boto3 python-multipart aiofiles langchain langchain-community chromadb sentence-transformers PyMuPDF langchain-huggingface langchain-chroma langchain-ollama langchain-experimental flashrank pydantic python-dotenv psutil
+    - name: Build executable
+      run: |
+        pyinstaller --onefile --name backend-ubuntu frontend/public/backend-ubuntu.py
+    - name: Upload artifact
+      uses: actions/upload-artifact@v4
+      with:
+        name: backend-ubuntu-exe
+        path: dist/backend-ubuntu
+
+  build-mac:
+    runs-on: macos-latest
+    steps:
+    - uses: actions/checkout@v4
+    - name: Set up Python
+      uses: actions/setup-python@v4
+      with:
+        python-version: '3.11'
+    - name: Install dependencies
+      run: |
+        python -m pip install --upgrade pip
+        pip install pyinstaller
+        pip install fastapi uvicorn pyngrok requests boto3 python-multipart aiofiles langchain langchain-community chromadb sentence-transformers PyMuPDF langchain-huggingface langchain-chroma langchain-ollama langchain-experimental flashrank pydantic python-dotenv psutil
+    - name: Build executable
+      run: |
+        pyinstaller --onefile --name backend-mac frontend/public/backend-mac.py
+    - name: Upload artifact
+      uses: actions/upload-artifact@v4
+      with:
+        name: backend-mac-exe
+        path: dist/backend-mac
+
+  release:
+    needs: [build-windows, build-ubuntu, build-mac]
+    runs-on: ubuntu-latest
+    steps:
+    - name: Download all artifacts
+      uses: actions/download-artifact@v4
+      with:
+        path: ./artifacts
+    - name: Create release
+      id: create_release
+      uses: actions/create-release@v1
+      env:
+        GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+      with:
+        tag_name: backend-${{ github.run_number }}
+        release_name: Backend Executables ${{ github.run_number }}
+        draft: false
+        prerelease: false
+    - name: Upload Windows executable
+      uses: actions/upload-release-asset@v1
+      env:
+        GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+      with:
+        upload_url: ${{ steps.create_release.outputs.upload_url }}
+        asset_path: ./artifacts/backend-windows-exe/backend-windows.exe
+        asset_name: backend-windows.exe
+        asset_content_type: application/octet-stream
+    - name: Upload Ubuntu executable
+      uses: actions/upload-release-asset@v1
+      env:
+        GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+      with:
+        upload_url: ${{ steps.create_release.outputs.upload_url }}
+        asset_path: ./artifacts/backend-ubuntu-exe/backend-ubuntu
+        asset_name: backend-ubuntu
+        asset_content_type: application/octet-stream
+    - name: Upload Mac executable
+      uses: actions/upload-release-asset@v1
+      env:
+        GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+      with:
+        upload_url: ${{ steps.create_release.outputs.upload_url }}
+        asset_path: ./artifacts/backend-mac-exe/backend-mac
+        asset_name: backend-mac
+        asset_content_type: application/octet-stream

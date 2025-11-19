@@ -63,7 +63,7 @@ export function ChatInterface({ activeDocument }: ChatInterfaceProps) {
   const [currentChatId, setCurrentChatId] = useState<string | undefined>();
   const [input, setInput] = useState("");
   const [files, setFiles] = useState<FileWithUrl[]>([]);
-  const [model, setModel] = useState("remote"); // Default to remote
+  const [model, setModel] = useState("mistral"); // Default to mistral
   const [previewFile, setPreviewFile] = useState<FileWithUrl | string | null>(null);
   const [showAttachments, setShowAttachments] = useState(false);
   const [chats, setChats] = useState<ChatDocument[]>(() => getAllChats());
@@ -411,7 +411,6 @@ export function ChatInterface({ activeDocument }: ChatInterfaceProps) {
     const currentInput = input.trim();
     const currentFiles = [...files];
 
-    // Cloned-file workflow: no remote URLs in prompt
     const promptWithFiles = currentInput;
 
     const userMsg: MessageObject = {

@@ -29,11 +29,11 @@ The core backend for hierarchical Retrieval-Augmented Generation (RAG) with mult
 **Key Features:**
 - **Hierarchical RAG:** Two-level vector store (summary + detailed chunks) for efficient, context-rich retrieval.
 - **Semantic Chunking:** Uses LangChain's SemanticChunker for intelligent document splitting.
-- **Image Understanding:** Integrates LLaVA for local vision-language inference (no remote model fallback for images).
+- **Image Understanding:** Integrates LLaVA for local vision-language inference.
 - **Structured Citations:** Generates IEEE-style citations, deduplicates references, and maintains traceability.
 - **Streaming Summarization:** Supports progressive, chunk-level summarization with real-time progress updates.
 - **Progress Tracking:** Posts progress to a separate service for robust frontend feedback.
-- **Local-First LLMs:** Uses Ollama for all LLM inference (Mistral, LLaVA, etc.), with optional Google Gemini for text (never for images).
+- **Local-First LLMs:** Uses Ollama for all LLM inference (Mistral, LLaVA, etc.).
 - **Robust Error Handling:** Always returns JSON responses, never relies on HTTP status codes for progress/errors.
 
 **Major Components:**
@@ -51,7 +51,7 @@ The core backend for hierarchical Retrieval-Augmented Generation (RAG) with mult
   - `/process`: Ingests and processes documents/images, always returns JSON with progress.
   - `/generate`: Answers user queries with hierarchical retrieval and structured citations.
   - `/get_chunks`: Returns all chunks for a document.
-  - `/pull`: Pulls models via Ollama (never pulls remote models for images).
+  - `/pull`: Pulls models via Ollama.
   - `/image/{image_id}` and `/image_bytes/{image_id}`: Serve images by ID. 
 - **Startup Logic:**
   - Ensures Ollama is running and pulls both `mistral` and `llava` models by default.

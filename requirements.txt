@@ -12,5 +12,4 @@ sentence-transformers
 PyMuPDF
 langchain-huggingface
 langchain-chroma
-langchain-google-genai
 langchain-ollama

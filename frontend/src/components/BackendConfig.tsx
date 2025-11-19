@@ -65,7 +65,7 @@ export function BackendConfig() {
   const currentBackendUrl = backendMode === "custom" ? customUrl : DEFAULT_BACKEND
 
   return (
-    <Card>
+    <Card className="w-full">
       <CardHeader>
         <CardTitle className="flex items-center gap-2">
           <Server className="w-5 h-5" />
@@ -107,7 +107,6 @@ export function BackendConfig() {
           <label className="text-sm font-medium">Backend Mode</label>
           
           <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
-            {/* Default Backend Option */}
             <Card 
               className={`cursor-pointer transition-all ${
                 backendMode === "default" 
@@ -223,13 +222,12 @@ export function BackendConfig() {
             <div className="p-3 rounded-lg bg-muted text-xs space-y-2">
               <p className="font-medium">Quick Setup:</p>
               <ol className="list-decimal list-inside space-y-1 text-muted-foreground">
-                <li>Download the backend file for your OS above</li>
-                <li>Install dependencies: <code className="bg-background px-1 py-0.5 rounded">pip install fastapi uvicorn langchain langchain-community langchain-ollama langchain-google-genai langchain-huggingface langchain-chroma langchain-text-splitters pymupdf pyngrok chromadb requests</code></li>
-                <li>Run: <code className="bg-background px-1 py-0.5 rounded">python backend-windows.py</code> (or mac/ubuntu)</li>
+                <li>Download the backend executable for your OS above</li>
+                <li>Run the downloaded executable (double-click or run in terminal)</li>
                 <li>Follow the on-screen instructions to set up ngrok (optional)</li>
                 <li>Copy the URL and paste it above, then save</li>
               </ol>
-              <p className="mt-2 text-muted-foreground">Complete instructions are in the downloaded Python file!</p>
+              <p className="mt-2 text-muted-foreground">The executable includes all dependencies and will guide you through setup!</p>
             </div>
           </div>
         )}
@@ -306,10 +304,7 @@ export function BackendConfigDialog({ collapsed = false }: { collapsed?: boolean
           )}
         </Button>
       </DialogTrigger>
-      <DialogContent className="max-w-[95vw] sm:max-w-2xl max-h-[90vh] overflow-y-auto">
-        <DialogHeader>
-          <DialogTitle>Backend Configuration</DialogTitle>
-        </DialogHeader>
+      <DialogContent className="w-[95vw] max-w-none sm:max-w-2xl max-h-[90vh] overflow-y-auto">
         <BackendConfig />
       </DialogContent>
     </Dialog>

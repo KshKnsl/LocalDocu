@@ -40,15 +40,19 @@ export default function SpacesPage() {
     <div className="min-h-screen bg-gradient-to-br from-background via-background to-muted/20 w-screen">
       <header className="border-b bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60 sticky top-0 z-50">
         <div className="container mx-auto px-4 py-4">
-          <div className="flex items-center justify-between">
+          <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4">
             <div className="flex items-center gap-3">
               <img src="/logo.png" alt="App Logo" className="w-10 h-10 rounded-lg" />
               <div><h1 className="text-2xl font-bold">Document Spaces</h1><p className="text-sm text-muted-foreground">Manage your research conversations</p></div>
             </div>
-            <div className="flex items-center gap-3">
-              <Button variant="outline" size="sm" onClick={handleExportAll} disabled={!chats.length}><Download className="h-4 w-4 mr-2" />Export All</Button>
+            <div className="flex items-center gap-2 sm:gap-3 w-full sm:w-auto justify-end">
+              <Button variant="outline" size="sm" onClick={handleExportAll} disabled={!chats.length} className="flex-shrink-0">
+                <Download className="h-4 w-4 sm:mr-2" />
+                <span className="hidden sm:inline">Export All</span>
+              </Button>
               <BackendConfigDialog />
-              <ThemeSwitcher /><UserButton afterSwitchSessionUrl="/spaces" />
+              <ThemeSwitcher />
+              <UserButton afterSwitchSessionUrl="/spaces" />
             </div>
           </div>
         </div>
@@ -97,7 +101,7 @@ export default function SpacesPage() {
         ) : (
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
             {filteredChats.map((chat) => (
-              <Card key={chat.chat_id} className="group cursor-pointer hover:shadow-lg transition-all duration-200 hover:scale-[1.02]" onClick={() => handleOpenSpace(chat.chat_id)}>
+              <Card key={chat.chat_id} className="group cursor-pointer hover:shadow-lg transition-all duration-200 hover:scale-[1.02] touch-manipulation select-none" onClick={() => handleOpenSpace(chat.chat_id)}>
                 <div className="p-6">
                   <div className="flex items-start justify-between mb-4">
                     <div className="flex-1 min-w-0"><h3 className="text-lg font-semibold mb-1 truncate group-hover:text-primary transition-colors">{chat.title}</h3>
@@ -145,7 +149,7 @@ export default function SpacesPage() {
         )}
       </main>
       <Dialog open={deleteDialogOpen} onOpenChange={setDeleteDialogOpen}>
-        <DialogContent className="max-w-[95vw] sm:max-w-md"><DialogHeader><DialogTitle>Delete Document Space?</DialogTitle><DialogDescription>This action cannot be undone. This will permanently delete the document space and all its messages and files.</DialogDescription></DialogHeader>
+        <DialogContent className="w-[95vw] max-w-none sm:max-w-md"><DialogHeader><DialogTitle>Delete Document Space?</DialogTitle><DialogDescription>This action cannot be undone. This will permanently delete the document space and all its messages and files.</DialogDescription></DialogHeader>
           <DialogFooter><Button variant="outline" onClick={() => setDeleteDialogOpen(false)}>Cancel</Button>
             <Button variant="outline" className="text-destructive hover:text-destructive hover:bg-destructive/10" onClick={handleDeleteConfirm}>Delete</Button>
           </DialogFooter>
