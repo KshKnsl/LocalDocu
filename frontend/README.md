@@ -36,8 +36,21 @@ Open [http://localhost:3000](http://localhost:3000) with your browser.
 
 ### Backend Setup
 
-The backend connects to your local Ollama instance. Make sure Ollama is running:
+The backend connects to your local Ollama instance. You can either:
 
+1. **Use the unified backend script** (recommended):
+   ```bash
+   python backend-unified.py
+   ```
+   This script automatically detects your OS and installs all dependencies.
+
+2. **Or use the legacy backend**:
+   ```bash
+   cd ../ai-backend
+   python Hindices.py
+   ```
+
+Make sure Ollama is running:
 ```bash
 ollama serve
 ```

@@ -1,165 +1,219 @@
-#!/usr/bin/env python3
-import os
-import sys
-import subprocess
-import time
-import requests
 import platform
-import tempfile
-import shutil
-import psutil
-import json
+import subprocess
+import sys
+import os
+import importlib.util
 
-def check_system_requirements():
-    print("Checking system requirements...")
-
-    mac_ver = platform.mac_ver()[0]
-    if not mac_ver:
-        print("Unable to determine macOS version")
-        return False
-
-    major, minor = map(int, mac_ver.split('.')[:2])
-    if major < 10 or (major == 10 and minor < 15):
-        print(f"macOS {mac_ver} is not supported. Minimum required: macOS 10.15 (Catalina)")
-        return False
-    print(f"macOS version: {mac_ver}")
-
-    ram_gb = psutil.virtual_memory().total / (1024**3)
-    if ram_gb < 8:
-        print(f"Insufficient RAM: {ram_gb:.1f}GB. Minimum required: 8GB")
-        return False
-    print(f"RAM: {ram_gb:.1f}GB")
-
-    disk_free_gb = psutil.disk_usage('/').free / (1024**3)
-    if disk_free_gb < 10:
-        print(f"Insufficient disk space: {disk_free_gb:.1f}GB free. Minimum required: 10GB")
-        return False
-    print(f"Free disk space: {disk_free_gb:.1f}GB")
-
-    print("System requirements met")
-    return True
-
-def run_command(cmd, shell=True, check=True, timeout=300):
+def run_command(cmd, timeout=None, check=True):
+    """Run a shell command and return success and output."""
     try:
-        result = subprocess.run(cmd, shell=shell, check=check, capture_output=True, text=True, timeout=timeout)
-        return True, result.stdout + result.stderr
+        result = subprocess.run(cmd, shell=True, capture_output=True, text=True, timeout=timeout)
+        success = result.returncode == 0
+        output = result.stdout + result.stderr
+        if check and not success:
+            print(f"Command failed: {cmd}")
+            print(f"Output: {output}")
+        return success, output
     except subprocess.TimeoutExpired:
-        return False, "Command timed out"
-    except subprocess.CalledProcessError as e:
-        return False, e.stderr
-
-def run_sudo_command(cmd, password=None, timeout=300):
-    if password:
-        full_cmd = f"echo '{password}' | sudo -S {cmd}"
-    else:
-        full_cmd = f"sudo {cmd}"
-
-    try:
-        result = subprocess.run(full_cmd, shell=True, capture_output=True, text=True, timeout=timeout)
-        if result.returncode == 0:
-            return True, result.stdout + result.stderr
-        else:
-            return False, result.stderr
-    except subprocess.TimeoutExpired:
-        return False, "Command timed out"
+        print(f"Command timed out: {cmd}")
+        return False, "Timeout"
     except Exception as e:
+        print(f"Error running command: {e}")
         return False, str(e)
 
-def install_system_dependencies():
-    print("Installing system dependencies...")
+def is_python_package_installed(package_name):
+    """Check if a Python package is installed."""
+    try:
+        spec = importlib.util.find_spec(package_name.split('==')[0])
+        return spec is not None
+    except Exception:
+        return False
 
-    success, output = run_command("which brew")
-    if not success:
-        print("Homebrew is required. Installing Homebrew...")
-        install_cmd = '/bin/bash -c "$(curl -fsSL https://raw.githubusercontent.com/Homebrew/install/HEAD/install.sh)"'
-        success, output = run_command(install_cmd)
+def get_os_info():
+    """Get OS information."""
+    system = platform.system().lower()
+    if system == "linux":
+        # Check if Ubuntu/Debian
+        success, output = run_command("lsb_release -i", check=False)
+        if success and "ubuntu" in output.lower():
+            return "ubuntu"
+        return "linux"
+    elif system == "darwin":
+        return "macos"
+    elif system == "windows":
+        return "windows"
+    else:
+        return "unknown"
+
+def install_system_dependencies(os_type):
+    """Install system dependencies based on OS."""
+    if os_type == "ubuntu":
+        print("Installing system dependencies for Ubuntu...")
+        # Check if packages are already installed
+        packages_to_check = ["curl", "build-essential"]
+        packages_to_install = []
+        for pkg in packages_to_check:
+            success, _ = run_command(f"dpkg -l {pkg}", check=False)
+            if not success:
+                packages_to_install.append(pkg)
+        
+        if packages_to_install:
+            cmd = f"sudo apt update && sudo apt install -y {' '.join(packages_to_install)}"
+            success, output = run_command(cmd)
+            if not success:
+                print(f"Failed to install system packages: {output}")
+                return False
+        else:
+            print("System packages already installed")
+            
+    elif os_type == "macos":
+        print("Checking Homebrew for macOS...")
+        success, _ = run_command("which brew", check=False)
         if not success:
-            print(f"Failed to install Homebrew: {output}")
-            return False
-        print("Homebrew installed successfully")
-
-    print("Updating Homebrew...")
-    success, output = run_command("brew update")
-    if not success:
-        print(f"Warning: Failed to update Homebrew: {output}")
-
-    success, output = run_command("which python3")
-    if not success:
-        print("Installing Python 3...")
-        success, output = run_command("brew install python@3.11")
+            print("Installing Homebrew...")
+            cmd = '/bin/bash -c "$(curl -fsSL https://raw.githubusercontent.com/Homebrew/install/HEAD/install.sh)"'
+            success, output = run_command(cmd)
+            if not success:
+                print(f"Failed to install Homebrew: {output}")
+                return False
+        
+        # Update Homebrew
+        run_command("brew update")
+        
+        # Check Python
+        success, _ = run_command("which python3", check=False)
         if not success:
-            print(f"Failed to install Python: {output}")
-            return False
-        print("Python installed successfully")
-
-    print("System dependencies installed")
+            print("Installing Python 3...")
+            success, output = run_command("brew install python@3.11")
+            if not success:
+                print(f"Failed to install Python: {output}")
+                return False
+    
+    elif os_type == "windows":
+        print("Windows - assuming required tools are available")
+        # Windows typically has curl via PowerShell, but may need additional setup
+    
     return True
 
 def install_python_packages():
+    """Install Python packages, checking what's missing."""
     print("Installing Python dependencies...")
+    
     packages = [
-        "fastapi", "uvicorn", "pyngrok", "requests", "boto3", "python-multipart",
-        "aiofiles", "langchain", "langchain-community", "chromadb", "sentence-transformers",
-        "PyMuPDF", "langchain-huggingface", "langchain-chroma",
-        "langchain-ollama", "langchain-experimental", "flashrank", "pydantic", "python-dotenv",
-        "psutil"
+        "fastapi==0.115.0", "uvicorn[standard]==0.32.0", "pyngrok==7.2.0", "requests==2.32.3", "boto3==1.35.66", "python-multipart==0.0.12",
+        "aiofiles==24.1.0", "langchain==0.3.7", "langchain-community==0.3.7", "chromadb==0.5.20", "sentence-transformers==3.2.1",
+        "PyMuPDF==1.24.13", "langchain-huggingface==0.1.2", "langchain-chroma==0.1.4",
+        "langchain-ollama==0.2.0", "langchain-experimental==0.3.3", "flashrank", "pydantic==2.9.2", "python-dotenv==1.0.1"
     ]
-    pip_cmd = "pip3" if shutil.which("pip3") else "python3 -m pip"
-    cmd = f"{pip_cmd} install --upgrade pip"
-    success, output = run_command(cmd)
-    if not success:
-        print(f"Warning: Failed to upgrade pip: {output}")
-    cmd = f"{pip_cmd} install {' '.join(packages)}"
-    success, output = run_command(cmd, timeout=600)
-    if success:
-        print("Python packages installed successfully")
-        return True
+    
+    packages_to_install = []
+    for package in packages:
+        if not is_python_package_installed(package):
+            packages_to_install.append(package)
+    
+    if packages_to_install:
+        print(f"Installing {len(packages_to_install)} packages...")
+        cmd = f"{sys.executable} -m pip install {' '.join(packages_to_install)}"
+        success, output = run_command(cmd, timeout=600)
+        if not success:
+            print(f"Failed to install Python packages: {output}")
+            return False
     else:
-        print(f"Failed to install Python packages: {output}")
-        return False
+        print("All Python packages already installed")
+    
+    return True
 
 def is_ollama_installed():
-    success, output = run_command("which ollama")
+    """Check if Ollama is installed."""
+    success, _ = run_command("ollama --version", check=False)
     return success
 
-def install_ollama():
-    """Install Ollama using Homebrew."""
+def install_ollama(os_type):
+    """Install Ollama using the official install script where possible."""
     print("Installing Ollama...")
-
+    
     if is_ollama_installed():
-        print("Ollama is already installed")
+        print("Ollama already installed")
         return True
-
-    success, output = run_command("brew install ollama")
-    if success:
-        print("Ollama installed successfully")
-        return True
-    else:
-        print(f"Failed to install Ollama: {output}")
-        return False
-
-def wait_for_ollama_service(timeout=60):
-    print("Waiting for Ollama service to start...")
-    for i in range(timeout):
+    
+    if os_type in ["ubuntu", "macos", "linux"]:
+        print("Using official Ollama install script...")
+        cmd = "curl -fsSL https://ollama.com/install.sh | sh"
+        success, output = run_command(cmd, timeout=300)
+        if success:
+            print("Ollama installed successfully")
+            return True
+        else:
+            print(f"Failed to install Ollama: {output}")
+            return False
+    
+    elif os_type == "windows":
+        print("Installing Ollama for Windows...")
         try:
-            response = requests.get("http://localhost:11434/api/tags", timeout=5)
-            if response.status_code == 200:
-                print("Ollama service is running")
+            import requests, zipfile, tempfile, shutil
+            url = "https://github.com/ollama/ollama/releases/latest/download/ollama-windows-amd64.zip"
+            with tempfile.NamedTemporaryFile(suffix='.zip', delete=False) as tmp:
+                response = requests.get(url, stream=True, timeout=300)
+                response.raise_for_status()
+                with open(tmp.name, 'wb') as f:
+                    for chunk in response.iter_content(chunk_size=8192):
+                        f.write(chunk)
+                
+                zip_path = tmp.name
+            
+            extract_dir = tempfile.mkdtemp()
+            with zipfile.ZipFile(zip_path, 'r') as zip_ref:
+                zip_ref.extractall(extract_dir)
+            
+            ollama_exe = None
+            for root, dirs, files in os.walk(extract_dir):
+                if 'ollama.exe' in files:
+                    ollama_exe = os.path.join(root, 'ollama.exe')
+                    break
+            
+            if ollama_exe:
+                program_files = os.environ.get('ProgramFiles', 'C:\\Program Files')
+                ollama_dir = os.path.join(program_files, 'Ollama')
+                try:
+                    os.makedirs(ollama_dir, exist_ok=True)
+                    shutil.copy2(ollama_exe, os.path.join(ollama_dir, 'ollama.exe'))
+                    os.environ['PATH'] = ollama_dir + os.pathsep + os.environ.get('PATH', '')
+                except PermissionError:
+                    ollama_dir = os.path.join(os.path.expanduser('~'), 'ollama')
+                    os.makedirs(ollama_dir, exist_ok=True)
+                    shutil.copy2(ollama_exe, os.path.join(ollama_dir, 'ollama.exe'))
+                    os.environ['PATH'] = ollama_dir + os.pathsep + os.environ.get('PATH', '')
+            
+            os.remove(zip_path)
+            shutil.rmtree(extract_dir)
+            
+            if is_ollama_installed():
+                print("Ollama installed successfully")
                 return True
-        except:
-            pass
-        time.sleep(1)
-    print("Ollama service failed to start within timeout")
+            else:
+                print("Ollama installation verification failed")
+                return False
+        except Exception as e:
+            print(f"Failed to install Ollama: {e}")
+            return False
+    
     return False
 
 def pull_models():
-    """Pull required Ollama models."""
-    print("Pulling Ollama models (gemma3:1b and llava)...")
+    """Pull required Ollama models, checking what's already available."""
+    print("Pulling Ollama models...")
+    
     models = ["gemma3:1b", "llava"]
-
+    
     for model in models:
+        print(f"Checking if {model} is available...")
+        success, _ = run_command(f"ollama list | findstr {model}", check=False) if platform.system() == "Windows" else run_command(f"ollama list | grep {model}", check=False)
+        if success:
+            print(f"{model} already available")
+            continue
+        
         print(f"Pulling {model}...")
-        success, output = run_command(f"ollama pull {model}", timeout=600)  # 10 minute timeout
+        success, output = run_command(f"ollama pull {model}", timeout=1800)
         if success:
             print(f"{model} pulled successfully")
         else:
@@ -167,53 +221,65 @@ def pull_models():
             return False
     return True
 
-
-
-def create_env_file():
-    env_content = """# Backend Configuration
-OLLAMA_MODEL=gemma3:1b
-OLLAMA_URL=http://localhost:11434
-
-
-
-"""
-    with open('.env', 'w') as f:
-        f.write(env_content)
-    print("Created .env file with default configuration")
-
 def main():
-    print("Starting complete local backend setup for macOS...")
+    print("Starting unified backend setup...")
     print("=" * 60)
+    
+    os_type = get_os_info()
+    print(f"Detected OS: {os_type}")
+    
     if sys.version_info < (3, 8):
         print("Python 3.8 or higher is required")
         sys.exit(1)
+    
     print(f"Python version: {sys.version}")
-    print(f"Platform: {platform.platform()}")
-    if not check_system_requirements():
+    
+    if not install_system_dependencies(os_type):
         sys.exit(1)
-    if not install_system_dependencies():
-        sys.exit(1)
+    
     if not install_python_packages():
         sys.exit(1)
-    if not install_ollama():
+    
+    if not install_ollama(os_type):
         sys.exit(1)
+    
     print("Starting Ollama service...")
-    success, output = run_command("ollama serve", check=False)
+    if os_type == "windows":
+        success, _ = run_command("net start ollama 2>nul || ollama serve", check=False)
+    else:
+        success, _ = run_command("ollama serve", check=False)
+    
     if not success:
-        print(f"Failed to start Ollama service: {output}")
-        sys.exit(1)
-    if not wait_for_ollama_service():
-        sys.exit(1)
+        print("Could not start Ollama service directly, will try later...")
+    
+    # Wait for Ollama service
+    print("Waiting for Ollama service...")
+    import time
+    for i in range(60):
+        try:
+            import requests
+            if requests.get("http://localhost:11434/api/tags", timeout=5).status_code == 200:
+                print("Ollama service is ready")
+                break
+        except:
+            pass
+        time.sleep(1)
+        if i == 59:
+            print("Ollama service failed to start")
+            sys.exit(1)
+    
     if not pull_models():
         sys.exit(1)
-    create_env_file()
+    
     print("=" * 60)
-    print("Setup complete! Starting backend server...")
-    print("Backend will be available at: http://localhost:8000")
-    print("Edit .env file to configure API keys or ngrok if needed")
-    print("Press Ctrl+C to stop the server")
-    print("=" * 60)
+    print("Setup complete!")
+    print("Starting backend server...")
+    
+    # Now run the main backend code
     exec_backend_code()
+
+if __name__ == "__main__":
+    main()
 
 def exec_backend_code():
     """Execute the backend code inline."""
@@ -227,7 +293,7 @@ def exec_backend_code():
     load_dotenv()
     
     from fastapi import FastAPI, UploadFile, Form, Request, HTTPException
-    from fastapi.responses import JSONResponse, StreamingResponse, FileResponse, Response
+    from fastapi.responses import JSONResponse, StreamingResponse, FileResponse
     import uvicorn
     from pyngrok import ngrok
     
@@ -241,8 +307,8 @@ def exec_backend_code():
     from langchain_chroma import Chroma
     from langchain_ollama.llms import OllamaLLM
     from pydantic import BaseModel, Field
-    import fitz
-    
+    import fitz 
+
     try:
         from google.colab import userdata
         IN_COLAB = True
@@ -293,7 +359,7 @@ def exec_backend_code():
     
     def safe_metadata_value(value):
         """Convert unsupported metadata types (lists, dicts, objects) to JSON strings or plain strings.
-    
+
         Chroma/Chromadb requires metadata values to be primitive types (str, int, float, bool, None) or SparseVector.
         We ensure we never store lists/dicts directly by serializing them.
         """
@@ -312,7 +378,7 @@ def exec_backend_code():
     
     def sanitize_metadata(metadata: dict) -> dict:
         """Return a sanitized metadata dict where every value is a primitive or None.
-    
+
         - If metadata is not a dict, returns empty dict.
         - For nested dict/list, serializes to JSON string.
         """
@@ -404,6 +470,7 @@ def exec_backend_code():
         raise RuntimeError("Ollama failed to start in time.")
     
     def generate_image_summary(image_path: str, model: str = "llava") -> str:
+        """Generate a detailed description of an image using a vision model."""
         with open(image_path, "rb") as f:
             image_data = base64.b64encode(f.read()).decode()
         try:
@@ -417,7 +484,8 @@ def exec_backend_code():
             else:
                 return f"Error generating summary: {response.status_code}"
         except Exception as e:
-            return f"Error: {str(e)}"    # ==============================================================================
+            return f"Error: {str(e)}"
+    
     
     def get_llm(model_name: str):
         """Unified function to get an LLM instance."""
@@ -604,10 +672,9 @@ def exec_backend_code():
     
         async def _generate_summary_for_ingestion(self, chunks: List[Document], model_name: str) -> str:
             if not chunks: return "No text content found."
-            semaphore = asyncio.Semaphore(10)
             async def summarize_chunk_async(chunk_text: str) -> str:
                 prompt = f"Summarize the following text chunk in 2-3 key bullet points:\n\n{chunk_text}\n\nSummary:"
-                async with semaphore:
+                async with asyncio.Semaphore(10):
                     return await asyncio.to_thread(generate_with_llm, prompt, model_name)
             tasks = [asyncio.create_task(summarize_chunk_async(c.page_content)) for c in chunks]
             intermediate_summaries = await asyncio.gather(*tasks)
@@ -773,12 +840,11 @@ def exec_backend_code():
     
             try:
                 llm = get_llm(llm_name_for_rag)
-    
                 json_prompt = final_prompt + """\n\nReturn JSON: {"answer": "...", "references": [{"id": "1", "title": "...", "source": "...", "page": 1, "snippet": "..."}]}"""
                 raw_response = await asyncio.to_thread(llm.invoke, json_prompt)
                 raw_response_content = getattr(raw_response, "content", str(raw_response))
-                print(f"✓ LLM response received (length: {len(raw_response_content)} chars)")
-                print(f"📄 Raw response preview: {raw_response_content[:300]}...")
+                print(f"LLM response received (length: {len(raw_response_content)} chars)")
+                print(f"Raw response preview: {raw_response_content[:300]}...")
     
                 import json, re
                 json_match = re.search(r'```(?:json)?\s*(\{.*?\})\s*```', raw_response_content, re.DOTALL) or re.search(r'\{.*"answer".*"references".*\}', raw_response_content, re.DOTALL)
@@ -997,8 +1063,6 @@ def exec_backend_code():
                     data = f.read()
                 return Response(data, media_type=f"image/{ext[1:]}")
         raise HTTPException(status_code=404, detail="Image not found")
-    
-    
     @app.post("/pull")
     async def pull_model(request: Request):
         try:
@@ -1037,6 +1101,3 @@ def exec_backend_code():
     except KeyboardInterrupt:
         if ngrok_enabled and ngrok_proc:
             ngrok_proc.terminate()
-    
-if __name__ == "__main__":
-    main()

@@ -12,15 +12,10 @@ export const downloadBackendFile = async (os: "windows" | "mac" | "linux") => {
     const response = await fetch("https://api.github.com/repos/KshKnsl/MinorProject/releases/latest");
     if (!response.ok) throw new Error("Failed to fetch release");
     const release = await response.json();
-    const assetNames = {
-      windows: "backend-windows.exe",
-      linux: "backend-ubuntu",
-      mac: "backend-mac"
-    };
-    const asset = release.assets.find((a: any) => a.name === assetNames[os]);
+    const asset = release.assets.find((a: any) => a.name === "backend-unified");
     if (!asset) throw new Error("Asset not found");
     trigger(asset.browser_download_url, asset.name);
-    toast.success(`Backend downloaded for ${os}`, { description: "Run the executable to set up" });
+    toast.success(`Unified backend downloaded`, { description: "Run the executable to set up (works on any OS)" });
   } catch (error) {
     toast.error("Failed to download backend", { description: "Please try again later" });
     console.error(error);
