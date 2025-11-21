@@ -1,0 +1,2849 @@
+{
+  "statistics": {
+    "detectionDate": "2025-11-19T10:13:20.405Z",
+    "formats": {
+      "typescript": {
+        "sources": {
+          "frontend/src/app/api/document/download/route.ts": {
+            "lines": 19,
+            "tokens": 174,
+            "sources": 1,
+            "clones": 0,
+            "duplicatedLines": 0,
+            "duplicatedTokens": 0,
+            "percentage": 0,
+            "percentageTokens": 0,
+            "newDuplicatedLines": 0,
+            "newClones": 0
+          },
+          "frontend/src/components/ui/FileWithUrl.ts": {
+            "lines": 17,
+            "tokens": 188,
+            "sources": 1,
+            "clones": 0,
+            "duplicatedLines": 0,
+            "duplicatedTokens": 0,
+            "percentage": 0,
+            "percentageTokens": 0,
+            "newDuplicatedLines": 0,
+            "newClones": 0
+          },
+          "frontend/src/components/chat/types.ts": {
+            "lines": 28,
+            "tokens": 285,
+            "sources": 1,
+            "clones": 0,
+            "duplicatedLines": 0,
+            "duplicatedTokens": 0,
+            "percentage": 0,
+            "percentageTokens": 0,
+            "newDuplicatedLines": 0,
+            "newClones": 0
+          },
+          "frontend/src/components/chat/fileHandlers.ts": {
+            "lines": 172,
+            "tokens": 2273,
+            "sources": 1,
+            "clones": 2,
+            "duplicatedLines": 12,
+            "duplicatedTokens": 238,
+            "percentage": 6.98,
+            "percentageTokens": 10.47,
+            "newDuplicatedLines": 0,
+            "newClones": 0
+          },
+          "frontend/src/lib/utils.ts": {
+            "lines": 5,
+            "tokens": 61,
+            "sources": 1,
+            "clones": 0,
+            "duplicatedLines": 0,
+            "duplicatedTokens": 0,
+            "percentage": 0,
+            "percentageTokens": 0,
+            "newDuplicatedLines": 0,
+            "newClones": 0
+          },
+          "frontend/src/lib/stringUtils.ts": {
+            "lines": 4,
+            "tokens": 256,
+            "sources": 1,
+            "clones": 0,
+            "duplicatedLines": 0,
+            "duplicatedTokens": 0,
+            "percentage": 0,
+            "percentageTokens": 0,
+            "newDuplicatedLines": 0,
+            "newClones": 0
+          },
+          "frontend/src/lib/pdfExport.ts": {
+            "lines": 246,
+            "tokens": 3496,
+            "sources": 1,
+            "clones": 2,
+            "duplicatedLines": 10,
+            "duplicatedTokens": 164,
+            "percentage": 4.07,
+            "percentageTokens": 4.69,
+            "newDuplicatedLines": 0,
+            "newClones": 0
+          },
+          "frontend/src/lib/localModels.ts": {
+            "lines": 16,
+            "tokens": 271,
+            "sources": 1,
+            "clones": 0,
+            "duplicatedLines": 0,
+            "duplicatedTokens": 0,
+            "percentage": 0,
+            "percentageTokens": 0,
+            "newDuplicatedLines": 0,
+            "newClones": 0
+          },
+          "frontend/src/lib/localFiles.ts": {
+            "lines": 40,
+            "tokens": 789,
+            "sources": 1,
+            "clones": 0,
+            "duplicatedLines": 0,
+            "duplicatedTokens": 0,
+            "percentage": 0,
+            "percentageTokens": 0,
+            "newDuplicatedLines": 0,
+            "newClones": 0
+          },
+          "frontend/src/lib/index.ts": {
+            "lines": 7,
+            "tokens": 74,
+            "sources": 1,
+            "clones": 0,
+            "duplicatedLines": 0,
+            "duplicatedTokens": 0,
+            "percentage": 0,
+            "percentageTokens": 0,
+            "newDuplicatedLines": 0,
+            "newClones": 0
+          },
+          "frontend/src/lib/fileUtils.ts": {
+            "lines": 24,
+            "tokens": 429,
+            "sources": 1,
+            "clones": 0,
+            "duplicatedLines": 0,
+            "duplicatedTokens": 0,
+            "percentage": 0,
+            "percentageTokens": 0,
+            "newDuplicatedLines": 0,
+            "newClones": 0
+          },
+          "frontend/src/lib/downloadUtils.ts": {
+            "lines": 28,
+            "tokens": 442,
+            "sources": 1,
+            "clones": 0,
+            "duplicatedLines": 0,
+            "duplicatedTokens": 0,
+            "percentage": 0,
+            "percentageTokens": 0,
+            "newDuplicatedLines": 0,
+            "newClones": 0
+          },
+          "frontend/src/lib/dateUtils.ts": {
+            "lines": 15,
+            "tokens": 437,
+            "sources": 1,
+            "clones": 0,
+            "duplicatedLines": 0,
+            "duplicatedTokens": 0,
+            "percentage": 0,
+            "percentageTokens": 0,
+            "newDuplicatedLines": 0,
+            "newClones": 0
+          },
+          "frontend/src/lib/clipboard.ts": {
+            "lines": 10,
+            "tokens": 166,
+            "sources": 1,
+            "clones": 0,
+            "duplicatedLines": 0,
+            "duplicatedTokens": 0,
+            "percentage": 0,
+            "percentageTokens": 0,
+            "newDuplicatedLines": 0,
+            "newClones": 0
+          },
+          "frontend/src/lib/chatUtils.ts": {
+            "lines": 24,
+            "tokens": 412,
+            "sources": 1,
+            "clones": 0,
+            "duplicatedLines": 0,
+            "duplicatedTokens": 0,
+            "percentage": 0,
+            "percentageTokens": 0,
+            "newDuplicatedLines": 0,
+            "newClones": 0
+          },
+          "frontend/src/lib/chatStorage.ts": {
+            "lines": 80,
+            "tokens": 841,
+            "sources": 1,
+            "clones": 0,
+            "duplicatedLines": 0,
+            "duplicatedTokens": 0,
+            "percentage": 0,
+            "percentageTokens": 0,
+            "newDuplicatedLines": 0,
+            "newClones": 0
+          },
+          "frontend/src/lib/api.ts": {
+            "lines": 150,
+            "tokens": 2247,
+            "sources": 1,
+            "clones": 0,
+            "duplicatedLines": 0,
+            "duplicatedTokens": 0,
+            "percentage": 0,
+            "percentageTokens": 0,
+            "newDuplicatedLines": 0,
+            "newClones": 0
+          },
+          "frontend/src/middleware.ts": {
+            "lines": 9,
+            "tokens": 59,
+            "sources": 1,
+            "clones": 0,
+            "duplicatedLines": 0,
+            "duplicatedTokens": 0,
+            "percentage": 0,
+            "percentageTokens": 0,
+            "newDuplicatedLines": 0,
+            "newClones": 0
+          },
+          "frontend/next.config.ts": {
+            "lines": 11,
+            "tokens": 70,
+            "sources": 1,
+            "clones": 0,
+            "duplicatedLines": 0,
+            "duplicatedTokens": 0,
+            "percentage": 0,
+            "percentageTokens": 0,
+            "newDuplicatedLines": 0,
+            "newClones": 0
+          },
+          "frontend/next-env.d.ts": {
+            "lines": 5,
+            "tokens": 9,
+            "sources": 1,
+            "clones": 0,
+            "duplicatedLines": 0,
+            "duplicatedTokens": 0,
+            "percentage": 0,
+            "percentageTokens": 0,
+            "newDuplicatedLines": 0,
+            "newClones": 0
+          }
+        },
+        "total": {
+          "lines": 910,
+          "tokens": 12979,
+          "sources": 20,
+          "clones": 2,
+          "duplicatedLines": 11,
+          "duplicatedTokens": 201,
+          "percentage": 1.21,
+          "percentageTokens": 1.55,
+          "newDuplicatedLines": 0,
+          "newClones": 0
+        }
+      },
+      "javascript": {
+        "sources": {
+          "frontend/src/app/chat/[chatId]/page.tsx": {
+            "lines": 0,
+            "tokens": 3,
+            "sources": 1,
+            "clones": 0,
+            "duplicatedLines": 0,
+            "duplicatedTokens": 0,
+            "percentage": 0,
+            "percentageTokens": 0,
+            "newDuplicatedLines": 0,
+            "newClones": 0
+          },
+          "frontend/src/components/ui/tooltip.tsx": {
+            "lines": 36,
+            "tokens": 233,
+            "sources": 1,
+            "clones": 0,
+            "duplicatedLines": 0,
+            "duplicatedTokens": 0,
+            "percentage": 0,
+            "percentageTokens": 0,
+            "newDuplicatedLines": 0,
+            "newClones": 0
+          },
+          "frontend/src/components/ui/theme-switcher.tsx": {
+            "lines": 0,
+            "tokens": 22,
+            "sources": 1,
+            "clones": 0,
+            "duplicatedLines": 0,
+            "duplicatedTokens": 0,
+            "percentage": 0,
+            "percentageTokens": 0,
+            "newDuplicatedLines": 0,
+            "newClones": 0
+          },
+          "frontend/src/components/ui/textarea.tsx": {
+            "lines": 4,
+            "tokens": 15,
+            "sources": 1,
+            "clones": 0,
+            "duplicatedLines": 0,
+            "duplicatedTokens": 0,
+            "percentage": 0,
+            "percentageTokens": 0,
+            "newDuplicatedLines": 0,
+            "newClones": 0
+          },
+          "frontend/src/components/ui/switch.tsx": {
+            "lines": 10,
+            "tokens": 38,
+            "sources": 1,
+            "clones": 0,
+            "duplicatedLines": 0,
+            "duplicatedTokens": 0,
+            "percentage": 0,
+            "percentageTokens": 0,
+            "newDuplicatedLines": 0,
+            "newClones": 0
+          },
+          "frontend/src/components/ui/sonner.tsx": {
+            "lines": 8,
+            "tokens": 46,
+            "sources": 1,
+            "clones": 0,
+            "duplicatedLines": 0,
+            "duplicatedTokens": 0,
+            "percentage": 0,
+            "percentageTokens": 0,
+            "newDuplicatedLines": 0,
+            "newClones": 0
+          },
+          "frontend/src/components/ui/select.tsx": {
+            "lines": 128,
+            "tokens": 705,
+            "sources": 1,
+            "clones": 0,
+            "duplicatedLines": 0,
+            "duplicatedTokens": 0,
+            "percentage": 0,
+            "percentageTokens": 0,
+            "newDuplicatedLines": 0,
+            "newClones": 0
+          },
+          "frontend/src/components/ui/scroll-area.tsx": {
+            "lines": 31,
+            "tokens": 170,
+            "sources": 1,
+            "clones": 0,
+            "duplicatedLines": 0,
+            "duplicatedTokens": 0,
+            "percentage": 0,
+            "percentageTokens": 0,
+            "newDuplicatedLines": 0,
+            "newClones": 0
+          },
+          "frontend/src/components/ui/pulse.tsx": {
+            "lines": 0,
+            "tokens": 7,
+            "sources": 1,
+            "clones": 0,
+            "duplicatedLines": 0,
+            "duplicatedTokens": 0,
+            "percentage": 0,
+            "percentageTokens": 0,
+            "newDuplicatedLines": 0,
+            "newClones": 0
+          },
+          "frontend/src/components/ui/progress.tsx": {
+            "lines": 4,
+            "tokens": 15,
+            "sources": 1,
+            "clones": 0,
+            "duplicatedLines": 0,
+            "duplicatedTokens": 0,
+            "percentage": 0,
+            "percentageTokens": 0,
+            "newDuplicatedLines": 0,
+            "newClones": 0
+          },
+          "frontend/src/components/ui/input.tsx": {
+            "lines": 5,
+            "tokens": 21,
+            "sources": 1,
+            "clones": 0,
+            "duplicatedLines": 0,
+            "duplicatedTokens": 0,
+            "percentage": 0,
+            "percentageTokens": 0,
+            "newDuplicatedLines": 0,
+            "newClones": 0
+          },
+          "frontend/src/components/ui/FileCard.tsx": {
+            "lines": 111,
+            "tokens": 1165,
+            "sources": 1,
+            "clones": 0,
+            "duplicatedLines": 0,
+            "duplicatedTokens": 0,
+            "percentage": 0,
+            "percentageTokens": 0,
+            "newDuplicatedLines": 0,
+            "newClones": 0
+          },
+          "frontend/src/components/ui/file-list.tsx": {
+            "lines": 95,
+            "tokens": 876,
+            "sources": 1,
+            "clones": 0,
+            "duplicatedLines": 0,
+            "duplicatedTokens": 0,
+            "percentage": 0,
+            "percentageTokens": 0,
+            "newDuplicatedLines": 0,
+            "newClones": 0
+          },
+          "frontend/src/components/ui/dialog.tsx": {
+            "lines": 83,
+            "tokens": 561,
+            "sources": 1,
+            "clones": 0,
+            "duplicatedLines": 0,
+            "duplicatedTokens": 0,
+            "percentage": 0,
+            "percentageTokens": 0,
+            "newDuplicatedLines": 0,
+            "newClones": 0
+          },
+          "frontend/src/components/ui/checkbox.tsx": {
+            "lines": 8,
+            "tokens": 36,
+            "sources": 1,
+            "clones": 0,
+            "duplicatedLines": 0,
+            "duplicatedTokens": 0,
+            "percentage": 0,
+            "percentageTokens": 0,
+            "newDuplicatedLines": 0,
+            "newClones": 0
+          },
+          "frontend/src/components/ui/card.tsx": {
+            "lines": 69,
+            "tokens": 431,
+            "sources": 1,
+            "clones": 0,
+            "duplicatedLines": 0,
+            "duplicatedTokens": 0,
+            "percentage": 0,
+            "percentageTokens": 0,
+            "newDuplicatedLines": 0,
+            "newClones": 0
+          },
+          "frontend/src/components/ui/button.tsx": {
+            "lines": 1,
+            "tokens": 21,
+            "sources": 1,
+            "clones": 0,
+            "duplicatedLines": 0,
+            "duplicatedTokens": 0,
+            "percentage": 0,
+            "percentageTokens": 0,
+            "newDuplicatedLines": 0,
+            "newClones": 0
+          },
+          "frontend/src/components/ui/badge.tsx": {
+            "lines": 0,
+            "tokens": 13,
+            "sources": 1,
+            "clones": 0,
+            "duplicatedLines": 0,
+            "duplicatedTokens": 0,
+            "percentage": 0,
+            "percentageTokens": 0,
+            "newDuplicatedLines": 0,
+            "newClones": 0
+          },
+          "frontend/src/components/ui/accordion.tsx": {
+            "lines": 39,
+            "tokens": 234,
+            "sources": 1,
+            "clones": 0,
+            "duplicatedLines": 0,
+            "duplicatedTokens": 0,
+            "percentage": 0,
+            "percentageTokens": 0,
+            "newDuplicatedLines": 0,
+            "newClones": 0
+          },
+          "frontend/src/components/chat/ChatMessage.tsx": {
+            "lines": 108,
+            "tokens": 949,
+            "sources": 1,
+            "clones": 0,
+            "duplicatedLines": 0,
+            "duplicatedTokens": 0,
+            "percentage": 0,
+            "percentageTokens": 0,
+            "newDuplicatedLines": 0,
+            "newClones": 0
+          },
+          "frontend/src/components/chat/ChatInterface.tsx": {
+            "lines": 167,
+            "tokens": 1469,
+            "sources": 1,
+            "clones": 2,
+            "duplicatedLines": 73,
+            "duplicatedTokens": 530,
+            "percentage": 43.71,
+            "percentageTokens": 36.08,
+            "newDuplicatedLines": 0,
+            "newClones": 0
+          },
+          "frontend/src/app/spaces/page.tsx": {
+            "lines": 105,
+            "tokens": 1914,
+            "sources": 1,
+            "clones": 0,
+            "duplicatedLines": 0,
+            "duplicatedTokens": 0,
+            "percentage": 0,
+            "percentageTokens": 0,
+            "newDuplicatedLines": 0,
+            "newClones": 0
+          },
+          "frontend/src/components/ProcessingBanner.tsx": {
+            "lines": 82,
+            "tokens": 788,
+            "sources": 1,
+            "clones": 0,
+            "duplicatedLines": 0,
+            "duplicatedTokens": 0,
+            "percentage": 0,
+            "percentageTokens": 0,
+            "newDuplicatedLines": 0,
+            "newClones": 0
+          },
+          "frontend/src/components/NewChatDialog.tsx": {
+            "lines": 42,
+            "tokens": 605,
+            "sources": 1,
+            "clones": 0,
+            "duplicatedLines": 0,
+            "duplicatedTokens": 0,
+            "percentage": 0,
+            "percentageTokens": 0,
+            "newDuplicatedLines": 0,
+            "newClones": 0
+          },
+          "frontend/src/components/MarkdownRenderer.tsx": {
+            "lines": 89,
+            "tokens": 880,
+            "sources": 1,
+            "clones": 0,
+            "duplicatedLines": 0,
+            "duplicatedTokens": 0,
+            "percentage": 0,
+            "percentageTokens": 0,
+            "newDuplicatedLines": 0,
+            "newClones": 0
+          },
+          "frontend/src/components/HomePage.tsx": {
+            "lines": 316,
+            "tokens": 2697,
+            "sources": 1,
+            "clones": 0,
+            "duplicatedLines": 0,
+            "duplicatedTokens": 0,
+            "percentage": 0,
+            "percentageTokens": 0,
+            "newDuplicatedLines": 0,
+            "newClones": 0
+          },
+          "frontend/src/components/FilePreview.tsx": {
+            "lines": 132,
+            "tokens": 1212,
+            "sources": 1,
+            "clones": 0,
+            "duplicatedLines": 0,
+            "duplicatedTokens": 0,
+            "percentage": 0,
+            "percentageTokens": 0,
+            "newDuplicatedLines": 0,
+            "newClones": 0
+          },
+          "frontend/src/components/CitationCard.tsx": {
+            "lines": 17,
+            "tokens": 157,
+            "sources": 1,
+            "clones": 0,
+            "duplicatedLines": 0,
+            "duplicatedTokens": 0,
+            "percentage": 0,
+            "percentageTokens": 0,
+            "newDuplicatedLines": 0,
+            "newClones": 0
+          },
+          "frontend/src/components/ChunkViewer.tsx": {
+            "lines": 150,
+            "tokens": 1439,
+            "sources": 1,
+            "clones": 0,
+            "duplicatedLines": 0,
+            "duplicatedTokens": 0,
+            "percentage": 0,
+            "percentageTokens": 0,
+            "newDuplicatedLines": 0,
+            "newClones": 0
+          },
+          "frontend/src/components/ChatSidebarItem.tsx": {
+            "lines": 9,
+            "tokens": 428,
+            "sources": 1,
+            "clones": 0,
+            "duplicatedLines": 0,
+            "duplicatedTokens": 0,
+            "percentage": 0,
+            "percentageTokens": 0,
+            "newDuplicatedLines": 0,
+            "newClones": 0
+          },
+          "frontend/src/components/ChatSidebar.tsx": {
+            "lines": 159,
+            "tokens": 1290,
+            "sources": 1,
+            "clones": 0,
+            "duplicatedLines": 0,
+            "duplicatedTokens": 0,
+            "percentage": 0,
+            "percentageTokens": 0,
+            "newDuplicatedLines": 0,
+            "newClones": 0
+          },
+          "frontend/src/components/ChatInterface.tsx": {
+            "lines": 297,
+            "tokens": 2494,
+            "sources": 1,
+            "clones": 2,
+            "duplicatedLines": 73,
+            "duplicatedTokens": 530,
+            "percentage": 24.58,
+            "percentageTokens": 21.25,
+            "newDuplicatedLines": 0,
+            "newClones": 0
+          },
+          "frontend/src/components/ChatInput.tsx": {
+            "lines": 126,
+            "tokens": 1209,
+            "sources": 1,
+            "clones": 0,
+            "duplicatedLines": 0,
+            "duplicatedTokens": 0,
+            "percentage": 0,
+            "percentageTokens": 0,
+            "newDuplicatedLines": 0,
+            "newClones": 0
+          },
+          "frontend/src/components/BackendConfig.tsx": {
+            "lines": 216,
+            "tokens": 2111,
+            "sources": 1,
+            "clones": 0,
+            "duplicatedLines": 0,
+            "duplicatedTokens": 0,
+            "percentage": 0,
+            "percentageTokens": 0,
+            "newDuplicatedLines": 0,
+            "newClones": 0
+          },
+          "frontend/src/app/page.tsx": {
+            "lines": 79,
+            "tokens": 3127,
+            "sources": 1,
+            "clones": 0,
+            "duplicatedLines": 0,
+            "duplicatedTokens": 0,
+            "percentage": 0,
+            "percentageTokens": 0,
+            "newDuplicatedLines": 0,
+            "newClones": 0
+          },
+          "progress-service/api/index.js": {
+            "lines": 37,
+            "tokens": 513,
+            "sources": 1,
+            "clones": 0,
+            "duplicatedLines": 0,
+            "duplicatedTokens": 0,
+            "percentage": 0,
+            "percentageTokens": 0,
+            "newDuplicatedLines": 0,
+            "newClones": 0
+          },
+          "frontend/postcss.config.mjs": {
+            "lines": 4,
+            "tokens": 26,
+            "sources": 1,
+            "clones": 0,
+            "duplicatedLines": 0,
+            "duplicatedTokens": 0,
+            "percentage": 0,
+            "percentageTokens": 0,
+            "newDuplicatedLines": 0,
+            "newClones": 0
+          },
+          "frontend/eslint.config.mjs": {
+            "lines": 24,
+            "tokens": 160,
+            "sources": 1,
+            "clones": 0,
+            "duplicatedLines": 0,
+            "duplicatedTokens": 0,
+            "percentage": 0,
+            "percentageTokens": 0,
+            "newDuplicatedLines": 0,
+            "newClones": 0
+          }
+        },
+        "total": {
+          "lines": 2791,
+          "tokens": 28080,
+          "sources": 38,
+          "clones": 2,
+          "duplicatedLines": 73,
+          "duplicatedTokens": 530,
+          "percentage": 2.62,
+          "percentageTokens": 1.89,
+          "newDuplicatedLines": 0,
+          "newClones": 0
+        }
+      },
+      "tsx": {
+        "sources": {
+          "frontend/src/app/chat/[chatId]/page.tsx": {
+            "lines": 18,
+            "tokens": 180,
+            "sources": 1,
+            "clones": 0,
+            "duplicatedLines": 0,
+            "duplicatedTokens": 0,
+            "percentage": 0,
+            "percentageTokens": 0,
+            "newDuplicatedLines": 0,
+            "newClones": 0
+          },
+          "frontend/src/components/ui/tooltip.tsx": {
+            "lines": 60,
+            "tokens": 400,
+            "sources": 1,
+            "clones": 0,
+            "duplicatedLines": 0,
+            "duplicatedTokens": 0,
+            "percentage": 0,
+            "percentageTokens": 0,
+            "newDuplicatedLines": 0,
+            "newClones": 0
+          },
+          "frontend/src/components/ui/theme-switcher.tsx": {
+            "lines": 32,
+            "tokens": 328,
+            "sources": 1,
+            "clones": 0,
+            "duplicatedLines": 0,
+            "duplicatedTokens": 0,
+            "percentage": 0,
+            "percentageTokens": 0,
+            "newDuplicatedLines": 0,
+            "newClones": 0
+          },
+          "frontend/src/components/ui/textarea.tsx": {
+            "lines": 19,
+            "tokens": 141,
+            "sources": 1,
+            "clones": 0,
+            "duplicatedLines": 0,
+            "duplicatedTokens": 0,
+            "percentage": 0,
+            "percentageTokens": 0,
+            "newDuplicatedLines": 0,
+            "newClones": 0
+          },
+          "frontend/src/components/ui/switch.tsx": {
+            "lines": 30,
+            "tokens": 162,
+            "sources": 1,
+            "clones": 0,
+            "duplicatedLines": 0,
+            "duplicatedTokens": 0,
+            "percentage": 0,
+            "percentageTokens": 0,
+            "newDuplicatedLines": 0,
+            "newClones": 0
+          },
+          "frontend/src/components/ui/sonner.tsx": {
+            "lines": 24,
+            "tokens": 167,
+            "sources": 1,
+            "clones": 0,
+            "duplicatedLines": 0,
+            "duplicatedTokens": 0,
+            "percentage": 0,
+            "percentageTokens": 0,
+            "newDuplicatedLines": 0,
+            "newClones": 0
+          },
+          "frontend/src/components/ui/select.tsx": {
+            "lines": 184,
+            "tokens": 1107,
+            "sources": 1,
+            "clones": 0,
+            "duplicatedLines": 0,
+            "duplicatedTokens": 0,
+            "percentage": 0,
+            "percentageTokens": 0,
+            "newDuplicatedLines": 0,
+            "newClones": 0
+          },
+          "frontend/src/components/ui/scroll-area.tsx": {
+            "lines": 57,
+            "tokens": 326,
+            "sources": 1,
+            "clones": 0,
+            "duplicatedLines": 0,
+            "duplicatedTokens": 0,
+            "percentage": 0,
+            "percentageTokens": 0,
+            "newDuplicatedLines": 0,
+            "newClones": 0
+          },
+          "frontend/src/components/ui/pulse.tsx": {
+            "lines": 9,
+            "tokens": 77,
+            "sources": 1,
+            "clones": 0,
+            "duplicatedLines": 0,
+            "duplicatedTokens": 0,
+            "percentage": 0,
+            "percentageTokens": 0,
+            "newDuplicatedLines": 0,
+            "newClones": 0
+          },
+          "frontend/src/components/ui/progress.tsx": {
+            "lines": 27,
+            "tokens": 215,
+            "sources": 1,
+            "clones": 0,
+            "duplicatedLines": 0,
+            "duplicatedTokens": 0,
+            "percentage": 0,
+            "percentageTokens": 0,
+            "newDuplicatedLines": 0,
+            "newClones": 0
+          },
+          "frontend/src/components/ui/input.tsx": {
+            "lines": 20,
+            "tokens": 150,
+            "sources": 1,
+            "clones": 0,
+            "duplicatedLines": 0,
+            "duplicatedTokens": 0,
+            "percentage": 0,
+            "percentageTokens": 0,
+            "newDuplicatedLines": 0,
+            "newClones": 0
+          },
+          "frontend/src/components/ui/FileCard.tsx": {
+            "lines": 142,
+            "tokens": 1513,
+            "sources": 1,
+            "clones": 0,
+            "duplicatedLines": 0,
+            "duplicatedTokens": 0,
+            "percentage": 0,
+            "percentageTokens": 0,
+            "newDuplicatedLines": 0,
+            "newClones": 0
+          },
+          "frontend/src/components/ui/file-list.tsx": {
+            "lines": 174,
+            "tokens": 1737,
+            "sources": 1,
+            "clones": 0,
+            "duplicatedLines": 0,
+            "duplicatedTokens": 0,
+            "percentage": 0,
+            "percentageTokens": 0,
+            "newDuplicatedLines": 0,
+            "newClones": 0
+          },
+          "frontend/src/components/ui/dialog.tsx": {
+            "lines": 121,
+            "tokens": 820,
+            "sources": 1,
+            "clones": 0,
+            "duplicatedLines": 0,
+            "duplicatedTokens": 0,
+            "percentage": 0,
+            "percentageTokens": 0,
+            "newDuplicatedLines": 0,
+            "newClones": 0
+          },
+          "frontend/src/components/ui/collapsible.tsx": {
+            "lines": 32,
+            "tokens": 207,
+            "sources": 1,
+            "clones": 0,
+            "duplicatedLines": 0,
+            "duplicatedTokens": 0,
+            "percentage": 0,
+            "percentageTokens": 0,
+            "newDuplicatedLines": 0,
+            "newClones": 0
+          },
+          "frontend/src/components/ui/checkbox.tsx": {
+            "lines": 29,
+            "tokens": 214,
+            "sources": 1,
+            "clones": 0,
+            "duplicatedLines": 0,
+            "duplicatedTokens": 0,
+            "percentage": 0,
+            "percentageTokens": 0,
+            "newDuplicatedLines": 0,
+            "newClones": 0
+          },
+          "frontend/src/components/ui/card.tsx": {
+            "lines": 91,
+            "tokens": 563,
+            "sources": 1,
+            "clones": 0,
+            "duplicatedLines": 0,
+            "duplicatedTokens": 0,
+            "percentage": 0,
+            "percentageTokens": 0,
+            "newDuplicatedLines": 0,
+            "newClones": 0
+          },
+          "frontend/src/components/ui/button.tsx": {
+            "lines": 42,
+            "tokens": 337,
+            "sources": 1,
+            "clones": 0,
+            "duplicatedLines": 0,
+            "duplicatedTokens": 0,
+            "percentage": 0,
+            "percentageTokens": 0,
+            "newDuplicatedLines": 0,
+            "newClones": 0
+          },
+          "frontend/src/components/ui/badge.tsx": {
+            "lines": 45,
+            "tokens": 319,
+            "sources": 1,
+            "clones": 0,
+            "duplicatedLines": 0,
+            "duplicatedTokens": 0,
+            "percentage": 0,
+            "percentageTokens": 0,
+            "newDuplicatedLines": 0,
+            "newClones": 0
+          },
+          "frontend/src/components/ui/accordion.tsx": {
+            "lines": 65,
+            "tokens": 438,
+            "sources": 1,
+            "clones": 0,
+            "duplicatedLines": 0,
+            "duplicatedTokens": 0,
+            "percentage": 0,
+            "percentageTokens": 0,
+            "newDuplicatedLines": 0,
+            "newClones": 0
+          },
+          "frontend/src/components/chat/ChatMessage.tsx": {
+            "lines": 158,
+            "tokens": 1403,
+            "sources": 1,
+            "clones": 2,
+            "duplicatedLines": 44,
+            "duplicatedTokens": 441,
+            "percentage": 27.85,
+            "percentageTokens": 31.43,
+            "newDuplicatedLines": 0,
+            "newClones": 0
+          },
+          "frontend/src/components/chat/ChatInterface.tsx": {
+            "lines": 566,
+            "tokens": 6147,
+            "sources": 1,
+            "clones": 22,
+            "duplicatedLines": 423,
+            "duplicatedTokens": 4751,
+            "percentage": 74.73,
+            "percentageTokens": 77.29,
+            "newDuplicatedLines": 0,
+            "newClones": 0
+          },
+          "frontend/src/components/chat/ChatEmptyState.tsx": {
+            "lines": 20,
+            "tokens": 201,
+            "sources": 1,
+            "clones": 1,
+            "duplicatedLines": 14,
+            "duplicatedTokens": 157,
+            "percentage": 70,
+            "percentageTokens": 78.11,
+            "newDuplicatedLines": 0,
+            "newClones": 0
+          },
+          "frontend/src/app/spaces/page.tsx": {
+            "lines": 159,
+            "tokens": 2855,
+            "sources": 1,
+            "clones": 1,
+            "duplicatedLines": 22,
+            "duplicatedTokens": 251,
+            "percentage": 13.84,
+            "percentageTokens": 8.79,
+            "newDuplicatedLines": 0,
+            "newClones": 0
+          },
+          "frontend/src/app/chat/page.tsx": {
+            "lines": 4,
+            "tokens": 37,
+            "sources": 1,
+            "clones": 0,
+            "duplicatedLines": 0,
+            "duplicatedTokens": 0,
+            "percentage": 0,
+            "percentageTokens": 0,
+            "newDuplicatedLines": 0,
+            "newClones": 0
+          },
+          "frontend/src/components/ProcessingBanner.tsx": {
+            "lines": 141,
+            "tokens": 1370,
+            "sources": 1,
+            "clones": 0,
+            "duplicatedLines": 0,
+            "duplicatedTokens": 0,
+            "percentage": 0,
+            "percentageTokens": 0,
+            "newDuplicatedLines": 0,
+            "newClones": 0
+          },
+          "frontend/src/components/NewChatDialog.tsx": {
+            "lines": 106,
+            "tokens": 1361,
+            "sources": 1,
+            "clones": 0,
+            "duplicatedLines": 0,
+            "duplicatedTokens": 0,
+            "percentage": 0,
+            "percentageTokens": 0,
+            "newDuplicatedLines": 0,
+            "newClones": 0
+          },
+          "frontend/src/components/MarkdownRenderer.tsx": {
+            "lines": 228,
+            "tokens": 2274,
+            "sources": 1,
+            "clones": 0,
+            "duplicatedLines": 0,
+            "duplicatedTokens": 0,
+            "percentage": 0,
+            "percentageTokens": 0,
+            "newDuplicatedLines": 0,
+            "newClones": 0
+          },
+          "frontend/src/components/HomePage.tsx": {
+            "lines": 575,
+            "tokens": 5331,
+            "sources": 1,
+            "clones": 9,
+            "duplicatedLines": 172,
+            "duplicatedTokens": 3235,
+            "percentage": 29.91,
+            "percentageTokens": 60.68,
+            "newDuplicatedLines": 0,
+            "newClones": 0
+          },
+          "frontend/src/components/FilePreview.tsx": {
+            "lines": 283,
+            "tokens": 2975,
+            "sources": 1,
+            "clones": 0,
+            "duplicatedLines": 0,
+            "duplicatedTokens": 0,
+            "percentage": 0,
+            "percentageTokens": 0,
+            "newDuplicatedLines": 0,
+            "newClones": 0
+          },
+          "frontend/src/components/CitationCard.tsx": {
+            "lines": 86,
+            "tokens": 846,
+            "sources": 1,
+            "clones": 0,
+            "duplicatedLines": 0,
+            "duplicatedTokens": 0,
+            "percentage": 0,
+            "percentageTokens": 0,
+            "newDuplicatedLines": 0,
+            "newClones": 0
+          },
+          "frontend/src/components/ChunkViewer.tsx": {
+            "lines": 265,
+            "tokens": 2660,
+            "sources": 1,
+            "clones": 0,
+            "duplicatedLines": 0,
+            "duplicatedTokens": 0,
+            "percentage": 0,
+            "percentageTokens": 0,
+            "newDuplicatedLines": 0,
+            "newClones": 0
+          },
+          "frontend/src/components/ChatSidebarItem.tsx": {
+            "lines": 51,
+            "tokens": 1236,
+            "sources": 1,
+            "clones": 0,
+            "duplicatedLines": 0,
+            "duplicatedTokens": 0,
+            "percentage": 0,
+            "percentageTokens": 0,
+            "newDuplicatedLines": 0,
+            "newClones": 0
+          },
+          "frontend/src/components/ChatSidebar.tsx": {
+            "lines": 320,
+            "tokens": 3052,
+            "sources": 1,
+            "clones": 0,
+            "duplicatedLines": 0,
+            "duplicatedTokens": 0,
+            "percentage": 0,
+            "percentageTokens": 0,
+            "newDuplicatedLines": 0,
+            "newClones": 0
+          },
+          "frontend/src/components/ChatInterface.tsx": {
+            "lines": 891,
+            "tokens": 9621,
+            "sources": 1,
+            "clones": 26,
+            "duplicatedLines": 473,
+            "duplicatedTokens": 5318,
+            "percentage": 53.09,
+            "percentageTokens": 55.27,
+            "newDuplicatedLines": 0,
+            "newClones": 0
+          },
+          "frontend/src/components/ChatInput.tsx": {
+            "lines": 202,
+            "tokens": 1978,
+            "sources": 1,
+            "clones": 0,
+            "duplicatedLines": 0,
+            "duplicatedTokens": 0,
+            "percentage": 0,
+            "percentageTokens": 0,
+            "newDuplicatedLines": 0,
+            "newClones": 0
+          },
+          "frontend/src/components/BackendConfig.tsx": {
+            "lines": 312,
+            "tokens": 3190,
+            "sources": 1,
+            "clones": 2,
+            "duplicatedLines": 24,
+            "duplicatedTokens": 200,
+            "percentage": 7.69,
+            "percentageTokens": 6.27,
+            "newDuplicatedLines": 0,
+            "newClones": 0
+          },
+          "frontend/src/app/page.tsx": {
+            "lines": 125,
+            "tokens": 3689,
+            "sources": 1,
+            "clones": 5,
+            "duplicatedLines": 44,
+            "duplicatedTokens": 1859,
+            "percentage": 35.2,
+            "percentageTokens": 50.39,
+            "newDuplicatedLines": 0,
+            "newClones": 0
+          },
+          "frontend/src/app/layout.tsx": {
+            "lines": 35,
+            "tokens": 280,
+            "sources": 1,
+            "clones": 0,
+            "duplicatedLines": 0,
+            "duplicatedTokens": 0,
+            "percentage": 0,
+            "percentageTokens": 0,
+            "newDuplicatedLines": 0,
+            "newClones": 0
+          }
+        },
+        "total": {
+          "lines": 5748,
+          "tokens": 59907,
+          "sources": 39,
+          "clones": 34,
+          "duplicatedLines": 608,
+          "duplicatedTokens": 8106,
+          "percentage": 10.58,
+          "percentageTokens": 13.53,
+          "newDuplicatedLines": 0,
+          "newClones": 0
+        }
+      },
+      "css": {
+        "sources": {
+          "frontend/src/app/globals.css": {
+            "lines": 130,
+            "tokens": 1437,
+            "sources": 1,
+            "clones": 0,
+            "duplicatedLines": 0,
+            "duplicatedTokens": 0,
+            "percentage": 0,
+            "percentageTokens": 0,
+            "newDuplicatedLines": 0,
+            "newClones": 0
+          }
+        },
+        "total": {
+          "lines": 130,
+          "tokens": 1437,
+          "sources": 1,
+          "clones": 0,
+          "duplicatedLines": 0,
+          "duplicatedTokens": 0,
+          "percentage": 0,
+          "percentageTokens": 0,
+          "newDuplicatedLines": 0,
+          "newClones": 0
+        }
+      },
+      "python": {
+        "sources": {
+          "proxy-backend/api/index.py": {
+            "lines": 130,
+            "tokens": 1225,
+            "sources": 1,
+            "clones": 0,
+            "duplicatedLines": 0,
+            "duplicatedTokens": 0,
+            "percentage": 0,
+            "percentageTokens": 0,
+            "newDuplicatedLines": 0,
+            "newClones": 0
+          },
+          "ai-backend/Hindices.py": {
+            "lines": 898,
+            "tokens": 8877,
+            "sources": 1,
+            "clones": 0,
+            "duplicatedLines": 0,
+            "duplicatedTokens": 0,
+            "percentage": 0,
+            "percentageTokens": 0,
+            "newDuplicatedLines": 0,
+            "newClones": 0
+          }
+        },
+        "total": {
+          "lines": 1028,
+          "tokens": 10102,
+          "sources": 2,
+          "clones": 0,
+          "duplicatedLines": 0,
+          "duplicatedTokens": 0,
+          "percentage": 0,
+          "percentageTokens": 0,
+          "newDuplicatedLines": 0,
+          "newClones": 0
+        }
+      },
+      "yaml": {
+        "sources": {
+          ".github/workflows/build.yml": {
+            "lines": 77,
+            "tokens": 526,
+            "sources": 1,
+            "clones": 0,
+            "duplicatedLines": 0,
+            "duplicatedTokens": 0,
+            "percentage": 0,
+            "percentageTokens": 0,
+            "newDuplicatedLines": 0,
+            "newClones": 0
+          }
+        },
+        "total": {
+          "lines": 77,
+          "tokens": 526,
+          "sources": 1,
+          "clones": 0,
+          "duplicatedLines": 0,
+          "duplicatedTokens": 0,
+          "percentage": 0,
+          "percentageTokens": 0,
+          "newDuplicatedLines": 0,
+          "newClones": 0
+        }
+      },
+      "json": {
+        "sources": {
+          "proxy-backend/vercel.json": {
+            "lines": 4,
+            "tokens": 31,
+            "sources": 1,
+            "clones": 0,
+            "duplicatedLines": 0,
+            "duplicatedTokens": 0,
+            "percentage": 0,
+            "percentageTokens": 0,
+            "newDuplicatedLines": 0,
+            "newClones": 0
+          },
+          "progress-service/vercel.json": {
+            "lines": 14,
+            "tokens": 80,
+            "sources": 1,
+            "clones": 0,
+            "duplicatedLines": 0,
+            "duplicatedTokens": 0,
+            "percentage": 0,
+            "percentageTokens": 0,
+            "newDuplicatedLines": 0,
+            "newClones": 0
+          },
+          "progress-service/package.json": {
+            "lines": 19,
+            "tokens": 142,
+            "sources": 1,
+            "clones": 0,
+            "duplicatedLines": 0,
+            "duplicatedTokens": 0,
+            "percentage": 0,
+            "percentageTokens": 0,
+            "newDuplicatedLines": 0,
+            "newClones": 0
+          },
+          "frontend/tsconfig.json": {
+            "lines": 26,
+            "tokens": 176,
+            "sources": 1,
+            "clones": 0,
+            "duplicatedLines": 0,
+            "duplicatedTokens": 0,
+            "percentage": 0,
+            "percentageTokens": 0,
+            "newDuplicatedLines": 0,
+            "newClones": 0
+          },
+          "frontend/package.json": {
+            "lines": 55,
+            "tokens": 364,
+            "sources": 1,
+            "clones": 0,
+            "duplicatedLines": 0,
+            "duplicatedTokens": 0,
+            "percentage": 0,
+            "percentageTokens": 0,
+            "newDuplicatedLines": 0,
+            "newClones": 0
+          },
+          "frontend/components.json": {
+            "lines": 21,
+            "tokens": 132,
+            "sources": 1,
+            "clones": 0,
+            "duplicatedLines": 0,
+            "duplicatedTokens": 0,
+            "percentage": 0,
+            "percentageTokens": 0,
+            "newDuplicatedLines": 0,
+            "newClones": 0
+          },
+          "frontend/.eslintrc.json": {
+            "lines": 7,
+            "tokens": 45,
+            "sources": 1,
+            "clones": 0,
+            "duplicatedLines": 0,
+            "duplicatedTokens": 0,
+            "percentage": 0,
+            "percentageTokens": 0,
+            "newDuplicatedLines": 0,
+            "newClones": 0
+          }
+        },
+        "total": {
+          "lines": 146,
+          "tokens": 970,
+          "sources": 7,
+          "clones": 0,
+          "duplicatedLines": 0,
+          "duplicatedTokens": 0,
+          "percentage": 0,
+          "percentageTokens": 0,
+          "newDuplicatedLines": 0,
+          "newClones": 0
+        }
+      },
+      "markdown": {
+        "sources": {
+          "ai-backend/requirements.txt": {
+            "lines": 32,
+            "tokens": 82,
+            "sources": 1,
+            "clones": 0,
+            "duplicatedLines": 0,
+            "duplicatedTokens": 0,
+            "percentage": 0,
+            "percentageTokens": 0,
+            "newDuplicatedLines": 0,
+            "newClones": 0
+          },
+          "ai-backend/README.md": {
+            "lines": 238,
+            "tokens": 1574,
+            "sources": 1,
+            "clones": 0,
+            "duplicatedLines": 0,
+            "duplicatedTokens": 0,
+            "percentage": 0,
+            "percentageTokens": 0,
+            "newDuplicatedLines": 0,
+            "newClones": 0
+          },
+          "README.md": {
+            "lines": 351,
+            "tokens": 2498,
+            "sources": 1,
+            "clones": 0,
+            "duplicatedLines": 0,
+            "duplicatedTokens": 0,
+            "percentage": 0,
+            "percentageTokens": 0,
+            "newDuplicatedLines": 0,
+            "newClones": 0
+          }
+        },
+        "total": {
+          "lines": 621,
+          "tokens": 4154,
+          "sources": 3,
+          "clones": 0,
+          "duplicatedLines": 0,
+          "duplicatedTokens": 0,
+          "percentage": 0,
+          "percentageTokens": 0,
+          "newDuplicatedLines": 0,
+          "newClones": 0
+        }
+      }
+    },
+    "total": {
+      "lines": 11451,
+      "tokens": 118155,
+      "sources": 111,
+      "clones": 38,
+      "duplicatedLines": 692,
+      "duplicatedTokens": 8837,
+      "percentage": 6.04,
+      "percentageTokens": 7.48,
+      "newDuplicatedLines": 0,
+      "newClones": 0
+    }
+  },
+  "duplicates": [
+    {
+      "format": "typescript",
+      "lines": 7,
+      "fragment": "{\r\n      setProcessingFiles(prev => prev.map(pf => \r\n        pf.name === uploadedFile.name\r\n          ? { ...pf, status: 'failed' as const }\r\n          : pf\r\n      ));\r\n      setFiles((prev) => prev.map(f => (f.key === uploadedFile.key && f.chatId === chatId ? { ...f, processingStatus: 'failed', statusMessage: 'Processing error'",
+      "tokens": 0,
+      "firstFile": {
+        "name": "frontend\\src\\components\\chat\\fileHandlers.ts",
+        "start": 163,
+        "end": 169,
+        "startLoc": {
+          "line": 163,
+          "column": 2,
+          "position": 2102
+        },
+        "endLoc": {
+          "line": 169,
+          "column": 19,
+          "position": 2221
+        }
+      },
+      "secondFile": {
+        "name": "frontend\\src\\components\\chat\\fileHandlers.ts",
+        "start": 154,
+        "end": 160,
+        "startLoc": {
+          "line": 154,
+          "column": 2,
+          "position": 1941
+        },
+        "endLoc": {
+          "line": 160,
+          "column": 20,
+          "position": 2060
+        }
+      }
+    },
+    {
+      "format": "tsx",
+      "lines": 13,
+      "fragment": ",\r\n            onStatusChange: (status: any) => {\r\n              const updatedChat = getChatById(chatId!);\r\n              if (!updatedChat) return;\r\n              const msgIdx = updatedChat.message_objects.findIndex(m => m.message_id === botMsgId);\r\n              if (msgIdx !== -1) {\r\n                updatedChat.message_objects[msgIdx].content = `__STATUS__:${status}`;\r\n                updateChat(updatedChat);\r\n                setChats(getAllChats());\r\n              }\r\n            },\r\n          });\r\n          const",
+      "tokens": 0,
+      "firstFile": {
+        "name": "frontend\\src\\components\\chat\\ChatInterface.tsx",
+        "start": 317,
+        "end": 329,
+        "startLoc": {
+          "line": 317,
+          "column": 15,
+          "position": 3805
+        },
+        "endLoc": {
+          "line": 329,
+          "column": 6,
+          "position": 3948
+        }
+      },
+      "secondFile": {
+        "name": "frontend\\src\\components\\chat\\ChatInterface.tsx",
+        "start": 299,
+        "end": 311,
+        "startLoc": {
+          "line": 299,
+          "column": 2,
+          "position": 3613
+        },
+        "endLoc": {
+          "line": 311,
+          "column": 2,
+          "position": 3756
+        }
+      }
+    },
+    {
+      "format": "tsx",
+      "lines": 23,
+      "fragment": "<NewChatDialog\r\n            open={createDialogOpen}\r\n            onOpenChange={setCreateDialogOpen}\r\n            onCreate={async ({ chatId, title, description, models }) => {\r\n              if (isUsingCustomBackend()) {\r\n                toast.info(\"Pulling selected models...\");\r\n                try {\r\n                  for (const model of models) {\r\n                    await loadModel(model);\r\n                  }\r\n                  toast.success(\"All models pulled successfully!\");\r\n                } catch (error) {\r\n                  toast.error(\"Failed to pull some models. Please try again.\");\r\n                  throw error; \r\n                }\r\n              }\r\n              const now = new Date().toISOString();\r\n              addChat({ chat_id: chatId, title, created_at: now, fileWithUrl: [], message_objects: [], description, models });\r\n              setChats(getAllChats());\r\n              router.push(`/chat/${chatId}`);\r\n            }}\r\n          />\r\n          </",
+      "tokens": 0,
+      "firstFile": {
+        "name": "frontend\\src\\app\\spaces\\page.tsx",
+        "start": 78,
+        "end": 100,
+        "startLoc": {
+          "line": 78,
+          "column": 11,
+          "position": 1628
+        },
+        "endLoc": {
+          "line": 100,
+          "column": 3,
+          "position": 1879
+        }
+      },
+      "secondFile": {
+        "name": "frontend\\src\\components\\chat\\ChatInterface.tsx",
+        "start": 406,
+        "end": 429,
+        "startLoc": {
+          "line": 406,
+          "column": 7,
+          "position": 4693
+        },
+        "endLoc": {
+          "line": 429,
+          "column": 2,
+          "position": 4946
+        }
+      }
+    },
+    {
+      "format": "typescript",
+      "lines": 6,
+      "fragment": ";\r\n    \r\n    pdf.setFontSize(10);\r\n    pdf.setFont('helvetica', 'normal');\r\n    pdf.text(`Date: ${new Date(chat.created_at).toLocaleDateString('en-US', { year: 'numeric', month: 'long', day: 'numeric' })}`, margin, yPosition);\r\n    yPosition += 5",
+      "tokens": 0,
+      "firstFile": {
+        "name": "frontend\\src\\lib\\pdfExport.ts",
+        "start": 206,
+        "end": 211,
+        "startLoc": {
+          "line": 206,
+          "column": 2,
+          "position": 2944
+        },
+        "endLoc": {
+          "line": 211,
+          "column": 2,
+          "position": 3026
+        }
+      },
+      "secondFile": {
+        "name": "frontend\\src\\lib\\pdfExport.ts",
+        "start": 52,
+        "end": 57,
+        "startLoc": {
+          "line": 52,
+          "column": 3,
+          "position": 850
+        },
+        "endLoc": {
+          "line": 57,
+          "column": 2,
+          "position": 932
+        }
+      }
+    },
+    {
+      "format": "tsx",
+      "lines": 21,
+      "fragment": ">\r\n                <Check className=\"w-4 h-4\" />\r\n                100% Private · Fully Local · Zero Cloud\r\n              </Badge>\r\n              <div className=\"flex items-center gap-3 mb-2\">\r\n                <img src=\"/logo.png\" alt=\"Docu\" className=\"w-12 h-12\" />\r\n                <span className=\"text-4xl font-bold\">Docu</span>\r\n              </div>\r\n              <h1 className=\"text-balance text-3xl font-semibold tracking-tight md:text-5xl leading-tight\">\r\n                <span className=\"block\">Your Documents Stay Private.</span>\r\n                <span className=\"block\">Runs Completely On Your Machine.</span>\r\n              </h1>\r\n              <p className=\"max-w-xl text-pretty text-base text-muted-foreground md:text-lg\">\r\n                A privacy-first RAG assistant that runs entirely locally\r\n                using Ollama. No cloud uploads, no external APIs, no data leaks.\r\n                Everything processes on your own hardware with open-source AI\r\n                models you control.\r\n              </p>\r\n\r\n              <div className=\"flex flex-col sm:flex-row gap-3 w-full\">\r\n                <a href=\"#signin",
+      "tokens": 0,
+      "firstFile": {
+        "name": "frontend\\src\\components\\HomePage.tsx",
+        "start": 384,
+        "end": 404,
+        "startLoc": {
+          "line": 384,
+          "column": 15,
+          "position": 3199
+        },
+        "endLoc": {
+          "line": 404,
+          "column": 8,
+          "position": 3483
+        }
+      },
+      "secondFile": {
+        "name": "frontend\\src\\components\\HomePage.tsx",
+        "start": 70,
+        "end": 90,
+        "startLoc": {
+          "line": 70,
+          "column": 13,
+          "position": 517
+        },
+        "endLoc": {
+          "line": 90,
+          "column": 6,
+          "position": 801
+        }
+      }
+    },
+    {
+      "format": "tsx",
+      "lines": 45,
+      "fragment": "</Button>\r\n                </a>\r\n              </div>\r\n            </div>\r\n\r\n            {/* Right: CTA Card */}\r\n            <Card className=\"shadow-lg border-gray-100 dark:border-gray-800\">\r\n              <CardHeader>\r\n                <CardTitle className=\"text-base\">Quick start</CardTitle>\r\n                <CardDescription>\r\n                  Get productive in a few clicks\r\n                </CardDescription>\r\n              </CardHeader>\r\n              <CardContent className=\"grid gap-4\">\r\n                <div className=\"flex items-start gap-3\">\r\n                  <Check className=\"w-5 h-5 text-green-500 mt-1\" />\r\n                  <div>\r\n                    <p className=\"font-medium\">100% Local Processing</p>\r\n                    <p className=\"text-sm text-muted-foreground\">\r\n                      All AI runs on your machine via Ollama. Zero cloud\r\n                      dependencies.\r\n                    </p>\r\n                  </div>\r\n                </div>\r\n\r\n                <div className=\"flex items-start gap-3\">\r\n                  <Check className=\"w-5 h-5 text-green-500 mt-1\" />\r\n                  <div>\r\n                    <p className=\"font-medium\">Scale to long documents</p>\r\n                    <p className=\"text-sm text-muted-foreground\">\r\n                      Chunking and map-reduce preserve document structure.\r\n                    </p>\r\n                  </div>\r\n                </div>\r\n\r\n                <div className=\"flex justify-end mt-2\">\r\n                  <a href=\"#signin\">\r\n                    <Button size=\"sm\">Create account</Button>\r\n                  </a>\r\n                </div>\r\n              </CardContent>\r\n            </Card>\r\n          </div>\r\n        </section>\r\n        <",
+      "tokens": 0,
+      "firstFile": {
+        "name": "frontend\\src\\components\\HomePage.tsx",
+        "start": 421,
+        "end": 465,
+        "startLoc": {
+          "line": 421,
+          "column": 19,
+          "position": 3605
+        },
+        "endLoc": {
+          "line": 465,
+          "column": 2,
+          "position": 4009
+        }
+      },
+      "secondFile": {
+        "name": "frontend\\src\\components\\HomePage.tsx",
+        "start": 107,
+        "end": 150,
+        "startLoc": {
+          "line": 107,
+          "column": 17,
+          "position": 920
+        },
+        "endLoc": {
+          "line": 150,
+          "column": 2,
+          "position": 1320
+        }
+      }
+    },
+    {
+      "format": "javascript",
+      "lines": 33,
+      "fragment": "}\r\n            >\r\n              <X className=\"h-4 w-4\" />\r\n            </Button>\r\n          </DialogHeader>\r\n          <ProcessingBanner \r\n            files={processingFiles}\r\n            onDismiss={() => {\r\n              setShowProcessingDialog(false);\r\n              setProcessingFiles([]);\r\n              setIsProcessing(false);\r\n            }}\r\n          />\r\n        </DialogContent>\r\n      </Dialog>\r\n\r\n      {/* Blocking Overlay */}\r\n      {isProcessing && (\r\n        <div className=\"fixed inset-0 bg-background/80 backdrop-blur-sm z-40\" />\r\n      )}\r\n      \r\n      <ChatSidebar\r\n        isSidebarOpen={isSidebarOpen}\r\n        setIsSidebarOpen={setIsSidebarOpen}\r\n        chats={chats}\r\n        currentChatId={currentChatId}\r\n        onChatSelect={handleSidebarChatSelect}\r\n        onNewChatStart={handleSidebarNewChat}\r\n        onChatsUpdate={() => setChats(getAllChats())}\r\n        stream={stream}\r\n        setStream={setStream}\r\n        onPreviewFile={(f) => setPreviewFile(f)}\r\n        onViewChunks={(docId",
+      "tokens": 0,
+      "firstFile": {
+        "name": "frontend\\src\\components\\ChatInterface.tsx",
+        "start": 579,
+        "end": 611,
+        "startLoc": {
+          "line": 579,
+          "column": 2,
+          "position": 6952
+        },
+        "endLoc": {
+          "line": 611,
+          "column": 6,
+          "position": 7163
+        }
+      },
+      "secondFile": {
+        "name": "frontend\\src\\components\\chat\\ChatInterface.tsx",
+        "start": 362,
+        "end": 436,
+        "startLoc": {
+          "line": 362,
+          "column": 2,
+          "position": 4346
+        },
+        "endLoc": {
+          "line": 436,
+          "column": 2,
+          "position": 5007
+        }
+      }
+    },
+    {
+      "format": "javascript",
+      "lines": 42,
+      "fragment": "}\r\n              disabled={isProcessing}\r\n              selectedChunksInfo={\r\n                Object.keys(selectedChunks).length > 0\r\n                  ? `${Object.values(selectedChunks).reduce((sum, arr) => sum + arr.length, 0)} chunks selected`\r\n                  : undefined\r\n              }\r\n            />\r\n          </div>\r\n        </div>\r\n      </main>\r\n\r\n      {previewFile && (\r\n        <FilePreview\r\n          file={previewFile}\r\n          onClose={() => setPreviewFile(null)}\r\n          onViewChunks={(docId, docName) => {\r\n            setChunkViewerDocId(docId);\r\n            setChunkViewerDocName(docName);\r\n            setShowChunkViewer(true);\r\n          }}\r\n        />\r\n      )}\r\n\r\n      <ChunkViewer\r\n        isOpen={showChunkViewer}\r\n        onClose={() => setShowChunkViewer(false)}\r\n        documentId={chunkViewerDocId}\r\n        documentName={chunkViewerDocName}\r\n        onApplySelection={(chunkIds) => {\r\n          setSelectedChunks(prev => ({\r\n            ...prev,\r\n            [chunkViewerDocId]: chunkIds\r\n          }));\r\n          toast.success(`Selected ${chunkIds.length} chunks from ${chunkViewerDocName}`, {\r\n            description: 'These chunks will be used in your next query',\r\n            duration: 3000,\r\n          });\r\n        }}\r\n      />\r\n\r\n      <Dialog open={showAttachments} onOpenChange={setShowAttachments}",
+      "tokens": 0,
+      "firstFile": {
+        "name": "frontend\\src\\components\\ChatInterface.tsx",
+        "start": 811,
+        "end": 852,
+        "startLoc": {
+          "line": 811,
+          "column": 9,
+          "position": 8894
+        },
+        "endLoc": {
+          "line": 852,
+          "column": 2,
+          "position": 9213
+        }
+      },
+      "secondFile": {
+        "name": "frontend\\src\\components\\chat\\ChatInterface.tsx",
+        "start": 487,
+        "end": 528,
+        "startLoc": {
+          "line": 487,
+          "column": 14,
+          "position": 5454
+        },
+        "endLoc": {
+          "line": 528,
+          "column": 2,
+          "position": 5773
+        }
+      }
+    },
+    {
+      "format": "tsx",
+      "lines": 6,
+      "fragment": "const [previewFile, setPreviewFile] = useState<FileWithUrl | string | null>(null);\r\n  const [showAttachments, setShowAttachments] = useState(false);\r\n  const [chats, setChats] = useState<ChatDocument[]>(() => getAllChats());\r\n  const [processingFiles, setProcessingFiles] = useState<ProcessingFile[]>([]);\r\n  const [showProcessingDialog, setShowProcessingDialog] = useState(false);\r\n  const [isProcessing",
+      "tokens": 0,
+      "firstFile": {
+        "name": "frontend\\src\\components\\ChatInterface.tsx",
+        "start": 67,
+        "end": 72,
+        "startLoc": {
+          "line": 67,
+          "column": 3,
+          "position": 665
+        },
+        "endLoc": {
+          "line": 72,
+          "column": 13,
+          "position": 792
+        }
+      },
+      "secondFile": {
+        "name": "frontend\\src\\components\\chat\\ChatInterface.tsx",
+        "start": 53,
+        "end": 58,
+        "startLoc": {
+          "line": 53,
+          "column": 3,
+          "position": 562
+        },
+        "endLoc": {
+          "line": 58,
+          "column": 17,
+          "position": 689
+        }
+      }
+    },
+    {
+      "format": "tsx",
+      "lines": 14,
+      "fragment": "] = useState(false);\r\n  const [isProcessing, setIsProcessing] = useState(false);\r\n  const [showChunkViewer, setShowChunkViewer] = useState(false);\r\n  const [chunkViewerDocId, setChunkViewerDocId] = useState<string>(\"\");\r\n  const [chunkViewerDocName, setChunkViewerDocName] = useState<string>(\"\");\r\n  const [selectedChunks, setSelectedChunks] = useState<Record<string, number[]>>({});\r\n  const [isSidebarOpen, setIsSidebarOpen] = useState(() => {\r\n    if (typeof window !== \"undefined\") {\r\n      return window.innerWidth >= 640;\r\n    }\r\n    return true;\r\n  });\r\n\r\n  useEffect",
+      "tokens": 0,
+      "firstFile": {
+        "name": "frontend\\src\\components\\ChatInterface.tsx",
+        "start": 71,
+        "end": 84,
+        "startLoc": {
+          "line": 71,
+          "column": 24,
+          "position": 777
+        },
+        "endLoc": {
+          "line": 84,
+          "column": 10,
+          "position": 971
+        }
+      },
+      "secondFile": {
+        "name": "frontend\\src\\components\\chat\\ChatInterface.tsx",
+        "start": 58,
+        "end": 71,
+        "startLoc": {
+          "line": 58,
+          "column": 20,
+          "position": 693
+        },
+        "endLoc": {
+          "line": 71,
+          "column": 6,
+          "position": 887
+        }
+      }
+    },
+    {
+      "format": "tsx",
+      "lines": 19,
+      "fragment": ");\r\n\r\n  useEffect(() => {\r\n    const allComplete = processingFiles.length > 0 && \r\n      processingFiles.every(f => f.status === 'done' || f.status === 'failed');\r\n    \r\n    if (allComplete && showProcessingDialog) {\r\n      const timer = setTimeout(() => {\r\n        setShowProcessingDialog(false);\r\n        setProcessingFiles([]);\r\n        setIsProcessing(false);\r\n      }, 3000);\r\n      \r\n      return () => clearTimeout(timer);\r\n    }\r\n  }, [processingFiles, showProcessingDialog]);\r\n\r\n  const getModelDisplayName = (modelName?: string) => {\r\n    if (!modelName) return null",
+      "tokens": 0,
+      "firstFile": {
+        "name": "frontend\\src\\components\\ChatInterface.tsx",
+        "start": 82,
+        "end": 100,
+        "startLoc": {
+          "line": 82,
+          "column": 2,
+          "position": 964
+        },
+        "endLoc": {
+          "line": 100,
+          "column": 5,
+          "position": 1163
+        }
+      },
+      "secondFile": {
+        "name": "frontend\\src\\components\\chat\\ChatInterface.tsx",
+        "start": 91,
+        "end": 109,
+        "startLoc": {
+          "line": 91,
+          "column": 2,
+          "position": 1138
+        },
+        "endLoc": {
+          "line": 109,
+          "column": 10,
+          "position": 1337
+        }
+      }
+    },
+    {
+      "format": "tsx",
+      "lines": 42,
+      "fragment": ";\r\n    const modelInfo = LOCAL_MODELS.find(m => m.name === modelName);\r\n    if (modelInfo) {\r\n      return `${modelInfo.name} (${modelInfo.company})`;\r\n    }\r\n    return modelName;\r\n  };\r\n\r\n  useEffect(() => {\r\n    setChats(getAllChats());\r\n  }, []);\r\n\r\n  useEffect(() => {\r\n    const run = async () => {\r\n      if (!currentChatId) return;\r\n      const chat = getChatById(currentChatId);\r\n      if (!chat) return;\r\n      const filesForChat = chat.fileWithUrl || [];\r\n      if (filesForChat.length === 0) return;\r\n      const mapping = await cloneChatFolderToLocal(currentChatId, filesForChat);\r\n      const updated = getChatById(currentChatId);\r\n      if (!updated) return;\r\n      updated.fileWithUrl = (updated.fileWithUrl || []).map(f => ({ ...f, localUrl: mapping[f.name] || f.localUrl }));\r\n      updated.message_objects = updated.message_objects.map(m => ({\r\n        ...m,\r\n        files: (m.files || []).map(f => ({ ...f, localUrl: mapping[f.name] || f.localUrl }))\r\n      }));\r\n      updateChat(updated);\r\n      setChats(getAllChats());\r\n    };\r\n    run();\r\n  }, [currentChatId]);\r\n\r\n  useEffect(() => {\r\n    const handleResize = () => {\r\n      setIsSidebarOpen(window.innerWidth >= 640);\r\n    };\r\n    window.addEventListener(\"resize\", handleResize);\r\n    return () => window.removeEventListener(\"resize\", handleResize);\r\n  }, []);\r\n\r\n  const",
+      "tokens": 0,
+      "firstFile": {
+        "name": "frontend\\src\\components\\ChatInterface.tsx",
+        "start": 100,
+        "end": 141,
+        "startLoc": {
+          "line": 100,
+          "column": 5,
+          "position": 1164
+        },
+        "endLoc": {
+          "line": 141,
+          "column": 6,
+          "position": 1689
+        }
+      },
+      "secondFile": {
+        "name": "frontend\\src\\components\\chat\\ChatInterface.tsx",
+        "start": 109,
+        "end": 150,
+        "startLoc": {
+          "line": 109,
+          "column": 10,
+          "position": 1338
+        },
+        "endLoc": {
+          "line": 150,
+          "column": 10,
+          "position": 1863
+        }
+      }
+    },
+    {
+      "format": "tsx",
+      "lines": 10,
+      "fragment": ");\r\n\r\n  const [stream, setStreamState] = useState(() => {\r\n    if (typeof window !== \"undefined\") {\r\n      const stored = localStorage.getItem(\"chat_stream_toggle\");\r\n      return stored === null ? false : stored === \"true\";\r\n    }\r\n    return false;\r\n  });\r\n  useEffect",
+      "tokens": 0,
+      "firstFile": {
+        "name": "frontend\\src\\components\\ChatInterface.tsx",
+        "start": 139,
+        "end": 148,
+        "startLoc": {
+          "line": 139,
+          "column": 2,
+          "position": 1682
+        },
+        "endLoc": {
+          "line": 148,
+          "column": 10,
+          "position": 1783
+        }
+      },
+      "secondFile": {
+        "name": "frontend\\src\\components\\chat\\ChatInterface.tsx",
+        "start": 69,
+        "end": 79,
+        "startLoc": {
+          "line": 69,
+          "column": 2,
+          "position": 880
+        },
+        "endLoc": {
+          "line": 79,
+          "column": 6,
+          "position": 983
+        }
+      }
+    },
+    {
+      "format": "tsx",
+      "lines": 12,
+      "fragment": ";\r\n\r\n  useEffect(() => {\r\n    messagesEndRef.current?.scrollIntoView({ behavior: \"smooth\" });\r\n  }, [messages]);\r\n\r\n  const handleFileSelect = async (e: React.ChangeEvent<HTMLInputElement>) => {\r\n    if (e.target.files) {\r\n      const fileArray = Array.from(e.target.files);\r\n      let chatId = currentChatId;\r\n      if (!chatId) {\r\n        const",
+      "tokens": 0,
+      "firstFile": {
+        "name": "frontend\\src\\components\\ChatInterface.tsx",
+        "start": 156,
+        "end": 167,
+        "startLoc": {
+          "line": 156,
+          "column": 2,
+          "position": 1909
+        },
+        "endLoc": {
+          "line": 167,
+          "column": 6,
+          "position": 2041
+        }
+      },
+      "secondFile": {
+        "name": "frontend\\src\\components\\chat\\ChatInterface.tsx",
+        "start": 154,
+        "end": 165,
+        "startLoc": {
+          "line": 154,
+          "column": 2,
+          "position": 1922
+        },
+        "endLoc": {
+          "line": 165,
+          "column": 20,
+          "position": 2054
+        }
+      }
+    },
+    {
+      "format": "tsx",
+      "lines": 7,
+      "fragment": "{\r\n          setProcessingFiles(prev => prev.map(pf => \r\n            pf.name === uploadedFile.name\r\n              ? { ...pf, status: 'failed' as const }\r\n              : pf\r\n          ));\r\n          setFiles((prev) => prev.map(f => (f.key === uploadedFile.key && f.chatId === chatId ? { ...f, processingStatus: 'failed', statusMessage: 'Processing error'",
+      "tokens": 0,
+      "firstFile": {
+        "name": "frontend\\src\\components\\ChatInterface.tsx",
+        "start": 339,
+        "end": 345,
+        "startLoc": {
+          "line": 339,
+          "column": 2,
+          "position": 4147
+        },
+        "endLoc": {
+          "line": 345,
+          "column": 19,
+          "position": 4266
+        }
+      },
+      "secondFile": {
+        "name": "frontend\\src\\components\\ChatInterface.tsx",
+        "start": 330,
+        "end": 336,
+        "startLoc": {
+          "line": 330,
+          "column": 2,
+          "position": 3986
+        },
+        "endLoc": {
+          "line": 336,
+          "column": 20,
+          "position": 4105
+        }
+      }
+    },
+    {
+      "format": "tsx",
+      "lines": 13,
+      "fragment": ",\r\n        };\r\n      }));\r\n    }\r\n  };\r\n\r\n  const handleRemoveFile = (index: number) => {\r\n    setFiles((prev) => prev.filter((_, i) => i !== index));\r\n  };\r\n\r\n  const handleSidebarChatSelect = (chatId?: string) => {\r\n    if (chatId) {\r\n      setCurrentChatId",
+      "tokens": 0,
+      "firstFile": {
+        "name": "frontend\\src\\components\\ChatInterface.tsx",
+        "start": 355,
+        "end": 367,
+        "startLoc": {
+          "line": 355,
+          "column": 11,
+          "position": 4435
+        },
+        "endLoc": {
+          "line": 367,
+          "column": 17,
+          "position": 4550
+        }
+      },
+      "secondFile": {
+        "name": "frontend\\src\\components\\chat\\ChatInterface.tsx",
+        "start": 190,
+        "end": 202,
+        "startLoc": {
+          "line": 190,
+          "column": 18,
+          "position": 2307
+        },
+        "endLoc": {
+          "line": 202,
+          "column": 7,
+          "position": 2422
+        }
+      }
+    },
+    {
+      "format": "tsx",
+      "lines": 14,
+      "fragment": "{\r\n    const newChatId = Math.random().toString(36).substring(7);\r\n    const now = new Date().toISOString();\r\n    const newChat: ChatDocument = {\r\n      chat_id: newChatId,\r\n      title: \"New Chat\",\r\n      created_at: now,\r\n      fileWithUrl: [],\r\n      message_objects: [],\r\n    };\r\n    addChat(newChat);\r\n    setChats(getAllChats());\r\n    setCurrentChatId(newChatId);\r\n    setInput",
+      "tokens": 0,
+      "firstFile": {
+        "name": "frontend\\src\\components\\ChatInterface.tsx",
+        "start": 373,
+        "end": 386,
+        "startLoc": {
+          "line": 373,
+          "column": 2,
+          "position": 4597
+        },
+        "endLoc": {
+          "line": 386,
+          "column": 9,
+          "position": 4731
+        }
+      },
+      "secondFile": {
+        "name": "frontend\\src\\components\\ChatInterface.tsx",
+        "start": 166,
+        "end": 179,
+        "startLoc": {
+          "line": 166,
+          "column": 2,
+          "position": 2037
+        },
+        "endLoc": {
+          "line": 179,
+          "column": 7,
+          "position": 2171
+        }
+      }
+    },
+    {
+      "format": "tsx",
+      "lines": 9,
+      "fragment": ");\r\n  };\r\n\r\n  const handleSubmit = async () => {\r\n    if (!input.trim() && files.length === 0) return;\r\n    let chatId = currentChatId;\r\n    let chat = chatId ? getChatById(chatId) : undefined;\r\n    if (!chat) {\r\n      const",
+      "tokens": 0,
+      "firstFile": {
+        "name": "frontend\\src\\components\\ChatInterface.tsx",
+        "start": 387,
+        "end": 395,
+        "startLoc": {
+          "line": 387,
+          "column": 2,
+          "position": 4743
+        },
+        "endLoc": {
+          "line": 395,
+          "column": 6,
+          "position": 4842
+        }
+      },
+      "secondFile": {
+        "name": "frontend\\src\\components\\chat\\ChatInterface.tsx",
+        "start": 207,
+        "end": 215,
+        "startLoc": {
+          "line": 207,
+          "column": 5,
+          "position": 2465
+        },
+        "endLoc": {
+          "line": 215,
+          "column": 20,
+          "position": 2564
+        }
+      }
+    },
+    {
+      "format": "tsx",
+      "lines": 18,
+      "fragment": ";\r\n    }\r\n    const messageId = Math.random().toString(36).substring(7);\r\n    const now = new Date().toISOString();\r\n    const currentInput = input.trim();\r\n    const currentFiles = [...files];\r\n\r\n    const promptWithFiles = currentInput;\r\n\r\n    const userMsg: MessageObject = {\r\n      message_id: messageId,\r\n      author: \"user\",\r\n      content: currentInput,\r\n      created_at: now,\r\n      files: currentFiles,\r\n    };\r\n    chat.message_objects.push(userMsg);\r\n    // Keep chat-level file list in sync (unique by key+name)",
+      "tokens": 0,
+      "firstFile": {
+        "name": "frontend\\src\\components\\ChatInterface.tsx",
+        "start": 407,
+        "end": 424,
+        "startLoc": {
+          "line": 407,
+          "column": 10,
+          "position": 4972
+        },
+        "endLoc": {
+          "line": 424,
+          "column": 58,
+          "position": 5138
+        }
+      },
+      "secondFile": {
+        "name": "frontend\\src\\components\\chat\\ChatInterface.tsx",
+        "start": 216,
+        "end": 233,
+        "startLoc": {
+          "line": 216,
+          "column": 7,
+          "position": 2573
+        },
+        "endLoc": {
+          "line": 233,
+          "column": 6,
+          "position": 2739
+        }
+      }
+    },
+    {
+      "format": "tsx",
+      "lines": 58,
+      "fragment": "const existing = chat.fileWithUrl || [];\r\n    const seen = new Map(existing.map(f => [`${f.key || ''}|${f.name}`, f]));\r\n    for (const f of currentFiles) {\r\n      const uniq = `${f.key || ''}|${f.name}`;\r\n      if (seen.has(uniq)) {\r\n        const existingFile = seen.get(uniq)!;\r\n        Object.assign(existingFile, f);\r\n      } else {\r\n        existing.push(f);\r\n        seen.set(uniq, f);\r\n      }\r\n    }\r\n    chat.fileWithUrl = existing;\r\n    updateChat(chat);\r\n    setChats(getAllChats());\r\n    setInput(\"\");\r\n    setFiles([]);\r\n\r\n    try {\r\n      if (currentInput.trim()) {\r\n        const botMsgId = Math.random().toString(36).substring(7);\r\n        const botMsg: MessageObject = {\r\n          message_id: botMsgId,\r\n          author: \"ai\",\r\n          content: \"\",\r\n          created_at: new Date().toISOString(),\r\n          files: [],\r\n          model: model,\r\n        };\r\n        chat.message_objects.push(botMsg);\r\n        updateChat(chat);\r\n        setChats(getAllChats());\r\n        const fileDocIds = Array.from(new Set(\r\n          currentFiles.filter(f => f.enabled !== false).map(f => f.documentId).filter((id): id is string => !!id)\r\n        ));\r\n        const chatLevelDocIds = Array.from(new Set(\r\n          (chat.fileWithUrl || []).filter(f => f.enabled !== false).map(f => f.documentId).filter((id): id is string => !!id)\r\n        ));\r\n        const documentIds = fileDocIds.length > 0 ? fileDocIds : chatLevelDocIds;\r\n        const hasSelectedChunks = documentIds.some(id => selectedChunks[id] && selectedChunks[id].length > 0);\r\n        const specificChunks = hasSelectedChunks ? \r\n          Object.fromEntries(\r\n            Object.entries(selectedChunks).filter(([docId, chunks]) => \r\n              documentIds.includes(docId) && chunks.length > 0\r\n            )\r\n          ) : undefined;\r\n\r\n        if (stream) {\r\n          let fullResponse = \"\";\r\n          await sendExternalChatMessage({\r\n            prompt: promptWithFiles,\r\n            model,\r\n            stream: true,\r\n            documentIds,\r\n            specificChunks,\r\n            onStreamChunk: (chunk: string) => {\r\n              fullResponse += chunk;\r\n              // Update bot message in chat",
+      "tokens": 0,
+      "firstFile": {
+        "name": "frontend\\src\\components\\ChatInterface.tsx",
+        "start": 425,
+        "end": 482,
+        "startLoc": {
+          "line": 425,
+          "column": 5,
+          "position": 5142
+        },
+        "endLoc": {
+          "line": 482,
+          "column": 30,
+          "position": 5905
+        }
+      },
+      "secondFile": {
+        "name": "frontend\\src\\components\\chat\\ChatInterface.tsx",
+        "start": 233,
+        "end": 291,
+        "startLoc": {
+          "line": 233,
+          "column": 5,
+          "position": 2739
+        },
+        "endLoc": {
+          "line": 291,
+          "column": 6,
+          "position": 3504
+        }
+      }
+    },
+    {
+      "format": "tsx",
+      "lines": 29,
+      "fragment": "const updatedChat = getChatById(chatId!);\r\n              if (!updatedChat) return;\r\n              const msgIdx = updatedChat.message_objects.findIndex(m => m.message_id === botMsgId);\r\n              if (msgIdx !== -1) {\r\n                updatedChat.message_objects[msgIdx].content = fullResponse;\r\n                updateChat(updatedChat);\r\n                setChats(getAllChats());\r\n              }\r\n            },\r\n            onStatusChange: (status: any) => {\r\n              const updatedChat = getChatById(chatId!);\r\n              if (!updatedChat) return;\r\n              const msgIdx = updatedChat.message_objects.findIndex(m => m.message_id === botMsgId);\r\n              if (msgIdx !== -1) {\r\n                updatedChat.message_objects[msgIdx].content = `__STATUS__:${status}`;\r\n                updateChat(updatedChat);\r\n                setChats(getAllChats());\r\n              }\r\n            },\r\n          });\r\n        } else {\r\n          const chatResponse = await sendExternalChatMessage({\r\n            prompt: promptWithFiles,\r\n            model,\r\n            stream: false,\r\n            documentIds,\r\n            specificChunks,\r\n            onStatusChange: (status: any) => {\r\n              // Update bot message with status",
+      "tokens": 0,
+      "firstFile": {
+        "name": "frontend\\src\\components\\ChatInterface.tsx",
+        "start": 483,
+        "end": 511,
+        "startLoc": {
+          "line": 483,
+          "column": 15,
+          "position": 5909
+        },
+        "endLoc": {
+          "line": 511,
+          "column": 34,
+          "position": 6230
+        }
+      },
+      "secondFile": {
+        "name": "frontend\\src\\components\\chat\\ChatInterface.tsx",
+        "start": 291,
+        "end": 319,
+        "startLoc": {
+          "line": 291,
+          "column": 15,
+          "position": 3504
+        },
+        "endLoc": {
+          "line": 319,
+          "column": 6,
+          "position": 3825
+        }
+      }
+    },
+    {
+      "format": "tsx",
+      "lines": 11,
+      "fragment": "const updatedChat = getChatById(chatId!);\r\n              if (!updatedChat) return;\r\n              const msgIdx = updatedChat.message_objects.findIndex(m => m.message_id === botMsgId);\r\n              if (msgIdx !== -1) {\r\n                updatedChat.message_objects[msgIdx].content = `__STATUS__:${status}`;\r\n                updateChat(updatedChat);\r\n                setChats(getAllChats());\r\n              }\r\n            },\r\n          });\r\n          // Update bot message in chat",
+      "tokens": 0,
+      "firstFile": {
+        "name": "frontend\\src\\components\\ChatInterface.tsx",
+        "start": 512,
+        "end": 522,
+        "startLoc": {
+          "line": 512,
+          "column": 15,
+          "position": 6234
+        },
+        "endLoc": {
+          "line": 522,
+          "column": 30,
+          "position": 6357
+        }
+      },
+      "secondFile": {
+        "name": "frontend\\src\\components\\chat\\ChatInterface.tsx",
+        "start": 291,
+        "end": 311,
+        "startLoc": {
+          "line": 291,
+          "column": 15,
+          "position": 3504
+        },
+        "endLoc": {
+          "line": 311,
+          "column": 2,
+          "position": 3756
+        }
+      }
+    },
+    {
+      "format": "tsx",
+      "lines": 15,
+      "fragment": "const updatedChat = getChatById(chatId!);\r\n          if (updatedChat) {\r\n            const msgIdx = updatedChat.message_objects.findIndex(m => m.message_id === botMsgId);\r\n            if (msgIdx !== -1) {\r\n              updatedChat.message_objects[msgIdx].content = chatResponse.response;\r\n              updatedChat.message_objects[msgIdx].citations = chatResponse.citations || [];\r\n              updateChat(updatedChat);\r\n              setChats(getAllChats());\r\n            }\r\n          }\r\n        }\r\n      }\r\n    } catch (error) {\r\n      toast.error(error instanceof Error ? error.message : \"Something went wrong\");\r\n      // Optionally remove last user message on error",
+      "tokens": 0,
+      "firstFile": {
+        "name": "frontend\\src\\components\\ChatInterface.tsx",
+        "start": 523,
+        "end": 537,
+        "startLoc": {
+          "line": 523,
+          "column": 11,
+          "position": 6361
+        },
+        "endLoc": {
+          "line": 537,
+          "column": 48,
+          "position": 6540
+        }
+      },
+      "secondFile": {
+        "name": "frontend\\src\\components\\chat\\ChatInterface.tsx",
+        "start": 329,
+        "end": 343,
+        "startLoc": {
+          "line": 329,
+          "column": 11,
+          "position": 3948
+        },
+        "endLoc": {
+          "line": 343,
+          "column": 2,
+          "position": 4127
+        }
+      }
+    },
+    {
+      "format": "tsx",
+      "lines": 19,
+      "fragment": "}\r\n  };\r\n\r\n  const getAllAttachedFiles = () => {\r\n    if (!currentChatId) return [];\r\n    const chat = getChatById(currentChatId);\r\n    if (!chat) return [];\r\n    return chat.message_objects.reduce((acc: FileWithUrl[], msg) => {\r\n      if (msg.files) {\r\n        acc.push(...msg.files);\r\n      }\r\n      return acc;\r\n    }, []);\r\n  };\r\n  return (\r\n    <div className=\"flex w-full h-full\">\r\n      {/* Processing Dialog */}\r\n      <Dialog open={showProcessingDialog} onOpenChange={setShowProcessingDialog}>\r\n        <DialogContent className=\"sm:max-w-[600px]\">",
+      "tokens": 0,
+      "firstFile": {
+        "name": "frontend\\src\\components\\ChatInterface.tsx",
+        "start": 538,
+        "end": 556,
+        "startLoc": {
+          "line": 538,
+          "column": 5,
+          "position": 6544
+        },
+        "endLoc": {
+          "line": 556,
+          "column": 2,
+          "position": 6741
+        }
+      },
+      "secondFile": {
+        "name": "frontend\\src\\components\\chat\\ChatInterface.tsx",
+        "start": 343,
+        "end": 362,
+        "startLoc": {
+          "line": 343,
+          "column": 5,
+          "position": 4127
+        },
+        "endLoc": {
+          "line": 362,
+          "column": 2,
+          "position": 4332
+        }
+      }
+    },
+    {
+      "format": "tsx",
+      "lines": 16,
+      "fragment": ">\r\n          <DialogHeader>\r\n            <DialogTitle className=\"flex items-center gap-2\">\r\n              {processingFiles.every(f => f.status === 'done' || f.status === 'failed') ? (\r\n                <>\r\n                  <span className=\"text-green-600\">✓</span>\r\n                  Processing Complete\r\n                </>\r\n              ) : (\r\n                <>\r\n                  <div className=\"animate-spin rounded-full h-4 w-4 border-b-2 border-primary\" />\r\n                  Processing {processingFiles.length} {processingFiles.length === 1 ? 'Document' : 'Documents'}\r\n                </>\r\n              )}\r\n            </DialogTitle>\r\n            <",
+      "tokens": 0,
+      "firstFile": {
+        "name": "frontend\\src\\components\\ChatInterface.tsx",
+        "start": 556,
+        "end": 571,
+        "startLoc": {
+          "line": 556,
+          "column": 2,
+          "position": 6741
+        },
+        "endLoc": {
+          "line": 571,
+          "column": 2,
+          "position": 6901
+        }
+      },
+      "secondFile": {
+        "name": "frontend\\src\\components\\chat\\ChatInterface.tsx",
+        "start": 362,
+        "end": 377,
+        "startLoc": {
+          "line": 362,
+          "column": 2,
+          "position": 4347
+        },
+        "endLoc": {
+          "line": 377,
+          "column": 3,
+          "position": 4507
+        }
+      }
+    },
+    {
+      "format": "tsx",
+      "lines": 30,
+      "fragment": ">\r\n          </DialogHeader>\r\n          <ProcessingBanner \r\n            files={processingFiles}\r\n            onDismiss={() => {\r\n              setShowProcessingDialog(false);\r\n              setProcessingFiles([]);\r\n              setIsProcessing(false);\r\n            }}\r\n          />\r\n        </DialogContent>\r\n      </Dialog>\r\n\r\n      {/* Blocking Overlay */}\r\n      {isProcessing && (\r\n        <div className=\"fixed inset-0 bg-background/80 backdrop-blur-sm z-40\" />\r\n      )}\r\n      \r\n      <ChatSidebar\r\n        isSidebarOpen={isSidebarOpen}\r\n        setIsSidebarOpen={setIsSidebarOpen}\r\n        chats={chats}\r\n        currentChatId={currentChatId}\r\n        onChatSelect={handleSidebarChatSelect}\r\n        onNewChatStart={handleSidebarNewChat}\r\n        onChatsUpdate={() => setChats(getAllChats())}\r\n        stream={stream}\r\n        setStream={setStream}\r\n        onPreviewFile={(f) => setPreviewFile(f)}\r\n        ",
+      "tokens": 0,
+      "firstFile": {
+        "name": "frontend\\src\\components\\ChatInterface.tsx",
+        "start": 582,
+        "end": 611,
+        "startLoc": {
+          "line": 582,
+          "column": 7,
+          "position": 6973
+        },
+        "endLoc": {
+          "line": 611,
+          "column": 9,
+          "position": 7158
+        }
+      },
+      "secondFile": {
+        "name": "frontend\\src\\components\\chat\\ChatInterface.tsx",
+        "start": 376,
+        "end": 405,
+        "startLoc": {
+          "line": 376,
+          "column": 12,
+          "position": 4503
+        },
+        "endLoc": {
+          "line": 405,
+          "column": 7,
+          "position": 4688
+        }
+      }
+    },
+    {
+      "format": "tsx",
+      "lines": 15,
+      "fragment": "(\r\n                    <div className=\"flex flex-col items-center justify-center h-[calc(100vh-10rem)] p-4\">\r\n                      <div className=\"max-w-2xl w-full space-y-6\">\r\n                        <div className=\"text-center space-y-2\">\r\n                          <MessageSquare className=\"h-12 w-12 text-primary mx-auto mb-2\" />\r\n                          <h2 className=\"text-2xl font-semibold\">\r\n                            Document Summarizer\r\n                          </h2>\r\n                          <p className=\"text-sm text-muted-foreground\">\r\n                            Upload documents and get intelligent summaries, analysis, and answers to your questions. Perfect for research assistance and beyond.\r\n                          </p>\r\n                        </div>\r\n                      </div>\r\n                    </div>\r\n                  ) :",
+      "tokens": 0,
+      "firstFile": {
+        "name": "frontend\\src\\components\\ChatInterface.tsx",
+        "start": 625,
+        "end": 639,
+        "startLoc": {
+          "line": 625,
+          "column": 2,
+          "position": 7307
+        },
+        "endLoc": {
+          "line": 639,
+          "column": 2,
+          "position": 7464
+        }
+      },
+      "secondFile": {
+        "name": "frontend\\src\\components\\chat\\ChatEmptyState.tsx",
+        "start": 7,
+        "end": 20,
+        "startLoc": {
+          "line": 7,
+          "column": 2,
+          "position": 46
+        },
+        "endLoc": {
+          "line": 20,
+          "column": 2,
+          "position": 198
+        }
+      }
+    },
+    {
+      "format": "tsx",
+      "lines": 13,
+      "fragment": "|| \"U\")[0].toUpperCase()}\r\n                                </span>\r\n                              </div>\r\n                            )\r\n                          ) : (\r\n                            <div className=\"h-8 w-8 rounded-full bg-primary/10 flex items-center justify-center\">\r\n                              <Bot className=\"h-5 w-5 text-primary\" />\r\n                            </div>\r\n                          )}\r\n\r\n                          {/* Message Content */}\r\n                          <div\r\n                            ",
+      "tokens": 0,
+      "firstFile": {
+        "name": "frontend\\src\\components\\ChatInterface.tsx",
+        "start": 668,
+        "end": 680,
+        "startLoc": {
+          "line": 668,
+          "column": 2,
+          "position": 7714
+        },
+        "endLoc": {
+          "line": 680,
+          "column": 29,
+          "position": 7799
+        }
+      },
+      "secondFile": {
+        "name": "frontend\\src\\components\\chat\\ChatMessage.tsx",
+        "start": 58,
+        "end": 69,
+        "startLoc": {
+          "line": 58,
+          "column": 2,
+          "position": 526
+        },
+        "endLoc": {
+          "line": 69,
+          "column": 2,
+          "position": 611
+        }
+      }
+    },
+    {
+      "format": "tsx",
+      "lines": 33,
+      "fragment": ">\r\n                                  {showPulse ? (\r\n                                    <span className=\"flex items-center gap-2\">\r\n                                      <span className=\"text-xs text-muted-foreground\">Waiting for response</span>\r\n                                      <PulseLoader />\r\n                                    </span>\r\n                                  ) : message.author === \"ai\" && message.content.startsWith(\"__STATUS__:\") ? (\r\n                                    <span className=\"flex items-center gap-2\">\r\n                                      <PulseLoader />\r\n                                      <span className=\"text-sm text-muted-foreground\">\r\n                                        {message.content.replace(\"__STATUS__:\", \"\")}\r\n                                      </span>\r\n                                    </span>\r\n                                  ) : message.author === \"ai\" ? (\r\n                                    <MarkdownRenderer content={message.content} />\r\n                                  ) : (\r\n                                    message.content\r\n                                  )}\r\n                                </div>\r\n                                {message.author === \"ai\" && message.citations && message.citations.length > 0 && (\r\n                                  <div className=\"mt-3 pt-3 border-t border-border/40\">\r\n                                    <div className=\"text-xs text-muted-foreground mb-2\">Sources used:</div>\r\n                                    <div className=\"flex flex-wrap gap-2\">\r\n                                      {message.citations.map((citation, idx) => (\r\n                                        <CitationCard key={idx} citation={citation} />\r\n                                      ))}\r\n                                    </div>\r\n                                  </div>\r\n                                )}\r\n                              </div>\r\n                            </Card>\r\n                            <div\r\n                              ",
+      "tokens": 0,
+      "firstFile": {
+        "name": "frontend\\src\\components\\ChatInterface.tsx",
+        "start": 713,
+        "end": 745,
+        "startLoc": {
+          "line": 713,
+          "column": 33,
+          "position": 8074
+        },
+        "endLoc": {
+          "line": 745,
+          "column": 31,
+          "position": 8430
+        }
+      },
+      "secondFile": {
+        "name": "frontend\\src\\components\\chat\\ChatMessage.tsx",
+        "start": 101,
+        "end": 133,
+        "startLoc": {
+          "line": 101,
+          "column": 13,
+          "position": 876
+        },
+        "endLoc": {
+          "line": 133,
+          "column": 11,
+          "position": 1232
+        }
+      }
+    },
+    {
+      "format": "tsx",
+      "lines": 43,
+      "fragment": "\r\n              disabled={isProcessing}\r\n              selectedChunksInfo={\r\n                Object.keys(selectedChunks).length > 0\r\n                  ? `${Object.values(selectedChunks).reduce((sum, arr) => sum + arr.length, 0)} chunks selected`\r\n                  : undefined\r\n              }\r\n            />\r\n          </div>\r\n        </div>\r\n      </main>\r\n\r\n      {previewFile && (\r\n        <FilePreview\r\n          file={previewFile}\r\n          onClose={() => setPreviewFile(null)}\r\n          onViewChunks={(docId, docName) => {\r\n            setChunkViewerDocId(docId);\r\n            setChunkViewerDocName(docName);\r\n            setShowChunkViewer(true);\r\n          }}\r\n        />\r\n      )}\r\n\r\n      <ChunkViewer\r\n        isOpen={showChunkViewer}\r\n        onClose={() => setShowChunkViewer(false)}\r\n        documentId={chunkViewerDocId}\r\n        documentName={chunkViewerDocName}\r\n        onApplySelection={(chunkIds) => {\r\n          setSelectedChunks(prev => ({\r\n            ...prev,\r\n            [chunkViewerDocId]: chunkIds\r\n          }));\r\n          toast.success(`Selected ${chunkIds.length} chunks from ${chunkViewerDocName}`, {\r\n            description: 'These chunks will be used in your next query',\r\n            duration: 3000,\r\n          });\r\n        }}\r\n      />\r\n\r\n      <Dialog open={showAttachments} onOpenChange={setShowAttachments}>\r\n        <DialogContent ",
+      "tokens": 0,
+      "firstFile": {
+        "name": "frontend\\src\\components\\ChatInterface.tsx",
+        "start": 811,
+        "end": 853,
+        "startLoc": {
+          "line": 811,
+          "column": 2,
+          "position": 8895
+        },
+        "endLoc": {
+          "line": 853,
+          "column": 2,
+          "position": 9220
+        }
+      },
+      "secondFile": {
+        "name": "frontend\\src\\components\\chat\\ChatInterface.tsx",
+        "start": 487,
+        "end": 529,
+        "startLoc": {
+          "line": 487,
+          "column": 2,
+          "position": 5455
+        },
+        "endLoc": {
+          "line": 529,
+          "column": 2,
+          "position": 5780
+        }
+      }
+    },
+    {
+      "format": "tsx",
+      "lines": 9,
+      "fragment": "\">\r\n            <FileList\r\n              files={(currentChatId && getChatById(currentChatId)?.fileWithUrl?.length)\r\n                ? (getChatById(currentChatId)!.fileWithUrl)\r\n                : getAllAttachedFiles()}\r\n              onRemove={() => {}}\r\n              previewFile={setPreviewFile}\r\n              onViewChunks={(docId, docName) => {\r\n                console",
+      "tokens": 0,
+      "firstFile": {
+        "name": "frontend\\src\\components\\ChatInterface.tsx",
+        "start": 857,
+        "end": 865,
+        "startLoc": {
+          "line": 857,
+          "column": 28,
+          "position": 9261
+        },
+        "endLoc": {
+          "line": 865,
+          "column": 8,
+          "position": 9354
+        }
+      },
+      "secondFile": {
+        "name": "frontend\\src\\components\\chat\\ChatInterface.tsx",
+        "start": 533,
+        "end": 541,
+        "startLoc": {
+          "line": 533,
+          "column": 34,
+          "position": 5815
+        },
+        "endLoc": {
+          "line": 541,
+          "column": 20,
+          "position": 5908
+        }
+      }
+    },
+    {
+      "format": "tsx",
+      "lines": 23,
+      "fragment": ");\r\n              }}\r\n              onToggleEnabled={(index, enabled) => {\r\n                if (currentChatId) {\r\n                  const chat = getChatById(currentChatId);\r\n                  if (chat && chat.fileWithUrl) {\r\n                    chat.fileWithUrl[index].enabled = enabled;\r\n                    updateChat(chat);\r\n                    setFiles(prev => prev.map((f, i) => \r\n                      f.chatId === currentChatId && f.key === chat.fileWithUrl[index].key\r\n                        ? { ...f, enabled }\r\n                        : f\r\n                    ));\r\n                  }\r\n                }\r\n              }}\r\n            />\r\n          </div>\r\n        </DialogContent>\r\n      </Dialog>\r\n    </div>\r\n  );\r\n}",
+      "tokens": 0,
+      "firstFile": {
+        "name": "frontend\\src\\components\\ChatInterface.tsx",
+        "start": 870,
+        "end": 892,
+        "startLoc": {
+          "line": 870,
+          "column": 48,
+          "position": 9411
+        },
+        "endLoc": {
+          "line": 892,
+          "column": 2,
+          "position": 9621
+        }
+      },
+      "secondFile": {
+        "name": "frontend\\src\\components\\chat\\ChatInterface.tsx",
+        "start": 543,
+        "end": 565,
+        "startLoc": {
+          "line": 543,
+          "column": 5,
+          "position": 5927
+        },
+        "endLoc": {
+          "line": 565,
+          "column": 2,
+          "position": 6137
+        }
+      }
+    },
+    {
+      "format": "tsx",
+      "lines": 13,
+      "fragment": "<Card \r\n              className={`cursor-pointer transition-all ${\r\n                backendMode === \"custom\" \r\n                  ? \"border-primary ring-2 ring-primary/20\" \r\n                  : \"hover:border-primary/50\"\r\n              }`}\r\n              onClick={() => setBackendMode(\"custom\")}\r\n            >\r\n              <CardContent className=\"p-4\">\r\n                <div className=\"flex items-start justify-between\">\r\n                  <div className=\"space-y-1\">\r\n                    <div className=\"flex items-center gap-2\">\r\n                      <h4 className=\"font-semibold text-sm\">Self",
+      "tokens": 0,
+      "firstFile": {
+        "name": "frontend\\src\\components\\BackendConfig.tsx",
+        "start": 137,
+        "end": 149,
+        "startLoc": {
+          "line": 137,
+          "column": 13,
+          "position": 1424
+        },
+        "endLoc": {
+          "line": 149,
+          "column": 5,
+          "position": 1524
+        }
+      },
+      "secondFile": {
+        "name": "frontend\\src\\components\\BackendConfig.tsx",
+        "start": 110,
+        "end": 122,
+        "startLoc": {
+          "line": 110,
+          "column": 13,
+          "position": 1184
+        },
+        "endLoc": {
+          "line": 122,
+          "column": 4,
+          "position": 1284
+        }
+      }
+    },
+    {
+      "format": "tsx",
+      "lines": 11,
+      "fragment": "<Card className=\"shadow-lg border-gray-100 dark:border-gray-800\">\r\n            <CardHeader><CardTitle className=\"text-base\">Quick start</CardTitle><CardDescription>Get productive in a few clicks</CardDescription></CardHeader>\r\n            <CardContent className=\"grid gap-4\">\r\n              <div className=\"flex items-start gap-3\"><Check className=\"w-5 h-5 text-green-500 mt-1\" /><div><p className=\"font-medium\">100% Local Processing</p><p className=\"text-sm text-muted-foreground\">All AI runs on your machine via Ollama. Zero cloud dependencies.</p></div></div>\r\n              <div className=\"flex items-start gap-3\"><Check className=\"w-5 h-5 text-green-500 mt-1\" /><div><p className=\"font-medium\">Scale to long documents</p><p className=\"text-sm text-muted-foreground\">Chunking and map-reduce preserve document structure.</p></div></div>\r\n              <div className=\"flex justify-end mt-2\"><a href=\"#signin\"><Button size=\"sm\">Create account</Button></a></div>\r\n            </CardContent>\r\n          </Card>\r\n        </div>\r\n      </section>\r\n      <section",
+      "tokens": 0,
+      "firstFile": {
+        "name": "frontend\\src\\app\\page.tsx",
+        "start": 39,
+        "end": 49,
+        "startLoc": {
+          "line": 39,
+          "column": 11,
+          "position": 756
+        },
+        "endLoc": {
+          "line": 49,
+          "column": 8,
+          "position": 1048
+        }
+      },
+      "secondFile": {
+        "name": "frontend\\src\\components\\HomePage.tsx",
+        "start": 113,
+        "end": 465,
+        "startLoc": {
+          "line": 113,
+          "column": 11,
+          "position": 952
+        },
+        "endLoc": {
+          "line": 465,
+          "column": 4,
+          "position": 4010
+        }
+      }
+    },
+    {
+      "format": "tsx",
+      "lines": 13,
+      "fragment": ">\r\n        <div className=\"mb-8 max-w-xl\"><h2 className=\"text-2xl font-semibold tracking-tight md:text-3xl\">Access your private workspace</h2><p className=\"text-muted-foreground\">Sign in to start processing documents locally on your machine. All processing stays private.</p></div>\r\n        <div className=\"grid grid-cols-1 gap-4 md:grid-cols-2 items-start\">\r\n          <Card className=\"p-0 overflow-hidden\">\r\n            <div className=\"p-4\">\r\n              <div className=\"flex items-center justify-between gap-4\"><div><h3 className=\"text-base font-semibold\">Welcome</h3><p className=\"text-sm text-muted-foreground\">Continue with your account</p></div></div>\r\n              <div className=\"mt-4 space-y-3\">\r\n                <div className=\"flex items-start gap-3\"><Rocket className=\"w-4 h-4 text-green-500 mt-1 flex-shrink-0\" /><div className=\"text-sm\"><p className=\"font-medium\">Runs Locally</p><p className=\"text-xs text-muted-foreground\">Powered by Ollama on your hardware</p></div></div>\r\n                <div className=\"flex items-start gap-3\"><Globe className=\"w-4 h-4 text-green-500 mt-1 flex-shrink-0\" /><div className=\"text-sm\"><p className=\"font-medium\">Universal Access</p><p className=\"text-xs text-muted-foreground\">Works with any document format</p></div></div>\r\n                <div className=\"flex items-start gap-3\"><SlidersHorizontal className=\"w-4 h-4 text-green-500 mt-1 flex-shrink-0\" /><div className=\"text-sm\"><p className=\"font-medium\">Open Source Models</p><p className=\"text-xs text-muted-foreground\">Use Mistral, Llama, or any Ollama model</p></div></div>\r\n              </div>\r\n              <div className=\"mt-6 flex flex-col sm:flex-row gap-3\">\r\n                <Dialog><DialogTrigger asChild><Button ",
+      "tokens": 0,
+      "firstFile": {
+        "name": "frontend\\src\\app\\page.tsx",
+        "start": 49,
+        "end": 61,
+        "startLoc": {
+          "line": 49,
+          "column": 2,
+          "position": 1088
+        },
+        "endLoc": {
+          "line": 61,
+          "column": 2,
+          "position": 1525
+        }
+      },
+      "secondFile": {
+        "name": "frontend\\src\\components\\HomePage.tsx",
+        "start": 157,
+        "end": 214,
+        "startLoc": {
+          "line": 157,
+          "column": 7,
+          "position": 1375
+        },
+        "endLoc": {
+          "line": 214,
+          "column": 23,
+          "position": 1940
+        }
+      }
+    },
+    {
+      "format": "tsx",
+      "lines": 9,
+      "fragment": "}} /></div>\r\n                  </DialogContent>\r\n                </Dialog>\r\n              </div>\r\n            </div>\r\n          </Card>\r\n          <Card className=\"p-4 mb-0\"><CardHeader className=\"p-0 mb-0\"><CardTitle className=\"text-base\">Privacy-First Benefits</CardTitle><CardDescription>Why go local matters</CardDescription></CardHeader>\r\n            <CardContent className=\"text-sm text-muted-foreground grid gap-3 mb-0\">\r\n              <div className=\"flex items-start gap-2\"><Badge ",
+      "tokens": 0,
+      "firstFile": {
+        "name": "frontend\\src\\app\\page.tsx",
+        "start": 70,
+        "end": 78,
+        "startLoc": {
+          "line": 70,
+          "column": 2,
+          "position": 1776
+        },
+        "endLoc": {
+          "line": 78,
+          "column": 2,
+          "position": 1894
+        }
+      },
+      "secondFile": {
+        "name": "frontend\\src\\components\\HomePage.tsx",
+        "start": 263,
+        "end": 282,
+        "startLoc": {
+          "line": 263,
+          "column": 25,
+          "position": 2284
+        },
+        "endLoc": {
+          "line": 282,
+          "column": 19,
+          "position": 2430
+        }
+      }
+    },
+    {
+      "format": "tsx",
+      "lines": 7,
+      "fragment": ">\r\n            <AccordionItem value=\"item-1\"><AccordionTrigger className=\"rounded-md border px-4 py-3 text-left\">How does local processing work?</AccordionTrigger><AccordionContent className=\"text-sm text-muted-foreground p-4 border-x border-b rounded-b-md\">We use Ollama to run open-source AI models (Mistral, Llama, Phi, etc.) directly on your machine. Documents are processed entirely locally with no cloud uploads. The AI runs on your CPU/GPU using optimized inference engines for fast results.</AccordionContent></AccordionItem>\r\n            <AccordionItem value=\"item-2\"><AccordionTrigger className=\"rounded-md border px-4 py-3 text-left\">What reduces hallucinations?</AccordionTrigger><AccordionContent className=\"text-sm text-muted-foreground p-4 border-x border-b rounded-b-md\">A multi-stage verification pass checks entities and claims against the source document, with optional knowledge graph integration to validate facts. We also use confidence scoring and uncertainty quantification to flag potentially unreliable content before final output.</AccordionContent></AccordionItem>\r\n            <AccordionItem value=\"item-3\"><AccordionTrigger className=\"rounded-md border px-4 py-3 text-left\">How fast is the processing?</AccordionTrigger><AccordionContent className=\"text-sm text-muted-foreground p-4 border-x border-b rounded-b-md\">Processing times vary by document length and complexity. Typical documents (10-50 pages) are summarized in 10-30 seconds. Very long documents (100+ pages) may take 2-5 minutes due to thorough analysis and verification steps.</AccordionContent></AccordionItem>\r\n            <AccordionItem value=\"item-4\"><AccordionTrigger className=\"rounded-md border px-4 py-3 text-left\">What file formats are supported?</AccordionTrigger><AccordionContent className=\"text-sm text-muted-foreground p-4 border-x border-b rounded-b-md\">We support PDF, Word (.docx), plain text, HTML, Markdown, and structured formats like JSON/XML. Image files are not summarized, but you can attach images in chat and ask questions about them.</AccordionContent></AccordionItem>\r\n          </Accordion>\r\n          <Accordion ",
+      "tokens": 0,
+      "firstFile": {
+        "name": "frontend\\src\\app\\page.tsx",
+        "start": 91,
+        "end": 97,
+        "startLoc": {
+          "line": 91,
+          "column": 2,
+          "position": 2449
+        },
+        "endLoc": {
+          "line": 97,
+          "column": 2,
+          "position": 2970
+        }
+      },
+      "secondFile": {
+        "name": "frontend\\src\\components\\HomePage.tsx",
+        "start": 471,
+        "end": 519,
+        "startLoc": {
+          "line": 471,
+          "column": 11,
+          "position": 4044
+        },
+        "endLoc": {
+          "line": 519,
+          "column": 13,
+          "position": 4675
+        }
+      }
+    },
+    {
+      "format": "tsx",
+      "lines": 9,
+      "fragment": ">\r\n            <AccordionItem value=\"item-5\"><AccordionTrigger className=\"rounded-md border px-4 py-3 text-left\">Do you support multimodal inputs?</AccordionTrigger><AccordionContent className=\"text-sm text-muted-foreground p-4 border-x border-b rounded-b-md\">Partially. Document summarization is text-only. For images, you can attach them in chat and ask questions (Q&A) about the content. Audio/video transcripts can be summarized if provided as text.</AccordionContent></AccordionItem>\r\n            <AccordionItem value=\"item-6\"><AccordionTrigger className=\"rounded-md border px-4 py-3 text-left\">How is quality evaluated?</AccordionTrigger><AccordionContent className=\"text-sm text-muted-foreground p-4 border-x border-b rounded-b-md\">We apply multi-criteria evaluation beyond n-gram overlap, measuring semantics, faithfulness, coherence, and completeness. Hybrid Human-AI reviews are supported, with A/B testing capabilities for comparing different summarization approaches.</AccordionContent></AccordionItem>\r\n            <AccordionItem value=\"item-7\"><AccordionTrigger className=\"rounded-md border px-4 py-3 text-left\">Is there an API available?</AccordionTrigger><AccordionContent className=\"text-sm text-muted-foreground p-4 border-x border-b rounded-b-md\">Yes, we provide RESTful APIs with comprehensive documentation, SDKs for popular languages (Python, JavaScript, Java), webhook support for async processing, and batch processing capabilities for high-volume use cases.</AccordionContent></AccordionItem>\r\n            <AccordionItem value=\"item-8\"><AccordionTrigger className=\"rounded-md border px-4 py-3 text-left\">What about data privacy and security?</AccordionTrigger><AccordionContent className=\"text-sm text-muted-foreground p-4 border-x border-b rounded-b-md\">All documents are encrypted in transit and at rest using AES-256. We offer on-premise deployment options, GDPR compliance, and data retention policies. Documents are never stored longer than necessary for processing.</AccordionContent></AccordionItem>\r\n          </Accordion>\r\n        </div>\r\n      </section>\r\n      <",
+      "tokens": 0,
+      "firstFile": {
+        "name": "frontend\\src\\app\\page.tsx",
+        "start": 97,
+        "end": 105,
+        "startLoc": {
+          "line": 97,
+          "column": 2,
+          "position": 2990
+        },
+        "endLoc": {
+          "line": 105,
+          "column": 2,
+          "position": 3481
+        }
+      },
+      "secondFile": {
+        "name": "frontend\\src\\components\\HomePage.tsx",
+        "start": 523,
+        "end": 572,
+        "startLoc": {
+          "line": 523,
+          "column": 11,
+          "position": 4696
+        },
+        "endLoc": {
+          "line": 572,
+          "column": 2,
+          "position": 5297
+        }
+      }
+    }
+  ]
+}

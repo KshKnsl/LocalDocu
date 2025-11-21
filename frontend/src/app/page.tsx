@@ -16,9 +16,6 @@ export default function Home() {
   const [mounted, setMounted] = useState(false);
   const router = useRouter();
   useEffect(() => { const t = setTimeout(() => setMounted(true), 10); return () => clearTimeout(t); }, []);
-  useEffect(() => {
-    router.push('/spaces');
-  }, []);
 
   return (
     <main className="w-full flex-1 flex flex-col items-center justify-center bg-background relative">

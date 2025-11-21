@@ -34,6 +34,11 @@ jobs:
     - name: Build executable
       run: |
         pyinstaller --onedir --name backend-unified frontend/public/backend-unified.py
+    - name: Clean up build files
+      run: |
+        rm -rf build/
+        rm -rf frontend/ ai-backend/ chroma_store/ image_store/ progress-service/ proxy-backend/
+        df -h
     - name: Create zip archive
       run: |
         cd dist

@@ -1,0 +1,701 @@
+<!DOCTYPE html><html lang="en"><head><meta charset="UTF-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><title>Copy/Paste Detector Report</title><link href="styles/tailwind.css" rel="stylesheet"><link href="styles/prism.css" rel="stylesheet"></head><body class="bg-gray-100"><header class="bg-white shadow py-4"><div class="container mx-auto px-4"><h1 class="text-3xl font-semibold text-gray-800">jscpd - copy/paste report</h1></div></header><main class="container mx-auto my-8 p-4 bg-white shadow rounded"><section class="mb-8" id="dashboard"><h2 class="text-2xl font-semibold text-gray-700 mb-4">Dashboard</h2><div class="grid grid-cols-4 gap-4"><div class="bg-blue-200 p-4 rounded text-center"><h3 class="text-lg font-semibold text-blue-800 mb-2">Total Files</h3><span class="text-4xl font-bold text-blue-800">111</span></div><div class="bg-green-200 p-4 rounded text-center"><h3 class="text-lg font-semibold text-green-800 mb-2">Total Lines of Code</h3><span class="text-4xl font-bold text-green-800">11451</span></div><div class="bg-yellow-200 p-4 rounded text-center"><h3 class="text-lg font-semibold text-yellow-800 mb-2">Number of Clones</h3><span class="text-4xl font-bold text-yellow-800">38</span></div><div class="bg-red-200 p-4 rounded text-center"><h3 class="text-lg font-semibold text-red-800 mb-2">Duplicated Lines</h3><span class="text-4xl font-bold text-red-800">692 (6.04%)</span></div></div></section><section class="mb-8" id="formats"><h2 class="text-2xl font-semibold text-gray-700 mb-4">Formats with Duplications</h2><table class="w-full table-auto"><thead><tr class="bg-gray-200 text-gray-600 uppercase text-sm leading-normal"><th class="py-3 px-6 text-left">Format</th><th class="py-3 px-6 text-left">Files</th><th class="py-3 px-6 text-left">Lines</th><th class="py-3 px-6 text-left">Clones</th><th class="py-3 px-6 text-left">Duplicated Lines</th><th class="py-3 px-6 text-left">Duplicated Tokens</th></tr></thead><tbody><tr class="bg-white border-b border-gray-200 text-gray-800 text-sm"><td class="py-3 px-6"><a class="text-blue-600 hover:underline" href="#typescript-clones">typescript</a></td><td class="py-3 px-6">20</td><td class="py-3 px-6">910</td><td class="py-3 px-6">2</td><td class="py-3 px-6">11</td><td class="py-3 px-6">201</td></tr><tr class="bg-white border-b border-gray-200 text-gray-800 text-sm"><td class="py-3 px-6"><a class="text-blue-600 hover:underline" href="#javascript-clones">javascript</a></td><td class="py-3 px-6">38</td><td class="py-3 px-6">2791</td><td class="py-3 px-6">2</td><td class="py-3 px-6">73</td><td class="py-3 px-6">530</td></tr><tr class="bg-white border-b border-gray-200 text-gray-800 text-sm"><td class="py-3 px-6"><a class="text-blue-600 hover:underline" href="#tsx-clones">tsx</a></td><td class="py-3 px-6">39</td><td class="py-3 px-6">5748</td><td class="py-3 px-6">34</td><td class="py-3 px-6">608</td><td class="py-3 px-6">8106</td></tr><tr class="bg-white border-b border-gray-200 text-gray-800 text-sm"><td class="py-3 px-6"><a class="text-blue-600 hover:underline" href="#css-clones">css</a></td><td class="py-3 px-6">1</td><td class="py-3 px-6">130</td><td class="py-3 px-6">0</td><td class="py-3 px-6">0</td><td class="py-3 px-6">0</td></tr><tr class="bg-white border-b border-gray-200 text-gray-800 text-sm"><td class="py-3 px-6"><a class="text-blue-600 hover:underline" href="#python-clones">python</a></td><td class="py-3 px-6">2</td><td class="py-3 px-6">1028</td><td class="py-3 px-6">0</td><td class="py-3 px-6">0</td><td class="py-3 px-6">0</td></tr><tr class="bg-white border-b border-gray-200 text-gray-800 text-sm"><td class="py-3 px-6"><a class="text-blue-600 hover:underline" href="#yaml-clones">yaml</a></td><td class="py-3 px-6">1</td><td class="py-3 px-6">77</td><td class="py-3 px-6">0</td><td class="py-3 px-6">0</td><td class="py-3 px-6">0</td></tr><tr class="bg-white border-b border-gray-200 text-gray-800 text-sm"><td class="py-3 px-6"><a class="text-blue-600 hover:underline" href="#json-clones">json</a></td><td class="py-3 px-6">7</td><td class="py-3 px-6">146</td><td class="py-3 px-6">0</td><td class="py-3 px-6">0</td><td class="py-3 px-6">0</td></tr><tr class="bg-white border-b border-gray-200 text-gray-800 text-sm"><td class="py-3 px-6"><a class="text-blue-600 hover:underline" href="#markdown-clones">markdown</a></td><td class="py-3 px-6">3</td><td class="py-3 px-6">621</td><td class="py-3 px-6">0</td><td class="py-3 px-6">0</td><td class="py-3 px-6">0</td></tr></tbody></table></section><section class="mb-8" id="txt-clones"><a name="typescript-clones"></a><h2 class="text-2xl font-semibold text-gray-700 mb-4">typescript</h2><div class="divide-y divide-gray-200 border-b-2"><div class="py-4"><p class="text-gray-600">frontend\src\components\chat\fileHandlers.ts (Line 163:2 - Line 169:19), frontend\src\components\chat\fileHandlers.ts (Line 154:2 - Line 160:20)</p><button class="bg-gray-500 text-white px-1 py-0.5 text-xs rounded focus:outline-none ml-2" id="expandBtn0" onclick="toggleCodeBlock('cloneGroup0', 'expandBtn0', 'collapseBtn0')">Show code</button><button class="bg-gray-500 text-white px-1 py-0.5 text-xs rounded focus:outline-none ml-2 hidden" id="collapseBtn0" onclick="toggleCodeBlock('cloneGroup0', 'expandBtn0', 'collapseBtn0')">Hide code</button><pre class="bg-gray-100 border border-gray-200 p-4 rounded mt-2 hidden" id="cloneGroup0"><code class="language-typescript text-sm text-gray-800">{
+      setProcessingFiles(prev =&gt; prev.map(pf =&gt; 
+        pf.name === uploadedFile.name
+          ? { ...pf, status: 'failed' as const }
+          : pf
+      ));
+      setFiles((prev) =&gt; prev.map(f =&gt; (f.key === uploadedFile.key &amp;&amp; f.chatId === chatId ? { ...f, processingStatus: 'failed', statusMessage: 'Processing error'</code></pre></div><div class="py-4"><p class="text-gray-600">frontend\src\lib\pdfExport.ts (Line 206:2 - Line 211:2), frontend\src\lib\pdfExport.ts (Line 52:3 - Line 57:2)</p><button class="bg-gray-500 text-white px-1 py-0.5 text-xs rounded focus:outline-none ml-2" id="expandBtn3" onclick="toggleCodeBlock('cloneGroup3', 'expandBtn3', 'collapseBtn3')">Show code</button><button class="bg-gray-500 text-white px-1 py-0.5 text-xs rounded focus:outline-none ml-2 hidden" id="collapseBtn3" onclick="toggleCodeBlock('cloneGroup3', 'expandBtn3', 'collapseBtn3')">Hide code</button><pre class="bg-gray-100 border border-gray-200 p-4 rounded mt-2 hidden" id="cloneGroup3"><code class="language-typescript text-sm text-gray-800">;
+    
+    pdf.setFontSize(10);
+    pdf.setFont('helvetica', 'normal');
+    pdf.text(`Date: ${new Date(chat.created_at).toLocaleDateString('en-US', { year: 'numeric', month: 'long', day: 'numeric' })}`, margin, yPosition);
+    yPosition += 5</code></pre></div><!-- Add more clone groups for .txt format as needed         // Add more clone groups for .txt format as needed--></div><a name="javascript-clones"></a><h2 class="text-2xl font-semibold text-gray-700 mb-4">javascript</h2><div class="divide-y divide-gray-200 border-b-2"><div class="py-4"><p class="text-gray-600">frontend\src\components\ChatInterface.tsx (Line 579:2 - Line 611:6), frontend\src\components\chat\ChatInterface.tsx (Line 362:2 - Line 436:2)</p><button class="bg-gray-500 text-white px-1 py-0.5 text-xs rounded focus:outline-none ml-2" id="expandBtn6" onclick="toggleCodeBlock('cloneGroup6', 'expandBtn6', 'collapseBtn6')">Show code</button><button class="bg-gray-500 text-white px-1 py-0.5 text-xs rounded focus:outline-none ml-2 hidden" id="collapseBtn6" onclick="toggleCodeBlock('cloneGroup6', 'expandBtn6', 'collapseBtn6')">Hide code</button><pre class="bg-gray-100 border border-gray-200 p-4 rounded mt-2 hidden" id="cloneGroup6"><code class="language-javascript text-sm text-gray-800">}
+            &gt;
+              &lt;X className=&quot;h-4 w-4&quot; /&gt;
+            &lt;/Button&gt;
+          &lt;/DialogHeader&gt;
+          &lt;ProcessingBanner 
+            files={processingFiles}
+            onDismiss={() =&gt; {
+              setShowProcessingDialog(false);
+              setProcessingFiles([]);
+              setIsProcessing(false);
+            }}
+          /&gt;
+        &lt;/DialogContent&gt;
+      &lt;/Dialog&gt;
+
+      {/* Blocking Overlay */}
+      {isProcessing &amp;&amp; (
+        &lt;div className=&quot;fixed inset-0 bg-background/80 backdrop-blur-sm z-40&quot; /&gt;
+      )}
+      
+      &lt;ChatSidebar
+        isSidebarOpen={isSidebarOpen}
+        setIsSidebarOpen={setIsSidebarOpen}
+        chats={chats}
+        currentChatId={currentChatId}
+        onChatSelect={handleSidebarChatSelect}
+        onNewChatStart={handleSidebarNewChat}
+        onChatsUpdate={() =&gt; setChats(getAllChats())}
+        stream={stream}
+        setStream={setStream}
+        onPreviewFile={(f) =&gt; setPreviewFile(f)}
+        onViewChunks={(docId</code></pre></div><div class="py-4"><p class="text-gray-600">frontend\src\components\ChatInterface.tsx (Line 811:9 - Line 852:2), frontend\src\components\chat\ChatInterface.tsx (Line 487:14 - Line 528:2)</p><button class="bg-gray-500 text-white px-1 py-0.5 text-xs rounded focus:outline-none ml-2" id="expandBtn7" onclick="toggleCodeBlock('cloneGroup7', 'expandBtn7', 'collapseBtn7')">Show code</button><button class="bg-gray-500 text-white px-1 py-0.5 text-xs rounded focus:outline-none ml-2 hidden" id="collapseBtn7" onclick="toggleCodeBlock('cloneGroup7', 'expandBtn7', 'collapseBtn7')">Hide code</button><pre class="bg-gray-100 border border-gray-200 p-4 rounded mt-2 hidden" id="cloneGroup7"><code class="language-javascript text-sm text-gray-800">}
+              disabled={isProcessing}
+              selectedChunksInfo={
+                Object.keys(selectedChunks).length &gt; 0
+                  ? `${Object.values(selectedChunks).reduce((sum, arr) =&gt; sum + arr.length, 0)} chunks selected`
+                  : undefined
+              }
+            /&gt;
+          &lt;/div&gt;
+        &lt;/div&gt;
+      &lt;/main&gt;
+
+      {previewFile &amp;&amp; (
+        &lt;FilePreview
+          file={previewFile}
+          onClose={() =&gt; setPreviewFile(null)}
+          onViewChunks={(docId, docName) =&gt; {
+            setChunkViewerDocId(docId);
+            setChunkViewerDocName(docName);
+            setShowChunkViewer(true);
+          }}
+        /&gt;
+      )}
+
+      &lt;ChunkViewer
+        isOpen={showChunkViewer}
+        onClose={() =&gt; setShowChunkViewer(false)}
+        documentId={chunkViewerDocId}
+        documentName={chunkViewerDocName}
+        onApplySelection={(chunkIds) =&gt; {
+          setSelectedChunks(prev =&gt; ({
+            ...prev,
+            [chunkViewerDocId]: chunkIds
+          }));
+          toast.success(`Selected ${chunkIds.length} chunks from ${chunkViewerDocName}`, {
+            description: 'These chunks will be used in your next query',
+            duration: 3000,
+          });
+        }}
+      /&gt;
+
+      &lt;Dialog open={showAttachments} onOpenChange={setShowAttachments}</code></pre></div><!-- Add more clone groups for .txt format as needed         // Add more clone groups for .txt format as needed--></div><a name="tsx-clones"></a><h2 class="text-2xl font-semibold text-gray-700 mb-4">tsx</h2><div class="divide-y divide-gray-200 border-b-2"><div class="py-4"><p class="text-gray-600">frontend\src\components\chat\ChatInterface.tsx (Line 317:15 - Line 329:6), frontend\src\components\chat\ChatInterface.tsx (Line 299:2 - Line 311:2)</p><button class="bg-gray-500 text-white px-1 py-0.5 text-xs rounded focus:outline-none ml-2" id="expandBtn1" onclick="toggleCodeBlock('cloneGroup1', 'expandBtn1', 'collapseBtn1')">Show code</button><button class="bg-gray-500 text-white px-1 py-0.5 text-xs rounded focus:outline-none ml-2 hidden" id="collapseBtn1" onclick="toggleCodeBlock('cloneGroup1', 'expandBtn1', 'collapseBtn1')">Hide code</button><pre class="bg-gray-100 border border-gray-200 p-4 rounded mt-2 hidden" id="cloneGroup1"><code class="language-tsx text-sm text-gray-800">,
+            onStatusChange: (status: any) =&gt; {
+              const updatedChat = getChatById(chatId!);
+              if (!updatedChat) return;
+              const msgIdx = updatedChat.message_objects.findIndex(m =&gt; m.message_id === botMsgId);
+              if (msgIdx !== -1) {
+                updatedChat.message_objects[msgIdx].content = `__STATUS__:${status}`;
+                updateChat(updatedChat);
+                setChats(getAllChats());
+              }
+            },
+          });
+          const</code></pre></div><div class="py-4"><p class="text-gray-600">frontend\src\app\spaces\page.tsx (Line 78:11 - Line 100:3), frontend\src\components\chat\ChatInterface.tsx (Line 406:7 - Line 429:2)</p><button class="bg-gray-500 text-white px-1 py-0.5 text-xs rounded focus:outline-none ml-2" id="expandBtn2" onclick="toggleCodeBlock('cloneGroup2', 'expandBtn2', 'collapseBtn2')">Show code</button><button class="bg-gray-500 text-white px-1 py-0.5 text-xs rounded focus:outline-none ml-2 hidden" id="collapseBtn2" onclick="toggleCodeBlock('cloneGroup2', 'expandBtn2', 'collapseBtn2')">Hide code</button><pre class="bg-gray-100 border border-gray-200 p-4 rounded mt-2 hidden" id="cloneGroup2"><code class="language-tsx text-sm text-gray-800">&lt;NewChatDialog
+            open={createDialogOpen}
+            onOpenChange={setCreateDialogOpen}
+            onCreate={async ({ chatId, title, description, models }) =&gt; {
+              if (isUsingCustomBackend()) {
+                toast.info(&quot;Pulling selected models...&quot;);
+                try {
+                  for (const model of models) {
+                    await loadModel(model);
+                  }
+                  toast.success(&quot;All models pulled successfully!&quot;);
+                } catch (error) {
+                  toast.error(&quot;Failed to pull some models. Please try again.&quot;);
+                  throw error; 
+                }
+              }
+              const now = new Date().toISOString();
+              addChat({ chat_id: chatId, title, created_at: now, fileWithUrl: [], message_objects: [], description, models });
+              setChats(getAllChats());
+              router.push(`/chat/${chatId}`);
+            }}
+          /&gt;
+          &lt;/</code></pre></div><div class="py-4"><p class="text-gray-600">frontend\src\components\HomePage.tsx (Line 384:15 - Line 404:8), frontend\src\components\HomePage.tsx (Line 70:13 - Line 90:6)</p><button class="bg-gray-500 text-white px-1 py-0.5 text-xs rounded focus:outline-none ml-2" id="expandBtn4" onclick="toggleCodeBlock('cloneGroup4', 'expandBtn4', 'collapseBtn4')">Show code</button><button class="bg-gray-500 text-white px-1 py-0.5 text-xs rounded focus:outline-none ml-2 hidden" id="collapseBtn4" onclick="toggleCodeBlock('cloneGroup4', 'expandBtn4', 'collapseBtn4')">Hide code</button><pre class="bg-gray-100 border border-gray-200 p-4 rounded mt-2 hidden" id="cloneGroup4"><code class="language-tsx text-sm text-gray-800">&gt;
+                &lt;Check className=&quot;w-4 h-4&quot; /&gt;
+                100% Private · Fully Local · Zero Cloud
+              &lt;/Badge&gt;
+              &lt;div className=&quot;flex items-center gap-3 mb-2&quot;&gt;
+                &lt;img src=&quot;/logo.png&quot; alt=&quot;Docu&quot; className=&quot;w-12 h-12&quot; /&gt;
+                &lt;span className=&quot;text-4xl font-bold&quot;&gt;Docu&lt;/span&gt;
+              &lt;/div&gt;
+              &lt;h1 className=&quot;text-balance text-3xl font-semibold tracking-tight md:text-5xl leading-tight&quot;&gt;
+                &lt;span className=&quot;block&quot;&gt;Your Documents Stay Private.&lt;/span&gt;
+                &lt;span className=&quot;block&quot;&gt;Runs Completely On Your Machine.&lt;/span&gt;
+              &lt;/h1&gt;
+              &lt;p className=&quot;max-w-xl text-pretty text-base text-muted-foreground md:text-lg&quot;&gt;
+                A privacy-first RAG assistant that runs entirely locally
+                using Ollama. No cloud uploads, no external APIs, no data leaks.
+                Everything processes on your own hardware with open-source AI
+                models you control.
+              &lt;/p&gt;
+
+              &lt;div className=&quot;flex flex-col sm:flex-row gap-3 w-full&quot;&gt;
+                &lt;a href=&quot;#signin</code></pre></div><div class="py-4"><p class="text-gray-600">frontend\src\components\HomePage.tsx (Line 421:19 - Line 465:2), frontend\src\components\HomePage.tsx (Line 107:17 - Line 150:2)</p><button class="bg-gray-500 text-white px-1 py-0.5 text-xs rounded focus:outline-none ml-2" id="expandBtn5" onclick="toggleCodeBlock('cloneGroup5', 'expandBtn5', 'collapseBtn5')">Show code</button><button class="bg-gray-500 text-white px-1 py-0.5 text-xs rounded focus:outline-none ml-2 hidden" id="collapseBtn5" onclick="toggleCodeBlock('cloneGroup5', 'expandBtn5', 'collapseBtn5')">Hide code</button><pre class="bg-gray-100 border border-gray-200 p-4 rounded mt-2 hidden" id="cloneGroup5"><code class="language-tsx text-sm text-gray-800">&lt;/Button&gt;
+                &lt;/a&gt;
+              &lt;/div&gt;
+            &lt;/div&gt;
+
+            {/* Right: CTA Card */}
+            &lt;Card className=&quot;shadow-lg border-gray-100 dark:border-gray-800&quot;&gt;
+              &lt;CardHeader&gt;
+                &lt;CardTitle className=&quot;text-base&quot;&gt;Quick start&lt;/CardTitle&gt;
+                &lt;CardDescription&gt;
+                  Get productive in a few clicks
+                &lt;/CardDescription&gt;
+              &lt;/CardHeader&gt;
+              &lt;CardContent className=&quot;grid gap-4&quot;&gt;
+                &lt;div className=&quot;flex items-start gap-3&quot;&gt;
+                  &lt;Check className=&quot;w-5 h-5 text-green-500 mt-1&quot; /&gt;
+                  &lt;div&gt;
+                    &lt;p className=&quot;font-medium&quot;&gt;100% Local Processing&lt;/p&gt;
+                    &lt;p className=&quot;text-sm text-muted-foreground&quot;&gt;
+                      All AI runs on your machine via Ollama. Zero cloud
+                      dependencies.
+                    &lt;/p&gt;
+                  &lt;/div&gt;
+                &lt;/div&gt;
+
+                &lt;div className=&quot;flex items-start gap-3&quot;&gt;
+                  &lt;Check className=&quot;w-5 h-5 text-green-500 mt-1&quot; /&gt;
+                  &lt;div&gt;
+                    &lt;p className=&quot;font-medium&quot;&gt;Scale to long documents&lt;/p&gt;
+                    &lt;p className=&quot;text-sm text-muted-foreground&quot;&gt;
+                      Chunking and map-reduce preserve document structure.
+                    &lt;/p&gt;
+                  &lt;/div&gt;
+                &lt;/div&gt;
+
+                &lt;div className=&quot;flex justify-end mt-2&quot;&gt;
+                  &lt;a href=&quot;#signin&quot;&gt;
+                    &lt;Button size=&quot;sm&quot;&gt;Create account&lt;/Button&gt;
+                  &lt;/a&gt;
+                &lt;/div&gt;
+              &lt;/CardContent&gt;
+            &lt;/Card&gt;
+          &lt;/div&gt;
+        &lt;/section&gt;
+        &lt;</code></pre></div><div class="py-4"><p class="text-gray-600">frontend\src\components\ChatInterface.tsx (Line 67:3 - Line 72:13), frontend\src\components\chat\ChatInterface.tsx (Line 53:3 - Line 58:17)</p><button class="bg-gray-500 text-white px-1 py-0.5 text-xs rounded focus:outline-none ml-2" id="expandBtn8" onclick="toggleCodeBlock('cloneGroup8', 'expandBtn8', 'collapseBtn8')">Show code</button><button class="bg-gray-500 text-white px-1 py-0.5 text-xs rounded focus:outline-none ml-2 hidden" id="collapseBtn8" onclick="toggleCodeBlock('cloneGroup8', 'expandBtn8', 'collapseBtn8')">Hide code</button><pre class="bg-gray-100 border border-gray-200 p-4 rounded mt-2 hidden" id="cloneGroup8"><code class="language-tsx text-sm text-gray-800">const [previewFile, setPreviewFile] = useState&lt;FileWithUrl | string | null&gt;(null);
+  const [showAttachments, setShowAttachments] = useState(false);
+  const [chats, setChats] = useState&lt;ChatDocument[]&gt;(() =&gt; getAllChats());
+  const [processingFiles, setProcessingFiles] = useState&lt;ProcessingFile[]&gt;([]);
+  const [showProcessingDialog, setShowProcessingDialog] = useState(false);
+  const [isProcessing</code></pre></div><div class="py-4"><p class="text-gray-600">frontend\src\components\ChatInterface.tsx (Line 71:24 - Line 84:10), frontend\src\components\chat\ChatInterface.tsx (Line 58:20 - Line 71:6)</p><button class="bg-gray-500 text-white px-1 py-0.5 text-xs rounded focus:outline-none ml-2" id="expandBtn9" onclick="toggleCodeBlock('cloneGroup9', 'expandBtn9', 'collapseBtn9')">Show code</button><button class="bg-gray-500 text-white px-1 py-0.5 text-xs rounded focus:outline-none ml-2 hidden" id="collapseBtn9" onclick="toggleCodeBlock('cloneGroup9', 'expandBtn9', 'collapseBtn9')">Hide code</button><pre class="bg-gray-100 border border-gray-200 p-4 rounded mt-2 hidden" id="cloneGroup9"><code class="language-tsx text-sm text-gray-800">] = useState(false);
+  const [isProcessing, setIsProcessing] = useState(false);
+  const [showChunkViewer, setShowChunkViewer] = useState(false);
+  const [chunkViewerDocId, setChunkViewerDocId] = useState&lt;string&gt;(&quot;&quot;);
+  const [chunkViewerDocName, setChunkViewerDocName] = useState&lt;string&gt;(&quot;&quot;);
+  const [selectedChunks, setSelectedChunks] = useState&lt;Record&lt;string, number[]&gt;&gt;({});
+  const [isSidebarOpen, setIsSidebarOpen] = useState(() =&gt; {
+    if (typeof window !== &quot;undefined&quot;) {
+      return window.innerWidth &gt;= 640;
+    }
+    return true;
+  });
+
+  useEffect</code></pre></div><div class="py-4"><p class="text-gray-600">frontend\src\components\ChatInterface.tsx (Line 82:2 - Line 100:5), frontend\src\components\chat\ChatInterface.tsx (Line 91:2 - Line 109:10)</p><button class="bg-gray-500 text-white px-1 py-0.5 text-xs rounded focus:outline-none ml-2" id="expandBtn10" onclick="toggleCodeBlock('cloneGroup10', 'expandBtn10', 'collapseBtn10')">Show code</button><button class="bg-gray-500 text-white px-1 py-0.5 text-xs rounded focus:outline-none ml-2 hidden" id="collapseBtn10" onclick="toggleCodeBlock('cloneGroup10', 'expandBtn10', 'collapseBtn10')">Hide code</button><pre class="bg-gray-100 border border-gray-200 p-4 rounded mt-2 hidden" id="cloneGroup10"><code class="language-tsx text-sm text-gray-800">);
+
+  useEffect(() =&gt; {
+    const allComplete = processingFiles.length &gt; 0 &amp;&amp; 
+      processingFiles.every(f =&gt; f.status === 'done' || f.status === 'failed');
+    
+    if (allComplete &amp;&amp; showProcessingDialog) {
+      const timer = setTimeout(() =&gt; {
+        setShowProcessingDialog(false);
+        setProcessingFiles([]);
+        setIsProcessing(false);
+      }, 3000);
+      
+      return () =&gt; clearTimeout(timer);
+    }
+  }, [processingFiles, showProcessingDialog]);
+
+  const getModelDisplayName = (modelName?: string) =&gt; {
+    if (!modelName) return null</code></pre></div><div class="py-4"><p class="text-gray-600">frontend\src\components\ChatInterface.tsx (Line 100:5 - Line 141:6), frontend\src\components\chat\ChatInterface.tsx (Line 109:10 - Line 150:10)</p><button class="bg-gray-500 text-white px-1 py-0.5 text-xs rounded focus:outline-none ml-2" id="expandBtn11" onclick="toggleCodeBlock('cloneGroup11', 'expandBtn11', 'collapseBtn11')">Show code</button><button class="bg-gray-500 text-white px-1 py-0.5 text-xs rounded focus:outline-none ml-2 hidden" id="collapseBtn11" onclick="toggleCodeBlock('cloneGroup11', 'expandBtn11', 'collapseBtn11')">Hide code</button><pre class="bg-gray-100 border border-gray-200 p-4 rounded mt-2 hidden" id="cloneGroup11"><code class="language-tsx text-sm text-gray-800">;
+    const modelInfo = LOCAL_MODELS.find(m =&gt; m.name === modelName);
+    if (modelInfo) {
+      return `${modelInfo.name} (${modelInfo.company})`;
+    }
+    return modelName;
+  };
+
+  useEffect(() =&gt; {
+    setChats(getAllChats());
+  }, []);
+
+  useEffect(() =&gt; {
+    const run = async () =&gt; {
+      if (!currentChatId) return;
+      const chat = getChatById(currentChatId);
+      if (!chat) return;
+      const filesForChat = chat.fileWithUrl || [];
+      if (filesForChat.length === 0) return;
+      const mapping = await cloneChatFolderToLocal(currentChatId, filesForChat);
+      const updated = getChatById(currentChatId);
+      if (!updated) return;
+      updated.fileWithUrl = (updated.fileWithUrl || []).map(f =&gt; ({ ...f, localUrl: mapping[f.name] || f.localUrl }));
+      updated.message_objects = updated.message_objects.map(m =&gt; ({
+        ...m,
+        files: (m.files || []).map(f =&gt; ({ ...f, localUrl: mapping[f.name] || f.localUrl }))
+      }));
+      updateChat(updated);
+      setChats(getAllChats());
+    };
+    run();
+  }, [currentChatId]);
+
+  useEffect(() =&gt; {
+    const handleResize = () =&gt; {
+      setIsSidebarOpen(window.innerWidth &gt;= 640);
+    };
+    window.addEventListener(&quot;resize&quot;, handleResize);
+    return () =&gt; window.removeEventListener(&quot;resize&quot;, handleResize);
+  }, []);
+
+  const</code></pre></div><div class="py-4"><p class="text-gray-600">frontend\src\components\ChatInterface.tsx (Line 139:2 - Line 148:10), frontend\src\components\chat\ChatInterface.tsx (Line 69:2 - Line 79:6)</p><button class="bg-gray-500 text-white px-1 py-0.5 text-xs rounded focus:outline-none ml-2" id="expandBtn12" onclick="toggleCodeBlock('cloneGroup12', 'expandBtn12', 'collapseBtn12')">Show code</button><button class="bg-gray-500 text-white px-1 py-0.5 text-xs rounded focus:outline-none ml-2 hidden" id="collapseBtn12" onclick="toggleCodeBlock('cloneGroup12', 'expandBtn12', 'collapseBtn12')">Hide code</button><pre class="bg-gray-100 border border-gray-200 p-4 rounded mt-2 hidden" id="cloneGroup12"><code class="language-tsx text-sm text-gray-800">);
+
+  const [stream, setStreamState] = useState(() =&gt; {
+    if (typeof window !== &quot;undefined&quot;) {
+      const stored = localStorage.getItem(&quot;chat_stream_toggle&quot;);
+      return stored === null ? false : stored === &quot;true&quot;;
+    }
+    return false;
+  });
+  useEffect</code></pre></div><div class="py-4"><p class="text-gray-600">frontend\src\components\ChatInterface.tsx (Line 156:2 - Line 167:6), frontend\src\components\chat\ChatInterface.tsx (Line 154:2 - Line 165:20)</p><button class="bg-gray-500 text-white px-1 py-0.5 text-xs rounded focus:outline-none ml-2" id="expandBtn13" onclick="toggleCodeBlock('cloneGroup13', 'expandBtn13', 'collapseBtn13')">Show code</button><button class="bg-gray-500 text-white px-1 py-0.5 text-xs rounded focus:outline-none ml-2 hidden" id="collapseBtn13" onclick="toggleCodeBlock('cloneGroup13', 'expandBtn13', 'collapseBtn13')">Hide code</button><pre class="bg-gray-100 border border-gray-200 p-4 rounded mt-2 hidden" id="cloneGroup13"><code class="language-tsx text-sm text-gray-800">;
+
+  useEffect(() =&gt; {
+    messagesEndRef.current?.scrollIntoView({ behavior: &quot;smooth&quot; });
+  }, [messages]);
+
+  const handleFileSelect = async (e: React.ChangeEvent&lt;HTMLInputElement&gt;) =&gt; {
+    if (e.target.files) {
+      const fileArray = Array.from(e.target.files);
+      let chatId = currentChatId;
+      if (!chatId) {
+        const</code></pre></div><div class="py-4"><p class="text-gray-600">frontend\src\components\ChatInterface.tsx (Line 339:2 - Line 345:19), frontend\src\components\ChatInterface.tsx (Line 330:2 - Line 336:20)</p><button class="bg-gray-500 text-white px-1 py-0.5 text-xs rounded focus:outline-none ml-2" id="expandBtn14" onclick="toggleCodeBlock('cloneGroup14', 'expandBtn14', 'collapseBtn14')">Show code</button><button class="bg-gray-500 text-white px-1 py-0.5 text-xs rounded focus:outline-none ml-2 hidden" id="collapseBtn14" onclick="toggleCodeBlock('cloneGroup14', 'expandBtn14', 'collapseBtn14')">Hide code</button><pre class="bg-gray-100 border border-gray-200 p-4 rounded mt-2 hidden" id="cloneGroup14"><code class="language-tsx text-sm text-gray-800">{
+          setProcessingFiles(prev =&gt; prev.map(pf =&gt; 
+            pf.name === uploadedFile.name
+              ? { ...pf, status: 'failed' as const }
+              : pf
+          ));
+          setFiles((prev) =&gt; prev.map(f =&gt; (f.key === uploadedFile.key &amp;&amp; f.chatId === chatId ? { ...f, processingStatus: 'failed', statusMessage: 'Processing error'</code></pre></div><div class="py-4"><p class="text-gray-600">frontend\src\components\ChatInterface.tsx (Line 355:11 - Line 367:17), frontend\src\components\chat\ChatInterface.tsx (Line 190:18 - Line 202:7)</p><button class="bg-gray-500 text-white px-1 py-0.5 text-xs rounded focus:outline-none ml-2" id="expandBtn15" onclick="toggleCodeBlock('cloneGroup15', 'expandBtn15', 'collapseBtn15')">Show code</button><button class="bg-gray-500 text-white px-1 py-0.5 text-xs rounded focus:outline-none ml-2 hidden" id="collapseBtn15" onclick="toggleCodeBlock('cloneGroup15', 'expandBtn15', 'collapseBtn15')">Hide code</button><pre class="bg-gray-100 border border-gray-200 p-4 rounded mt-2 hidden" id="cloneGroup15"><code class="language-tsx text-sm text-gray-800">,
+        };
+      }));
+    }
+  };
+
+  const handleRemoveFile = (index: number) =&gt; {
+    setFiles((prev) =&gt; prev.filter((_, i) =&gt; i !== index));
+  };
+
+  const handleSidebarChatSelect = (chatId?: string) =&gt; {
+    if (chatId) {
+      setCurrentChatId</code></pre></div><div class="py-4"><p class="text-gray-600">frontend\src\components\ChatInterface.tsx (Line 373:2 - Line 386:9), frontend\src\components\ChatInterface.tsx (Line 166:2 - Line 179:7)</p><button class="bg-gray-500 text-white px-1 py-0.5 text-xs rounded focus:outline-none ml-2" id="expandBtn16" onclick="toggleCodeBlock('cloneGroup16', 'expandBtn16', 'collapseBtn16')">Show code</button><button class="bg-gray-500 text-white px-1 py-0.5 text-xs rounded focus:outline-none ml-2 hidden" id="collapseBtn16" onclick="toggleCodeBlock('cloneGroup16', 'expandBtn16', 'collapseBtn16')">Hide code</button><pre class="bg-gray-100 border border-gray-200 p-4 rounded mt-2 hidden" id="cloneGroup16"><code class="language-tsx text-sm text-gray-800">{
+    const newChatId = Math.random().toString(36).substring(7);
+    const now = new Date().toISOString();
+    const newChat: ChatDocument = {
+      chat_id: newChatId,
+      title: &quot;New Chat&quot;,
+      created_at: now,
+      fileWithUrl: [],
+      message_objects: [],
+    };
+    addChat(newChat);
+    setChats(getAllChats());
+    setCurrentChatId(newChatId);
+    setInput</code></pre></div><div class="py-4"><p class="text-gray-600">frontend\src\components\ChatInterface.tsx (Line 387:2 - Line 395:6), frontend\src\components\chat\ChatInterface.tsx (Line 207:5 - Line 215:20)</p><button class="bg-gray-500 text-white px-1 py-0.5 text-xs rounded focus:outline-none ml-2" id="expandBtn17" onclick="toggleCodeBlock('cloneGroup17', 'expandBtn17', 'collapseBtn17')">Show code</button><button class="bg-gray-500 text-white px-1 py-0.5 text-xs rounded focus:outline-none ml-2 hidden" id="collapseBtn17" onclick="toggleCodeBlock('cloneGroup17', 'expandBtn17', 'collapseBtn17')">Hide code</button><pre class="bg-gray-100 border border-gray-200 p-4 rounded mt-2 hidden" id="cloneGroup17"><code class="language-tsx text-sm text-gray-800">);
+  };
+
+  const handleSubmit = async () =&gt; {
+    if (!input.trim() &amp;&amp; files.length === 0) return;
+    let chatId = currentChatId;
+    let chat = chatId ? getChatById(chatId) : undefined;
+    if (!chat) {
+      const</code></pre></div><div class="py-4"><p class="text-gray-600">frontend\src\components\ChatInterface.tsx (Line 407:10 - Line 424:58), frontend\src\components\chat\ChatInterface.tsx (Line 216:7 - Line 233:6)</p><button class="bg-gray-500 text-white px-1 py-0.5 text-xs rounded focus:outline-none ml-2" id="expandBtn18" onclick="toggleCodeBlock('cloneGroup18', 'expandBtn18', 'collapseBtn18')">Show code</button><button class="bg-gray-500 text-white px-1 py-0.5 text-xs rounded focus:outline-none ml-2 hidden" id="collapseBtn18" onclick="toggleCodeBlock('cloneGroup18', 'expandBtn18', 'collapseBtn18')">Hide code</button><pre class="bg-gray-100 border border-gray-200 p-4 rounded mt-2 hidden" id="cloneGroup18"><code class="language-tsx text-sm text-gray-800">;
+    }
+    const messageId = Math.random().toString(36).substring(7);
+    const now = new Date().toISOString();
+    const currentInput = input.trim();
+    const currentFiles = [...files];
+
+    const promptWithFiles = currentInput;
+
+    const userMsg: MessageObject = {
+      message_id: messageId,
+      author: &quot;user&quot;,
+      content: currentInput,
+      created_at: now,
+      files: currentFiles,
+    };
+    chat.message_objects.push(userMsg);
+    // Keep chat-level file list in sync (unique by key+name)</code></pre></div><div class="py-4"><p class="text-gray-600">frontend\src\components\ChatInterface.tsx (Line 425:5 - Line 482:30), frontend\src\components\chat\ChatInterface.tsx (Line 233:5 - Line 291:6)</p><button class="bg-gray-500 text-white px-1 py-0.5 text-xs rounded focus:outline-none ml-2" id="expandBtn19" onclick="toggleCodeBlock('cloneGroup19', 'expandBtn19', 'collapseBtn19')">Show code</button><button class="bg-gray-500 text-white px-1 py-0.5 text-xs rounded focus:outline-none ml-2 hidden" id="collapseBtn19" onclick="toggleCodeBlock('cloneGroup19', 'expandBtn19', 'collapseBtn19')">Hide code</button><pre class="bg-gray-100 border border-gray-200 p-4 rounded mt-2 hidden" id="cloneGroup19"><code class="language-tsx text-sm text-gray-800">const existing = chat.fileWithUrl || [];
+    const seen = new Map(existing.map(f =&gt; [`${f.key || ''}|${f.name}`, f]));
+    for (const f of currentFiles) {
+      const uniq = `${f.key || ''}|${f.name}`;
+      if (seen.has(uniq)) {
+        const existingFile = seen.get(uniq)!;
+        Object.assign(existingFile, f);
+      } else {
+        existing.push(f);
+        seen.set(uniq, f);
+      }
+    }
+    chat.fileWithUrl = existing;
+    updateChat(chat);
+    setChats(getAllChats());
+    setInput(&quot;&quot;);
+    setFiles([]);
+
+    try {
+      if (currentInput.trim()) {
+        const botMsgId = Math.random().toString(36).substring(7);
+        const botMsg: MessageObject = {
+          message_id: botMsgId,
+          author: &quot;ai&quot;,
+          content: &quot;&quot;,
+          created_at: new Date().toISOString(),
+          files: [],
+          model: model,
+        };
+        chat.message_objects.push(botMsg);
+        updateChat(chat);
+        setChats(getAllChats());
+        const fileDocIds = Array.from(new Set(
+          currentFiles.filter(f =&gt; f.enabled !== false).map(f =&gt; f.documentId).filter((id): id is string =&gt; !!id)
+        ));
+        const chatLevelDocIds = Array.from(new Set(
+          (chat.fileWithUrl || []).filter(f =&gt; f.enabled !== false).map(f =&gt; f.documentId).filter((id): id is string =&gt; !!id)
+        ));
+        const documentIds = fileDocIds.length &gt; 0 ? fileDocIds : chatLevelDocIds;
+        const hasSelectedChunks = documentIds.some(id =&gt; selectedChunks[id] &amp;&amp; selectedChunks[id].length &gt; 0);
+        const specificChunks = hasSelectedChunks ? 
+          Object.fromEntries(
+            Object.entries(selectedChunks).filter(([docId, chunks]) =&gt; 
+              documentIds.includes(docId) &amp;&amp; chunks.length &gt; 0
+            )
+          ) : undefined;
+
+        if (stream) {
+          let fullResponse = &quot;&quot;;
+          await sendExternalChatMessage({
+            prompt: promptWithFiles,
+            model,
+            stream: true,
+            documentIds,
+            specificChunks,
+            onStreamChunk: (chunk: string) =&gt; {
+              fullResponse += chunk;
+              // Update bot message in chat</code></pre></div><div class="py-4"><p class="text-gray-600">frontend\src\components\ChatInterface.tsx (Line 483:15 - Line 511:34), frontend\src\components\chat\ChatInterface.tsx (Line 291:15 - Line 319:6)</p><button class="bg-gray-500 text-white px-1 py-0.5 text-xs rounded focus:outline-none ml-2" id="expandBtn20" onclick="toggleCodeBlock('cloneGroup20', 'expandBtn20', 'collapseBtn20')">Show code</button><button class="bg-gray-500 text-white px-1 py-0.5 text-xs rounded focus:outline-none ml-2 hidden" id="collapseBtn20" onclick="toggleCodeBlock('cloneGroup20', 'expandBtn20', 'collapseBtn20')">Hide code</button><pre class="bg-gray-100 border border-gray-200 p-4 rounded mt-2 hidden" id="cloneGroup20"><code class="language-tsx text-sm text-gray-800">const updatedChat = getChatById(chatId!);
+              if (!updatedChat) return;
+              const msgIdx = updatedChat.message_objects.findIndex(m =&gt; m.message_id === botMsgId);
+              if (msgIdx !== -1) {
+                updatedChat.message_objects[msgIdx].content = fullResponse;
+                updateChat(updatedChat);
+                setChats(getAllChats());
+              }
+            },
+            onStatusChange: (status: any) =&gt; {
+              const updatedChat = getChatById(chatId!);
+              if (!updatedChat) return;
+              const msgIdx = updatedChat.message_objects.findIndex(m =&gt; m.message_id === botMsgId);
+              if (msgIdx !== -1) {
+                updatedChat.message_objects[msgIdx].content = `__STATUS__:${status}`;
+                updateChat(updatedChat);
+                setChats(getAllChats());
+              }
+            },
+          });
+        } else {
+          const chatResponse = await sendExternalChatMessage({
+            prompt: promptWithFiles,
+            model,
+            stream: false,
+            documentIds,
+            specificChunks,
+            onStatusChange: (status: any) =&gt; {
+              // Update bot message with status</code></pre></div><div class="py-4"><p class="text-gray-600">frontend\src\components\ChatInterface.tsx (Line 512:15 - Line 522:30), frontend\src\components\chat\ChatInterface.tsx (Line 291:15 - Line 311:2)</p><button class="bg-gray-500 text-white px-1 py-0.5 text-xs rounded focus:outline-none ml-2" id="expandBtn21" onclick="toggleCodeBlock('cloneGroup21', 'expandBtn21', 'collapseBtn21')">Show code</button><button class="bg-gray-500 text-white px-1 py-0.5 text-xs rounded focus:outline-none ml-2 hidden" id="collapseBtn21" onclick="toggleCodeBlock('cloneGroup21', 'expandBtn21', 'collapseBtn21')">Hide code</button><pre class="bg-gray-100 border border-gray-200 p-4 rounded mt-2 hidden" id="cloneGroup21"><code class="language-tsx text-sm text-gray-800">const updatedChat = getChatById(chatId!);
+              if (!updatedChat) return;
+              const msgIdx = updatedChat.message_objects.findIndex(m =&gt; m.message_id === botMsgId);
+              if (msgIdx !== -1) {
+                updatedChat.message_objects[msgIdx].content = `__STATUS__:${status}`;
+                updateChat(updatedChat);
+                setChats(getAllChats());
+              }
+            },
+          });
+          // Update bot message in chat</code></pre></div><div class="py-4"><p class="text-gray-600">frontend\src\components\ChatInterface.tsx (Line 523:11 - Line 537:48), frontend\src\components\chat\ChatInterface.tsx (Line 329:11 - Line 343:2)</p><button class="bg-gray-500 text-white px-1 py-0.5 text-xs rounded focus:outline-none ml-2" id="expandBtn22" onclick="toggleCodeBlock('cloneGroup22', 'expandBtn22', 'collapseBtn22')">Show code</button><button class="bg-gray-500 text-white px-1 py-0.5 text-xs rounded focus:outline-none ml-2 hidden" id="collapseBtn22" onclick="toggleCodeBlock('cloneGroup22', 'expandBtn22', 'collapseBtn22')">Hide code</button><pre class="bg-gray-100 border border-gray-200 p-4 rounded mt-2 hidden" id="cloneGroup22"><code class="language-tsx text-sm text-gray-800">const updatedChat = getChatById(chatId!);
+          if (updatedChat) {
+            const msgIdx = updatedChat.message_objects.findIndex(m =&gt; m.message_id === botMsgId);
+            if (msgIdx !== -1) {
+              updatedChat.message_objects[msgIdx].content = chatResponse.response;
+              updatedChat.message_objects[msgIdx].citations = chatResponse.citations || [];
+              updateChat(updatedChat);
+              setChats(getAllChats());
+            }
+          }
+        }
+      }
+    } catch (error) {
+      toast.error(error instanceof Error ? error.message : &quot;Something went wrong&quot;);
+      // Optionally remove last user message on error</code></pre></div><div class="py-4"><p class="text-gray-600">frontend\src\components\ChatInterface.tsx (Line 538:5 - Line 556:2), frontend\src\components\chat\ChatInterface.tsx (Line 343:5 - Line 362:2)</p><button class="bg-gray-500 text-white px-1 py-0.5 text-xs rounded focus:outline-none ml-2" id="expandBtn23" onclick="toggleCodeBlock('cloneGroup23', 'expandBtn23', 'collapseBtn23')">Show code</button><button class="bg-gray-500 text-white px-1 py-0.5 text-xs rounded focus:outline-none ml-2 hidden" id="collapseBtn23" onclick="toggleCodeBlock('cloneGroup23', 'expandBtn23', 'collapseBtn23')">Hide code</button><pre class="bg-gray-100 border border-gray-200 p-4 rounded mt-2 hidden" id="cloneGroup23"><code class="language-tsx text-sm text-gray-800">}
+  };
+
+  const getAllAttachedFiles = () =&gt; {
+    if (!currentChatId) return [];
+    const chat = getChatById(currentChatId);
+    if (!chat) return [];
+    return chat.message_objects.reduce((acc: FileWithUrl[], msg) =&gt; {
+      if (msg.files) {
+        acc.push(...msg.files);
+      }
+      return acc;
+    }, []);
+  };
+  return (
+    &lt;div className=&quot;flex w-full h-full&quot;&gt;
+      {/* Processing Dialog */}
+      &lt;Dialog open={showProcessingDialog} onOpenChange={setShowProcessingDialog}&gt;
+        &lt;DialogContent className=&quot;sm:max-w-[600px]&quot;&gt;</code></pre></div><div class="py-4"><p class="text-gray-600">frontend\src\components\ChatInterface.tsx (Line 556:2 - Line 571:2), frontend\src\components\chat\ChatInterface.tsx (Line 362:2 - Line 377:3)</p><button class="bg-gray-500 text-white px-1 py-0.5 text-xs rounded focus:outline-none ml-2" id="expandBtn24" onclick="toggleCodeBlock('cloneGroup24', 'expandBtn24', 'collapseBtn24')">Show code</button><button class="bg-gray-500 text-white px-1 py-0.5 text-xs rounded focus:outline-none ml-2 hidden" id="collapseBtn24" onclick="toggleCodeBlock('cloneGroup24', 'expandBtn24', 'collapseBtn24')">Hide code</button><pre class="bg-gray-100 border border-gray-200 p-4 rounded mt-2 hidden" id="cloneGroup24"><code class="language-tsx text-sm text-gray-800">&gt;
+          &lt;DialogHeader&gt;
+            &lt;DialogTitle className=&quot;flex items-center gap-2&quot;&gt;
+              {processingFiles.every(f =&gt; f.status === 'done' || f.status === 'failed') ? (
+                &lt;&gt;
+                  &lt;span className=&quot;text-green-600&quot;&gt;✓&lt;/span&gt;
+                  Processing Complete
+                &lt;/&gt;
+              ) : (
+                &lt;&gt;
+                  &lt;div className=&quot;animate-spin rounded-full h-4 w-4 border-b-2 border-primary&quot; /&gt;
+                  Processing {processingFiles.length} {processingFiles.length === 1 ? 'Document' : 'Documents'}
+                &lt;/&gt;
+              )}
+            &lt;/DialogTitle&gt;
+            &lt;</code></pre></div><div class="py-4"><p class="text-gray-600">frontend\src\components\ChatInterface.tsx (Line 582:7 - Line 611:9), frontend\src\components\chat\ChatInterface.tsx (Line 376:12 - Line 405:7)</p><button class="bg-gray-500 text-white px-1 py-0.5 text-xs rounded focus:outline-none ml-2" id="expandBtn25" onclick="toggleCodeBlock('cloneGroup25', 'expandBtn25', 'collapseBtn25')">Show code</button><button class="bg-gray-500 text-white px-1 py-0.5 text-xs rounded focus:outline-none ml-2 hidden" id="collapseBtn25" onclick="toggleCodeBlock('cloneGroup25', 'expandBtn25', 'collapseBtn25')">Hide code</button><pre class="bg-gray-100 border border-gray-200 p-4 rounded mt-2 hidden" id="cloneGroup25"><code class="language-tsx text-sm text-gray-800">&gt;
+          &lt;/DialogHeader&gt;
+          &lt;ProcessingBanner 
+            files={processingFiles}
+            onDismiss={() =&gt; {
+              setShowProcessingDialog(false);
+              setProcessingFiles([]);
+              setIsProcessing(false);
+            }}
+          /&gt;
+        &lt;/DialogContent&gt;
+      &lt;/Dialog&gt;
+
+      {/* Blocking Overlay */}
+      {isProcessing &amp;&amp; (
+        &lt;div className=&quot;fixed inset-0 bg-background/80 backdrop-blur-sm z-40&quot; /&gt;
+      )}
+      
+      &lt;ChatSidebar
+        isSidebarOpen={isSidebarOpen}
+        setIsSidebarOpen={setIsSidebarOpen}
+        chats={chats}
+        currentChatId={currentChatId}
+        onChatSelect={handleSidebarChatSelect}
+        onNewChatStart={handleSidebarNewChat}
+        onChatsUpdate={() =&gt; setChats(getAllChats())}
+        stream={stream}
+        setStream={setStream}
+        onPreviewFile={(f) =&gt; setPreviewFile(f)}
+        </code></pre></div><div class="py-4"><p class="text-gray-600">frontend\src\components\ChatInterface.tsx (Line 625:2 - Line 639:2), frontend\src\components\chat\ChatEmptyState.tsx (Line 7:2 - Line 20:2)</p><button class="bg-gray-500 text-white px-1 py-0.5 text-xs rounded focus:outline-none ml-2" id="expandBtn26" onclick="toggleCodeBlock('cloneGroup26', 'expandBtn26', 'collapseBtn26')">Show code</button><button class="bg-gray-500 text-white px-1 py-0.5 text-xs rounded focus:outline-none ml-2 hidden" id="collapseBtn26" onclick="toggleCodeBlock('cloneGroup26', 'expandBtn26', 'collapseBtn26')">Hide code</button><pre class="bg-gray-100 border border-gray-200 p-4 rounded mt-2 hidden" id="cloneGroup26"><code class="language-tsx text-sm text-gray-800">(
+                    &lt;div className=&quot;flex flex-col items-center justify-center h-[calc(100vh-10rem)] p-4&quot;&gt;
+                      &lt;div className=&quot;max-w-2xl w-full space-y-6&quot;&gt;
+                        &lt;div className=&quot;text-center space-y-2&quot;&gt;
+                          &lt;MessageSquare className=&quot;h-12 w-12 text-primary mx-auto mb-2&quot; /&gt;
+                          &lt;h2 className=&quot;text-2xl font-semibold&quot;&gt;
+                            Document Summarizer
+                          &lt;/h2&gt;
+                          &lt;p className=&quot;text-sm text-muted-foreground&quot;&gt;
+                            Upload documents and get intelligent summaries, analysis, and answers to your questions. Perfect for research assistance and beyond.
+                          &lt;/p&gt;
+                        &lt;/div&gt;
+                      &lt;/div&gt;
+                    &lt;/div&gt;
+                  ) :</code></pre></div><div class="py-4"><p class="text-gray-600">frontend\src\components\ChatInterface.tsx (Line 668:2 - Line 680:29), frontend\src\components\chat\ChatMessage.tsx (Line 58:2 - Line 69:2)</p><button class="bg-gray-500 text-white px-1 py-0.5 text-xs rounded focus:outline-none ml-2" id="expandBtn27" onclick="toggleCodeBlock('cloneGroup27', 'expandBtn27', 'collapseBtn27')">Show code</button><button class="bg-gray-500 text-white px-1 py-0.5 text-xs rounded focus:outline-none ml-2 hidden" id="collapseBtn27" onclick="toggleCodeBlock('cloneGroup27', 'expandBtn27', 'collapseBtn27')">Hide code</button><pre class="bg-gray-100 border border-gray-200 p-4 rounded mt-2 hidden" id="cloneGroup27"><code class="language-tsx text-sm text-gray-800">|| &quot;U&quot;)[0].toUpperCase()}
+                                &lt;/span&gt;
+                              &lt;/div&gt;
+                            )
+                          ) : (
+                            &lt;div className=&quot;h-8 w-8 rounded-full bg-primary/10 flex items-center justify-center&quot;&gt;
+                              &lt;Bot className=&quot;h-5 w-5 text-primary&quot; /&gt;
+                            &lt;/div&gt;
+                          )}
+
+                          {/* Message Content */}
+                          &lt;div
+                            </code></pre></div><div class="py-4"><p class="text-gray-600">frontend\src\components\ChatInterface.tsx (Line 713:33 - Line 745:31), frontend\src\components\chat\ChatMessage.tsx (Line 101:13 - Line 133:11)</p><button class="bg-gray-500 text-white px-1 py-0.5 text-xs rounded focus:outline-none ml-2" id="expandBtn28" onclick="toggleCodeBlock('cloneGroup28', 'expandBtn28', 'collapseBtn28')">Show code</button><button class="bg-gray-500 text-white px-1 py-0.5 text-xs rounded focus:outline-none ml-2 hidden" id="collapseBtn28" onclick="toggleCodeBlock('cloneGroup28', 'expandBtn28', 'collapseBtn28')">Hide code</button><pre class="bg-gray-100 border border-gray-200 p-4 rounded mt-2 hidden" id="cloneGroup28"><code class="language-tsx text-sm text-gray-800">&gt;
+                                  {showPulse ? (
+                                    &lt;span className=&quot;flex items-center gap-2&quot;&gt;
+                                      &lt;span className=&quot;text-xs text-muted-foreground&quot;&gt;Waiting for response&lt;/span&gt;
+                                      &lt;PulseLoader /&gt;
+                                    &lt;/span&gt;
+                                  ) : message.author === &quot;ai&quot; &amp;&amp; message.content.startsWith(&quot;__STATUS__:&quot;) ? (
+                                    &lt;span className=&quot;flex items-center gap-2&quot;&gt;
+                                      &lt;PulseLoader /&gt;
+                                      &lt;span className=&quot;text-sm text-muted-foreground&quot;&gt;
+                                        {message.content.replace(&quot;__STATUS__:&quot;, &quot;&quot;)}
+                                      &lt;/span&gt;
+                                    &lt;/span&gt;
+                                  ) : message.author === &quot;ai&quot; ? (
+                                    &lt;MarkdownRenderer content={message.content} /&gt;
+                                  ) : (
+                                    message.content
+                                  )}
+                                &lt;/div&gt;
+                                {message.author === &quot;ai&quot; &amp;&amp; message.citations &amp;&amp; message.citations.length &gt; 0 &amp;&amp; (
+                                  &lt;div className=&quot;mt-3 pt-3 border-t border-border/40&quot;&gt;
+                                    &lt;div className=&quot;text-xs text-muted-foreground mb-2&quot;&gt;Sources used:&lt;/div&gt;
+                                    &lt;div className=&quot;flex flex-wrap gap-2&quot;&gt;
+                                      {message.citations.map((citation, idx) =&gt; (
+                                        &lt;CitationCard key={idx} citation={citation} /&gt;
+                                      ))}
+                                    &lt;/div&gt;
+                                  &lt;/div&gt;
+                                )}
+                              &lt;/div&gt;
+                            &lt;/Card&gt;
+                            &lt;div
+                              </code></pre></div><div class="py-4"><p class="text-gray-600">frontend\src\components\ChatInterface.tsx (Line 811:2 - Line 853:2), frontend\src\components\chat\ChatInterface.tsx (Line 487:2 - Line 529:2)</p><button class="bg-gray-500 text-white px-1 py-0.5 text-xs rounded focus:outline-none ml-2" id="expandBtn29" onclick="toggleCodeBlock('cloneGroup29', 'expandBtn29', 'collapseBtn29')">Show code</button><button class="bg-gray-500 text-white px-1 py-0.5 text-xs rounded focus:outline-none ml-2 hidden" id="collapseBtn29" onclick="toggleCodeBlock('cloneGroup29', 'expandBtn29', 'collapseBtn29')">Hide code</button><pre class="bg-gray-100 border border-gray-200 p-4 rounded mt-2 hidden" id="cloneGroup29"><code class="language-tsx text-sm text-gray-800">
+              disabled={isProcessing}
+              selectedChunksInfo={
+                Object.keys(selectedChunks).length &gt; 0
+                  ? `${Object.values(selectedChunks).reduce((sum, arr) =&gt; sum + arr.length, 0)} chunks selected`
+                  : undefined
+              }
+            /&gt;
+          &lt;/div&gt;
+        &lt;/div&gt;
+      &lt;/main&gt;
+
+      {previewFile &amp;&amp; (
+        &lt;FilePreview
+          file={previewFile}
+          onClose={() =&gt; setPreviewFile(null)}
+          onViewChunks={(docId, docName) =&gt; {
+            setChunkViewerDocId(docId);
+            setChunkViewerDocName(docName);
+            setShowChunkViewer(true);
+          }}
+        /&gt;
+      )}
+
+      &lt;ChunkViewer
+        isOpen={showChunkViewer}
+        onClose={() =&gt; setShowChunkViewer(false)}
+        documentId={chunkViewerDocId}
+        documentName={chunkViewerDocName}
+        onApplySelection={(chunkIds) =&gt; {
+          setSelectedChunks(prev =&gt; ({
+            ...prev,
+            [chunkViewerDocId]: chunkIds
+          }));
+          toast.success(`Selected ${chunkIds.length} chunks from ${chunkViewerDocName}`, {
+            description: 'These chunks will be used in your next query',
+            duration: 3000,
+          });
+        }}
+      /&gt;
+
+      &lt;Dialog open={showAttachments} onOpenChange={setShowAttachments}&gt;
+        &lt;DialogContent </code></pre></div><div class="py-4"><p class="text-gray-600">frontend\src\components\ChatInterface.tsx (Line 857:28 - Line 865:8), frontend\src\components\chat\ChatInterface.tsx (Line 533:34 - Line 541:20)</p><button class="bg-gray-500 text-white px-1 py-0.5 text-xs rounded focus:outline-none ml-2" id="expandBtn30" onclick="toggleCodeBlock('cloneGroup30', 'expandBtn30', 'collapseBtn30')">Show code</button><button class="bg-gray-500 text-white px-1 py-0.5 text-xs rounded focus:outline-none ml-2 hidden" id="collapseBtn30" onclick="toggleCodeBlock('cloneGroup30', 'expandBtn30', 'collapseBtn30')">Hide code</button><pre class="bg-gray-100 border border-gray-200 p-4 rounded mt-2 hidden" id="cloneGroup30"><code class="language-tsx text-sm text-gray-800">&quot;&gt;
+            &lt;FileList
+              files={(currentChatId &amp;&amp; getChatById(currentChatId)?.fileWithUrl?.length)
+                ? (getChatById(currentChatId)!.fileWithUrl)
+                : getAllAttachedFiles()}
+              onRemove={() =&gt; {}}
+              previewFile={setPreviewFile}
+              onViewChunks={(docId, docName) =&gt; {
+                console</code></pre></div><div class="py-4"><p class="text-gray-600">frontend\src\components\ChatInterface.tsx (Line 870:48 - Line 892:2), frontend\src\components\chat\ChatInterface.tsx (Line 543:5 - Line 565:2)</p><button class="bg-gray-500 text-white px-1 py-0.5 text-xs rounded focus:outline-none ml-2" id="expandBtn31" onclick="toggleCodeBlock('cloneGroup31', 'expandBtn31', 'collapseBtn31')">Show code</button><button class="bg-gray-500 text-white px-1 py-0.5 text-xs rounded focus:outline-none ml-2 hidden" id="collapseBtn31" onclick="toggleCodeBlock('cloneGroup31', 'expandBtn31', 'collapseBtn31')">Hide code</button><pre class="bg-gray-100 border border-gray-200 p-4 rounded mt-2 hidden" id="cloneGroup31"><code class="language-tsx text-sm text-gray-800">);
+              }}
+              onToggleEnabled={(index, enabled) =&gt; {
+                if (currentChatId) {
+                  const chat = getChatById(currentChatId);
+                  if (chat &amp;&amp; chat.fileWithUrl) {
+                    chat.fileWithUrl[index].enabled = enabled;
+                    updateChat(chat);
+                    setFiles(prev =&gt; prev.map((f, i) =&gt; 
+                      f.chatId === currentChatId &amp;&amp; f.key === chat.fileWithUrl[index].key
+                        ? { ...f, enabled }
+                        : f
+                    ));
+                  }
+                }
+              }}
+            /&gt;
+          &lt;/div&gt;
+        &lt;/DialogContent&gt;
+      &lt;/Dialog&gt;
+    &lt;/div&gt;
+  );
+}</code></pre></div><div class="py-4"><p class="text-gray-600">frontend\src\components\BackendConfig.tsx (Line 137:13 - Line 149:5), frontend\src\components\BackendConfig.tsx (Line 110:13 - Line 122:4)</p><button class="bg-gray-500 text-white px-1 py-0.5 text-xs rounded focus:outline-none ml-2" id="expandBtn32" onclick="toggleCodeBlock('cloneGroup32', 'expandBtn32', 'collapseBtn32')">Show code</button><button class="bg-gray-500 text-white px-1 py-0.5 text-xs rounded focus:outline-none ml-2 hidden" id="collapseBtn32" onclick="toggleCodeBlock('cloneGroup32', 'expandBtn32', 'collapseBtn32')">Hide code</button><pre class="bg-gray-100 border border-gray-200 p-4 rounded mt-2 hidden" id="cloneGroup32"><code class="language-tsx text-sm text-gray-800">&lt;Card 
+              className={`cursor-pointer transition-all ${
+                backendMode === &quot;custom&quot; 
+                  ? &quot;border-primary ring-2 ring-primary/20&quot; 
+                  : &quot;hover:border-primary/50&quot;
+              }`}
+              onClick={() =&gt; setBackendMode(&quot;custom&quot;)}
+            &gt;
+              &lt;CardContent className=&quot;p-4&quot;&gt;
+                &lt;div className=&quot;flex items-start justify-between&quot;&gt;
+                  &lt;div className=&quot;space-y-1&quot;&gt;
+                    &lt;div className=&quot;flex items-center gap-2&quot;&gt;
+                      &lt;h4 className=&quot;font-semibold text-sm&quot;&gt;Self</code></pre></div><div class="py-4"><p class="text-gray-600">frontend\src\app\page.tsx (Line 39:11 - Line 49:8), frontend\src\components\HomePage.tsx (Line 113:11 - Line 465:4)</p><button class="bg-gray-500 text-white px-1 py-0.5 text-xs rounded focus:outline-none ml-2" id="expandBtn33" onclick="toggleCodeBlock('cloneGroup33', 'expandBtn33', 'collapseBtn33')">Show code</button><button class="bg-gray-500 text-white px-1 py-0.5 text-xs rounded focus:outline-none ml-2 hidden" id="collapseBtn33" onclick="toggleCodeBlock('cloneGroup33', 'expandBtn33', 'collapseBtn33')">Hide code</button><pre class="bg-gray-100 border border-gray-200 p-4 rounded mt-2 hidden" id="cloneGroup33"><code class="language-tsx text-sm text-gray-800">&lt;Card className=&quot;shadow-lg border-gray-100 dark:border-gray-800&quot;&gt;
+            &lt;CardHeader&gt;&lt;CardTitle className=&quot;text-base&quot;&gt;Quick start&lt;/CardTitle&gt;&lt;CardDescription&gt;Get productive in a few clicks&lt;/CardDescription&gt;&lt;/CardHeader&gt;
+            &lt;CardContent className=&quot;grid gap-4&quot;&gt;
+              &lt;div className=&quot;flex items-start gap-3&quot;&gt;&lt;Check className=&quot;w-5 h-5 text-green-500 mt-1&quot; /&gt;&lt;div&gt;&lt;p className=&quot;font-medium&quot;&gt;100% Local Processing&lt;/p&gt;&lt;p className=&quot;text-sm text-muted-foreground&quot;&gt;All AI runs on your machine via Ollama. Zero cloud dependencies.&lt;/p&gt;&lt;/div&gt;&lt;/div&gt;
+              &lt;div className=&quot;flex items-start gap-3&quot;&gt;&lt;Check className=&quot;w-5 h-5 text-green-500 mt-1&quot; /&gt;&lt;div&gt;&lt;p className=&quot;font-medium&quot;&gt;Scale to long documents&lt;/p&gt;&lt;p className=&quot;text-sm text-muted-foreground&quot;&gt;Chunking and map-reduce preserve document structure.&lt;/p&gt;&lt;/div&gt;&lt;/div&gt;
+              &lt;div className=&quot;flex justify-end mt-2&quot;&gt;&lt;a href=&quot;#signin&quot;&gt;&lt;Button size=&quot;sm&quot;&gt;Create account&lt;/Button&gt;&lt;/a&gt;&lt;/div&gt;
+            &lt;/CardContent&gt;
+          &lt;/Card&gt;
+        &lt;/div&gt;
+      &lt;/section&gt;
+      &lt;section</code></pre></div><div class="py-4"><p class="text-gray-600">frontend\src\app\page.tsx (Line 49:2 - Line 61:2), frontend\src\components\HomePage.tsx (Line 157:7 - Line 214:23)</p><button class="bg-gray-500 text-white px-1 py-0.5 text-xs rounded focus:outline-none ml-2" id="expandBtn34" onclick="toggleCodeBlock('cloneGroup34', 'expandBtn34', 'collapseBtn34')">Show code</button><button class="bg-gray-500 text-white px-1 py-0.5 text-xs rounded focus:outline-none ml-2 hidden" id="collapseBtn34" onclick="toggleCodeBlock('cloneGroup34', 'expandBtn34', 'collapseBtn34')">Hide code</button><pre class="bg-gray-100 border border-gray-200 p-4 rounded mt-2 hidden" id="cloneGroup34"><code class="language-tsx text-sm text-gray-800">&gt;
+        &lt;div className=&quot;mb-8 max-w-xl&quot;&gt;&lt;h2 className=&quot;text-2xl font-semibold tracking-tight md:text-3xl&quot;&gt;Access your private workspace&lt;/h2&gt;&lt;p className=&quot;text-muted-foreground&quot;&gt;Sign in to start processing documents locally on your machine. All processing stays private.&lt;/p&gt;&lt;/div&gt;
+        &lt;div className=&quot;grid grid-cols-1 gap-4 md:grid-cols-2 items-start&quot;&gt;
+          &lt;Card className=&quot;p-0 overflow-hidden&quot;&gt;
+            &lt;div className=&quot;p-4&quot;&gt;
+              &lt;div className=&quot;flex items-center justify-between gap-4&quot;&gt;&lt;div&gt;&lt;h3 className=&quot;text-base font-semibold&quot;&gt;Welcome&lt;/h3&gt;&lt;p className=&quot;text-sm text-muted-foreground&quot;&gt;Continue with your account&lt;/p&gt;&lt;/div&gt;&lt;/div&gt;
+              &lt;div className=&quot;mt-4 space-y-3&quot;&gt;
+                &lt;div className=&quot;flex items-start gap-3&quot;&gt;&lt;Rocket className=&quot;w-4 h-4 text-green-500 mt-1 flex-shrink-0&quot; /&gt;&lt;div className=&quot;text-sm&quot;&gt;&lt;p className=&quot;font-medium&quot;&gt;Runs Locally&lt;/p&gt;&lt;p className=&quot;text-xs text-muted-foreground&quot;&gt;Powered by Ollama on your hardware&lt;/p&gt;&lt;/div&gt;&lt;/div&gt;
+                &lt;div className=&quot;flex items-start gap-3&quot;&gt;&lt;Globe className=&quot;w-4 h-4 text-green-500 mt-1 flex-shrink-0&quot; /&gt;&lt;div className=&quot;text-sm&quot;&gt;&lt;p className=&quot;font-medium&quot;&gt;Universal Access&lt;/p&gt;&lt;p className=&quot;text-xs text-muted-foreground&quot;&gt;Works with any document format&lt;/p&gt;&lt;/div&gt;&lt;/div&gt;
+                &lt;div className=&quot;flex items-start gap-3&quot;&gt;&lt;SlidersHorizontal className=&quot;w-4 h-4 text-green-500 mt-1 flex-shrink-0&quot; /&gt;&lt;div className=&quot;text-sm&quot;&gt;&lt;p className=&quot;font-medium&quot;&gt;Open Source Models&lt;/p&gt;&lt;p className=&quot;text-xs text-muted-foreground&quot;&gt;Use Mistral, Llama, or any Ollama model&lt;/p&gt;&lt;/div&gt;&lt;/div&gt;
+              &lt;/div&gt;
+              &lt;div className=&quot;mt-6 flex flex-col sm:flex-row gap-3&quot;&gt;
+                &lt;Dialog&gt;&lt;DialogTrigger asChild&gt;&lt;Button </code></pre></div><div class="py-4"><p class="text-gray-600">frontend\src\app\page.tsx (Line 70:2 - Line 78:2), frontend\src\components\HomePage.tsx (Line 263:25 - Line 282:19)</p><button class="bg-gray-500 text-white px-1 py-0.5 text-xs rounded focus:outline-none ml-2" id="expandBtn35" onclick="toggleCodeBlock('cloneGroup35', 'expandBtn35', 'collapseBtn35')">Show code</button><button class="bg-gray-500 text-white px-1 py-0.5 text-xs rounded focus:outline-none ml-2 hidden" id="collapseBtn35" onclick="toggleCodeBlock('cloneGroup35', 'expandBtn35', 'collapseBtn35')">Hide code</button><pre class="bg-gray-100 border border-gray-200 p-4 rounded mt-2 hidden" id="cloneGroup35"><code class="language-tsx text-sm text-gray-800">}} /&gt;&lt;/div&gt;
+                  &lt;/DialogContent&gt;
+                &lt;/Dialog&gt;
+              &lt;/div&gt;
+            &lt;/div&gt;
+          &lt;/Card&gt;
+          &lt;Card className=&quot;p-4 mb-0&quot;&gt;&lt;CardHeader className=&quot;p-0 mb-0&quot;&gt;&lt;CardTitle className=&quot;text-base&quot;&gt;Privacy-First Benefits&lt;/CardTitle&gt;&lt;CardDescription&gt;Why go local matters&lt;/CardDescription&gt;&lt;/CardHeader&gt;
+            &lt;CardContent className=&quot;text-sm text-muted-foreground grid gap-3 mb-0&quot;&gt;
+              &lt;div className=&quot;flex items-start gap-2&quot;&gt;&lt;Badge </code></pre></div><div class="py-4"><p class="text-gray-600">frontend\src\app\page.tsx (Line 91:2 - Line 97:2), frontend\src\components\HomePage.tsx (Line 471:11 - Line 519:13)</p><button class="bg-gray-500 text-white px-1 py-0.5 text-xs rounded focus:outline-none ml-2" id="expandBtn36" onclick="toggleCodeBlock('cloneGroup36', 'expandBtn36', 'collapseBtn36')">Show code</button><button class="bg-gray-500 text-white px-1 py-0.5 text-xs rounded focus:outline-none ml-2 hidden" id="collapseBtn36" onclick="toggleCodeBlock('cloneGroup36', 'expandBtn36', 'collapseBtn36')">Hide code</button><pre class="bg-gray-100 border border-gray-200 p-4 rounded mt-2 hidden" id="cloneGroup36"><code class="language-tsx text-sm text-gray-800">&gt;
+            &lt;AccordionItem value=&quot;item-1&quot;&gt;&lt;AccordionTrigger className=&quot;rounded-md border px-4 py-3 text-left&quot;&gt;How does local processing work?&lt;/AccordionTrigger&gt;&lt;AccordionContent className=&quot;text-sm text-muted-foreground p-4 border-x border-b rounded-b-md&quot;&gt;We use Ollama to run open-source AI models (Mistral, Llama, Phi, etc.) directly on your machine. Documents are processed entirely locally with no cloud uploads. The AI runs on your CPU/GPU using optimized inference engines for fast results.&lt;/AccordionContent&gt;&lt;/AccordionItem&gt;
+            &lt;AccordionItem value=&quot;item-2&quot;&gt;&lt;AccordionTrigger className=&quot;rounded-md border px-4 py-3 text-left&quot;&gt;What reduces hallucinations?&lt;/AccordionTrigger&gt;&lt;AccordionContent className=&quot;text-sm text-muted-foreground p-4 border-x border-b rounded-b-md&quot;&gt;A multi-stage verification pass checks entities and claims against the source document, with optional knowledge graph integration to validate facts. We also use confidence scoring and uncertainty quantification to flag potentially unreliable content before final output.&lt;/AccordionContent&gt;&lt;/AccordionItem&gt;
+            &lt;AccordionItem value=&quot;item-3&quot;&gt;&lt;AccordionTrigger className=&quot;rounded-md border px-4 py-3 text-left&quot;&gt;How fast is the processing?&lt;/AccordionTrigger&gt;&lt;AccordionContent className=&quot;text-sm text-muted-foreground p-4 border-x border-b rounded-b-md&quot;&gt;Processing times vary by document length and complexity. Typical documents (10-50 pages) are summarized in 10-30 seconds. Very long documents (100+ pages) may take 2-5 minutes due to thorough analysis and verification steps.&lt;/AccordionContent&gt;&lt;/AccordionItem&gt;
+            &lt;AccordionItem value=&quot;item-4&quot;&gt;&lt;AccordionTrigger className=&quot;rounded-md border px-4 py-3 text-left&quot;&gt;What file formats are supported?&lt;/AccordionTrigger&gt;&lt;AccordionContent className=&quot;text-sm text-muted-foreground p-4 border-x border-b rounded-b-md&quot;&gt;We support PDF, Word (.docx), plain text, HTML, Markdown, and structured formats like JSON/XML. Image files are not summarized, but you can attach images in chat and ask questions about them.&lt;/AccordionContent&gt;&lt;/AccordionItem&gt;
+          &lt;/Accordion&gt;
+          &lt;Accordion </code></pre></div><div class="py-4"><p class="text-gray-600">frontend\src\app\page.tsx (Line 97:2 - Line 105:2), frontend\src\components\HomePage.tsx (Line 523:11 - Line 572:2)</p><button class="bg-gray-500 text-white px-1 py-0.5 text-xs rounded focus:outline-none ml-2" id="expandBtn37" onclick="toggleCodeBlock('cloneGroup37', 'expandBtn37', 'collapseBtn37')">Show code</button><button class="bg-gray-500 text-white px-1 py-0.5 text-xs rounded focus:outline-none ml-2 hidden" id="collapseBtn37" onclick="toggleCodeBlock('cloneGroup37', 'expandBtn37', 'collapseBtn37')">Hide code</button><pre class="bg-gray-100 border border-gray-200 p-4 rounded mt-2 hidden" id="cloneGroup37"><code class="language-tsx text-sm text-gray-800">&gt;
+            &lt;AccordionItem value=&quot;item-5&quot;&gt;&lt;AccordionTrigger className=&quot;rounded-md border px-4 py-3 text-left&quot;&gt;Do you support multimodal inputs?&lt;/AccordionTrigger&gt;&lt;AccordionContent className=&quot;text-sm text-muted-foreground p-4 border-x border-b rounded-b-md&quot;&gt;Partially. Document summarization is text-only. For images, you can attach them in chat and ask questions (Q&amp;A) about the content. Audio/video transcripts can be summarized if provided as text.&lt;/AccordionContent&gt;&lt;/AccordionItem&gt;
+            &lt;AccordionItem value=&quot;item-6&quot;&gt;&lt;AccordionTrigger className=&quot;rounded-md border px-4 py-3 text-left&quot;&gt;How is quality evaluated?&lt;/AccordionTrigger&gt;&lt;AccordionContent className=&quot;text-sm text-muted-foreground p-4 border-x border-b rounded-b-md&quot;&gt;We apply multi-criteria evaluation beyond n-gram overlap, measuring semantics, faithfulness, coherence, and completeness. Hybrid Human-AI reviews are supported, with A/B testing capabilities for comparing different summarization approaches.&lt;/AccordionContent&gt;&lt;/AccordionItem&gt;
+            &lt;AccordionItem value=&quot;item-7&quot;&gt;&lt;AccordionTrigger className=&quot;rounded-md border px-4 py-3 text-left&quot;&gt;Is there an API available?&lt;/AccordionTrigger&gt;&lt;AccordionContent className=&quot;text-sm text-muted-foreground p-4 border-x border-b rounded-b-md&quot;&gt;Yes, we provide RESTful APIs with comprehensive documentation, SDKs for popular languages (Python, JavaScript, Java), webhook support for async processing, and batch processing capabilities for high-volume use cases.&lt;/AccordionContent&gt;&lt;/AccordionItem&gt;
+            &lt;AccordionItem value=&quot;item-8&quot;&gt;&lt;AccordionTrigger className=&quot;rounded-md border px-4 py-3 text-left&quot;&gt;What about data privacy and security?&lt;/AccordionTrigger&gt;&lt;AccordionContent className=&quot;text-sm text-muted-foreground p-4 border-x border-b rounded-b-md&quot;&gt;All documents are encrypted in transit and at rest using AES-256. We offer on-premise deployment options, GDPR compliance, and data retention policies. Documents are never stored longer than necessary for processing.&lt;/AccordionContent&gt;&lt;/AccordionItem&gt;
+          &lt;/Accordion&gt;
+        &lt;/div&gt;
+      &lt;/section&gt;
+      &lt;</code></pre></div><!-- Add more clone groups for .txt format as needed         // Add more clone groups for .txt format as needed--></div><a name="css-clones"></a><h2 class="text-2xl font-semibold text-gray-700 mb-4">css</h2><div class="divide-y divide-gray-200 border-b-2"><!-- Add more clone groups for .txt format as needed         // Add more clone groups for .txt format as needed--></div><a name="python-clones"></a><h2 class="text-2xl font-semibold text-gray-700 mb-4">python</h2><div class="divide-y divide-gray-200 border-b-2"><!-- Add more clone groups for .txt format as needed         // Add more clone groups for .txt format as needed--></div><a name="yaml-clones"></a><h2 class="text-2xl font-semibold text-gray-700 mb-4">yaml</h2><div class="divide-y divide-gray-200 border-b-2"><!-- Add more clone groups for .txt format as needed         // Add more clone groups for .txt format as needed--></div><a name="json-clones"></a><h2 class="text-2xl font-semibold text-gray-700 mb-4">json</h2><div class="divide-y divide-gray-200 border-b-2"><!-- Add more clone groups for .txt format as needed         // Add more clone groups for .txt format as needed--></div><a name="markdown-clones"></a><h2 class="text-2xl font-semibold text-gray-700 mb-4">markdown</h2><div class="divide-y divide-gray-200 border-b-2"><!-- Add more clone groups for .txt format as needed         // Add more clone groups for .txt format as needed--></div></section><!-- Add more sections for other formats and clone groups as needed--></main><footer class="bg-white shadow mt-8 py-4"><div class="container mx-auto px-4 text-center"><p class="text-sm text-gray-600">This report is generated by jscpd, an open-source copy/paste detector.</p><p class="text-sm text-gray-600">jscpd is licensed under the MIT License.</p><a class="text-blue-500 text-sm" href="https://github.com/kucherenko/jscpd" target="_blank" rel="noopener noreferrer">View jscpd on GitHub</a></div></footer><script src="js/prism.js"></script><script>function toggleCodeBlock(codeBlockId, expandBtnId, collapseBtnId) {
+  const codeBlock = document.getElementById(codeBlockId);
+  const expandBtn = document.getElementById(expandBtnId);
+  const collapseBtn = document.getElementById(collapseBtnId);
+
+  codeBlock.classList.toggle('hidden');
+  expandBtn.classList.toggle('hidden');
+  collapseBtn.classList.toggle('hidden');
+}</script></body></html>
