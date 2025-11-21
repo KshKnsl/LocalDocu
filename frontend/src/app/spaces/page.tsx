@@ -75,28 +75,6 @@ export default function SpacesPage() {
             <h3 className="text-xl font-semibold mb-2">{searchQuery ? "No spaces found" : "No document spaces yet"}</h3>
             <p className="text-muted-foreground mb-6 text-center max-w-md">{searchQuery ? "Try adjusting your search query" : "Create your first document space to start researching with AI"}</p>
             {!searchQuery && <Button onClick={handleCreateSpace} size="lg" className="gap-2"><Plus className="h-5 w-5" />Create Your First Space</Button>}
-          <NewChatDialog
-            open={createDialogOpen}
-            onOpenChange={setCreateDialogOpen}
-            onCreate={async ({ chatId, title, description, models }) => {
-              if (isUsingCustomBackend()) {
-                toast.info("Pulling selected models...");
-                try {
-                  for (const model of models) {
-                    await loadModel(model);
-                  }
-                  toast.success("All models pulled successfully!");
-                } catch (error) {
-                  toast.error("Failed to pull some models. Please try again.");
-                  throw error; 
-                }
-              }
-              const now = new Date().toISOString();
-              addChat({ chat_id: chatId, title, created_at: now, fileWithUrl: [], message_objects: [], description, models });
-              setChats(getAllChats());
-              router.push(`/chat/${chatId}`);
-            }}
-          />
           </div>
         ) : (
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
@@ -147,6 +125,29 @@ export default function SpacesPage() {
             ))}
           </div>
         )}
+        {/* Global NewChatDialog: always rendered so 'New Space' button works when chats exist */}
+        <NewChatDialog
+          open={createDialogOpen}
+          onOpenChange={setCreateDialogOpen}
+          onCreate={async ({ chatId, title, description, models }) => {
+            if (isUsingCustomBackend()) {
+              toast.info("Pulling selected models...");
+              try {
+                for (const model of models) {
+                  await loadModel(model);
+                }
+                toast.success("All models pulled successfully!");
+              } catch (error) {
+                toast.error("Failed to pull some models. Please try again.");
+                throw error;
+              }
+            }
+            const now = new Date().toISOString();
+            addChat({ chat_id: chatId, title, created_at: now, fileWithUrl: [], message_objects: [], description, models });
+            setChats(getAllChats());
+            router.push(`/chat/${chatId}`);
+          }}
+        />
       </main>
       <Dialog open={deleteDialogOpen} onOpenChange={setDeleteDialogOpen}>
         <DialogContent className="w-[95vw] max-w-none sm:max-w-md"><DialogHeader><DialogTitle>Delete Document Space?</DialogTitle><DialogDescription>This action cannot be undone. This will permanently delete the document space and all its messages and files.</DialogDescription></DialogHeader>
