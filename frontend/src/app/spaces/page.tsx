@@ -125,7 +125,6 @@ export default function SpacesPage() {
             ))}
           </div>
         )}
-        {/* Global NewChatDialog: always rendered so 'New Space' button works when chats exist */}
         <NewChatDialog
           open={createDialogOpen}
           onOpenChange={setCreateDialogOpen}

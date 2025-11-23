@@ -10,11 +10,9 @@ export const loadModel = async (modelName: string) => {
   return res.json();
 };
 
-export async function sendExternalChatMessage({ prompt, model = "mistral", stream = false, documentIds, maxCitations, specificChunks, onStreamChunk, onStatusChange }: { prompt: string; model?: string; stream?: boolean; documentIds?: string[]; maxCitations?: number | null; specificChunks?: Record<string, number[]>; onStreamChunk?: (chunk: string) => void; onStatusChange?: (status: string) => void }): Promise<ChatResponse> {
-  if (onStatusChange) onStatusChange("Pulling model...");
+export async function sendExternalChatMessage({ prompt, model = "mistral", documentIds, maxCitations, specificChunks }: { prompt: string; model?: string; documentIds?: string[]; maxCitations?: number | null; specificChunks?: Record<string, number[]>; }): Promise<ChatResponse> {
   await loadModel(model);
-  if (onStatusChange) onStatusChange("Generating...");
-  const body: any = { model, prompt, stream, documentIds };
+  const body: any = { model, prompt, documentIds };
   if (typeof maxCitations !== "undefined") body.maxCitations = maxCitations;
   if (specificChunks) body.specificChunks = specificChunks;
 
@@ -24,38 +22,8 @@ export async function sendExternalChatMessage({ prompt, model = "mistral", strea
     body: JSON.stringify(body),
   });
   if (!res.ok) throw new Error(await res.text() || "Failed to get chat response");
-  if (!stream) {
-    const data = await res.json();
-    return { response: data.response, citations: data.citations };
-  }
-  const reader = res.body?.getReader();
-  const decoder = new TextDecoder();
-  let result = "";
-  if (!reader) throw new Error("No stream reader available");
-  let buffer = "";
-  while (true) {
-    const { done, value } = await reader.read();
-    if (done) break;
-    buffer += decoder.decode(value, { stream: true });
-    let lines = buffer.split(/\r?\n/);
-    buffer = lines.pop() || ""; // keep incomplete line for next chunk
-    for (const line of lines) {
-      if (!line.trim()) continue;
-      const json = JSON.parse(line);
-      if (json.response !== undefined) {
-        result += json.response;
-        if (onStreamChunk) onStreamChunk(json.response);
-      }
-    }
-  }
-  if (buffer.trim()) {
-    const json = JSON.parse(buffer);
-    if (json.response !== undefined) {
-      result += json.response;
-      if (onStreamChunk) onStreamChunk(json.response);
-    }
-  }
-  return { response: result, citations: [] };
+  const data = await res.json();
+  return { response: data.response, citations: data.citations };
 }
 
 export type UploadResult = { url: string; filename: string; key: string };
@@ -94,7 +62,6 @@ export const uploadDocument = async (file: File, opts?: { chatFolder?: string })
 
 export async function processDocument(key?: string, file?: File): Promise<ProcessingResult> {
   if (!file) {
-    // No file provided, skip processing
     return { documentId: key || "", status: "skipped", chunkCount: 0 };
   }
 
@@ -106,8 +73,6 @@ export async function processDocument(key?: string, file?: File): Promise<Proces
     pollTimer = window.setInterval(async () => {
       try {
         const progress = await getProgress();
-        // If progress service returns null, the work has already completed
-        // and the progress record was removed — stop polling.
         if (progress === null) {
           if (pollTimer !== null) {
             clearInterval(pollTimer);
@@ -116,7 +81,6 @@ export async function processDocument(key?: string, file?: File): Promise<Proces
           return;
         }
       } catch (e) {
-        // ignore polling errors
       }
     }, 1000);
   }

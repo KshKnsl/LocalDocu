@@ -16,9 +16,9 @@ interface NewChatDialogProps {
 }
 
 export default function NewChatDialog({ open, onOpenChange, onCreate }: NewChatDialogProps) {
-  const [title, setTitle] = useState("");
+  const [title, setTitle] = useState("New Chat");
   const [description, setDescription] = useState("");
-  const [selectedModels, setSelectedModels] = useState<string[]>(["mistral", "llava"]);
+  const [selectedModels, setSelectedModels] = useState<string[]>(["gemma3:1b", "llava"]);
   const [isCreating, setIsCreating] = useState(false);
 
   const toggleModel = (modelName: string) => {
@@ -38,7 +38,7 @@ export default function NewChatDialog({ open, onOpenChange, onCreate }: NewChatD
       await onCreate({ chatId, title: title.trim(), description: description.trim(), models: selectedModels });
       setTitle("");
       setDescription("");
-      setSelectedModels(["mistral", "llava"]);
+      setSelectedModels(["gemma3:1b", "llava"]);
       onOpenChange(false);
     } catch (error) {
       console.error("Failed to create chat:", error);

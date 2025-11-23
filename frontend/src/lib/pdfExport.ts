@@ -39,7 +39,6 @@ export async function exportChatToPDF(chat: ChatDocument) {
   const { pdf, pageWidth, pageHeight, margin, contentWidth } = setupPDF();
   let yPosition = margin + 10;
 
-  // Title page
   pdf.setFontSize(20);
   pdf.setFont('helvetica', 'bold');
   pdf.setTextColor(0, 0, 0);
@@ -58,7 +57,6 @@ export async function exportChatToPDF(chat: ChatDocument) {
   pdf.text(`Total Messages: ${chat.message_objects.length}`, margin, yPosition);
   yPosition += 15;
 
-  // Attached documents
   if (chat.fileWithUrl?.length) {
     pdf.setFontSize(12);
     pdf.setFont('helvetica', 'bold');
@@ -74,7 +72,6 @@ export async function exportChatToPDF(chat: ChatDocument) {
     yPosition += 10;
   }
 
-  // Conversation section
   pdf.setFontSize(12);
   pdf.setFont('helvetica', 'bold');
   pdf.text('Conversation Transcript', margin, yPosition);
@@ -86,14 +83,12 @@ export async function exportChatToPDF(chat: ChatDocument) {
   chat.message_objects.forEach((msg, i) => {
     if (yPosition > pageHeight - 50) { pdf.addPage(); yPosition = margin + 30; }
     
-    // Author label
     pdf.setFontSize(11);
     pdf.setFont('helvetica', 'bold');
     pdf.setTextColor(0, 0, 0);
     pdf.text(msg.author === 'user' ? 'User:' : 'Assistant:', margin, yPosition);
     yPosition += 7;
     
-    // Message content
     pdf.setFontSize(10);
     pdf.setFont('helvetica', 'normal');
     const contentLines = pdf.splitTextToSize(msg.content.replace(/\*\*/g, '').replace(/\*/g, ''), contentWidth - 8);
@@ -104,7 +99,6 @@ export async function exportChatToPDF(chat: ChatDocument) {
     });
     yPosition += 3;
 
-    // File attachments
     if (msg.files?.length) {
       pdf.setFontSize(9);
       pdf.setFont('helvetica', 'italic');
@@ -112,7 +106,6 @@ export async function exportChatToPDF(chat: ChatDocument) {
       yPosition += 6;
     }
 
-    // Citations
     if (msg.citations?.length) {
       yPosition += 3;
       pdf.setFontSize(9);
@@ -134,7 +127,6 @@ export async function exportChatToPDF(chat: ChatDocument) {
 
     yPosition += 6;
     
-    // Separator between messages
     if (i < chat.message_objects.length - 1) {
       pdf.setDrawColor(0, 0, 0);
       pdf.setLineWidth(0.2);
@@ -151,7 +143,6 @@ export async function exportAllChatsToPDF(chats: ChatDocument[]) {
   const { pdf, pageWidth, pageHeight, margin, contentWidth } = setupPDF();
   let yPosition = margin + 10;
 
-  // Cover page
   pdf.setFontSize(22);
   pdf.setFont('helvetica', 'bold');
   pdf.setTextColor(0, 0, 0);
@@ -172,7 +163,6 @@ export async function exportAllChatsToPDF(chats: ChatDocument[]) {
   pdf.text(`Total Messages: ${chats.reduce((sum, c) => sum + c.message_objects.length, 0)}`, margin, yPosition);
   yPosition += 20;
 
-  // Table of contents
   pdf.setFontSize(14);
   pdf.setFont('helvetica', 'bold');
   pdf.text('Table of Contents', margin, yPosition);
@@ -191,14 +181,12 @@ export async function exportAllChatsToPDF(chats: ChatDocument[]) {
     yPosition += 11;
   });
 
-  // Documents
   pdf.addPage();
   yPosition = margin + 30;
   
   chats.forEach((chat, idx) => {
     if (idx > 0) { pdf.addPage(); yPosition = margin + 30; }
     
-    // Document header
     pdf.setFontSize(14);
     pdf.setFont('helvetica', 'bold');
     pdf.setTextColor(0, 0, 0);

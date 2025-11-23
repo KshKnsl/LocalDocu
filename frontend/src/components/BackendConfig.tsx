@@ -76,7 +76,6 @@ export function BackendConfig() {
         </CardDescription>
       </CardHeader>
       <CardContent className="space-y-6">
-        {/* Current Status */}
         <div className="flex items-center justify-between p-3 rounded-lg border bg-muted/50">
           <div className="flex items-center gap-2">
             <div className={`w-2 h-2 rounded-full ${
@@ -102,7 +101,6 @@ export function BackendConfig() {
           </Button>
         </div>
 
-        {/* Backend Mode Selection */}
         <div className="space-y-3">
           <label className="text-sm font-medium">Backend Mode</label>
           
@@ -133,7 +131,6 @@ export function BackendConfig() {
               </CardContent>
             </Card>
 
-            {/* Custom Backend Option */}
             <Card 
               className={`cursor-pointer transition-all ${
                 backendMode === "custom" 

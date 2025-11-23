@@ -24,10 +24,8 @@ interface MarkdownRendererProps {
 export function MarkdownRenderer({ content, className }: MarkdownRendererProps) {
   const ref = useRef<HTMLDivElement>(null);
   
-  // Memoize the markdown components to prevent unnecessary re-renders
   const components = useMemo(() => {
     return {
-      // Define custom components for markdown elements
       p: ({ node, children, ...props }: any) => (
         <p className="my-2 leading-relaxed" {...props}>
           {children}
@@ -103,7 +101,6 @@ export function MarkdownRenderer({ content, className }: MarkdownRendererProps) 
           );
         }
 
-        // For code blocks, add syntax highlighting and copy functionality
         return (
           <CodeBlock language={language} {...props}>
             {String(children).replace(/\n$/, "")}
@@ -126,13 +123,11 @@ export function MarkdownRenderer({ content, className }: MarkdownRendererProps) 
   );
 }
 
-// Code block component with syntax highlighting and copy functionality
 const CodeBlock = ({ children, language }: { children: string; language: string }) => {
   const [copied, setCopied] = useState(false);
   const { resolvedTheme, theme } = useTheme();
   const [mounted, setMounted] = useState(false);
 
-  // Prevent hydration issues
   useEffect(() => {
     setMounted(true);
   }, []);
@@ -143,11 +138,9 @@ const CodeBlock = ({ children, language }: { children: string; language: string 
       setCopied(true);
       setTimeout(() => setCopied(false), 2000);
     } catch (error) {
-      // Silent fail for copy
     }
   };
 
-  // Choose theme based on current system/user preference
   const isDarkTheme = mounted && (resolvedTheme === "dark" || theme === "dark");
   const syntaxTheme = isDarkTheme ? oneDark : oneLight;
 

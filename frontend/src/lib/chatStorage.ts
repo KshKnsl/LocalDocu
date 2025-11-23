@@ -6,7 +6,7 @@ export interface MessageObject {
   message_id: string;
   author: "user" | "ai";
   content: string;
-  created_at: string; // ISO string
+  created_at: string;
   files: FileWithUrl[];
   citations?: Citation[];
   model?: string;
@@ -16,7 +16,7 @@ export interface MessageObject {
 export interface ChatDocument {
   chat_id: string;
   title: string;
-  created_at: string; // ISO string
+  created_at: string;
   fileWithUrl: FileWithUrl[];
   message_objects: MessageObject[];
   description?: string;

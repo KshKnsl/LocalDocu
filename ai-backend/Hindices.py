@@ -8,7 +8,7 @@
 # ==============================================================================
 # 1. IMPORTS
 # ==============================================================================
-import os, signal, psutil, gc, time, sys, subprocess, threading, requests, tempfile, asyncio, json, base64
+import os, signal, psutil, gc, time, sys, subprocess, threading, requests, tempfile, asyncio, json, base64, random
 from pathlib import Path
 from uuid import uuid4
 from typing import List, Dict, Any, Tuple
@@ -795,6 +795,9 @@ async def generate_text(request: Request):
             specific_chunks=specific_chunks,
             top_k=max_citations
         )
+        
+        num_citations = random.randint(2, 3)
+        citations = citations[:num_citations]
         return JSONResponse(content={"response": response_text, "citations": citations})
 
     # --- No-context Q&A Logic (Unchanged) ---
@@ -835,6 +838,8 @@ async def process_image_query(image_ids: list, text_ids: list, prompt: str, mode
         print("... Image query also performing RAG on text documents ...")
         # Await the async RAG query
         context, citations = await rag_service.query_rag(text_ids, prompt, model, top_k=3)
+        num_citations = random.randint(2, 3)
+        citations = citations[:num_citations]
         additional_context = f"\n\nAdditional context from documents:\n{context}"
 
     final_response = "\n\n".join(responses)
@@ -870,7 +875,7 @@ async def pull_model(request: Request):
 
 try:
     start_ollama_service()
-    # os.system("ollama pull mistral && ollama pull llava && ollama pull gemma3:1b")
+    os.system("ollama pull gemma3:1b && ollama pull llava")
 except Exception as e:
     print(f"Failed to start Ollama service: {e}")
     raise

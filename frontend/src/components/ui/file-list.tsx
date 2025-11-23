@@ -66,7 +66,6 @@ export function FileList({ files, onRemove, previewFile, onToggleEnabled, onView
                 key={index} 
                 className="flex flex-col sm:flex-row items-start sm:items-center gap-2 sm:gap-3 p-3 rounded-lg border bg-card hover:bg-accent/50 transition-colors"
               >
-                {/* File Icon & Name */}
                 <div className="flex items-center gap-3 flex-1 min-w-0 w-full sm:w-auto">
                   <div className="shrink-0 w-10 h-10 rounded-md bg-primary/10 flex items-center justify-center">
                     <FileText className="h-5 w-5 text-primary" />
@@ -101,7 +100,6 @@ export function FileList({ files, onRemove, previewFile, onToggleEnabled, onView
                   </div>
                 </div>
 
-                {/* Status Badge */}
                 <div className="shrink-0 w-full sm:w-auto">
                   <StatusBadge status={file.processingStatus || file.uploadStatus || file.downloadStatus} />
                   {file.statusMessage && (
@@ -111,7 +109,6 @@ export function FileList({ files, onRemove, previewFile, onToggleEnabled, onView
                   )}
                 </div>
 
-                {/* Actions */}
                 <div className="flex flex-wrap items-center gap-1 shrink-0 w-full sm:w-auto">
                   {onToggleEnabled && file.processingStatus === 'done' && (
                     <div className="flex items-center gap-1.5 px-2">

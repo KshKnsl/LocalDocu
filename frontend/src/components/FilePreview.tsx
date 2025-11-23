@@ -88,7 +88,6 @@ export function FilePreview({ file, onClose, className, onViewChunks }: FilePrev
           if (file.chatId && file.name) {
             useUrl = await getChatFileLocalUrl(file.chatId, file.name) || useUrl;
             if (!useUrl && file.key) {
-              // Use cloneChatFolderToLocal to fetch and store the file locally
               const mapping = await cloneChatFolderToLocal(file.chatId, [{ name: file.name, type: file.type, key: file.key }]);
               useUrl = mapping[file.name];
             }

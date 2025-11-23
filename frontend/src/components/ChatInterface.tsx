@@ -63,7 +63,7 @@ export function ChatInterface({ activeDocument }: ChatInterfaceProps) {
   const [currentChatId, setCurrentChatId] = useState<string | undefined>();
   const [input, setInput] = useState("");
   const [files, setFiles] = useState<FileWithUrl[]>([]);
-  const [model, setModel] = useState("mistral"); // Default to mistral
+  const [model, setModel] = useState("mistral");
   const [previewFile, setPreviewFile] = useState<FileWithUrl | string | null>(null);
   const [showAttachments, setShowAttachments] = useState(false);
   const [chats, setChats] = useState<ChatDocument[]>(() => getAllChats());
@@ -138,22 +138,11 @@ export function ChatInterface({ activeDocument }: ChatInterfaceProps) {
     return () => window.removeEventListener("resize", handleResize);
   }, []);
 
-  const [stream, setStreamState] = useState(() => {
-    if (typeof window !== "undefined") {
-      const stored = localStorage.getItem("chat_stream_toggle");
-      return stored === null ? false : stored === "true";
-    }
-    return false;
-  });
-  useEffect(() => {
-    localStorage.setItem("chat_stream_toggle", String(stream));
-  }, [stream]);
-  const setStream = (v: boolean) => setStreamState(v);
-
   const messagesEndRef = useRef<HTMLDivElement>(null);
   const { user } = useUser();
 
   const messages = currentChatId ? getChatById(currentChatId)?.message_objects || [] : [];
+  const currentChat = currentChatId ? getChatById(currentChatId) : null;
 
   useEffect(() => {
     messagesEndRef.current?.scrollIntoView({ behavior: "smooth" });
@@ -181,7 +170,6 @@ export function ChatInterface({ activeDocument }: ChatInterfaceProps) {
       const chatFolder = `chats/${chatId}`;
       const tempIds = fileArray.map(() => `temp_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`);
       
-      // Show processing dialog and block operations
       setIsProcessing(true);
       setShowProcessingDialog(true);
       setProcessingFiles(fileArray.map(file => ({
@@ -200,7 +188,7 @@ export function ChatInterface({ activeDocument }: ChatInterfaceProps) {
         processingStatus: 'idle',
         downloadStatus: 'idle',
         statusMessage: 'Uploading',
-        key: tempIds[idx], // Temporary unique ID
+        key: tempIds[idx],
       }));
       setFiles((prev) => [...prev, ...placeholders]);
 
@@ -210,7 +198,6 @@ export function ChatInterface({ activeDocument }: ChatInterfaceProps) {
           try {
             const { url, key, filename } = await uploadDocument(file, { chatFolder });
             
-            // Update processing banner
             setProcessingFiles(prev => prev.map(pf => 
               pf.name === file.name && pf.status === 'uploading'
                 ? { ...pf, status: 'processing' as const, progress: 10 }
@@ -245,7 +232,7 @@ export function ChatInterface({ activeDocument }: ChatInterfaceProps) {
               ...f, 
               uploadStatus: 'failed', 
               statusMessage: 'Upload failed',
-              downloadStatus: 'failed' // Can't download if upload failed
+              downloadStatus: 'failed'
             } : f)));
             return {
               name: file.name,
@@ -267,7 +254,6 @@ export function ChatInterface({ activeDocument }: ChatInterfaceProps) {
         }
         setFiles((prev) => prev.map(f => (f.key === uploadedFile.key && f.chatId === chatId ? { ...f, processingStatus: 'processing', statusMessage: 'Processing' } : f)));
         
-        // Update processing banner - show analyzing
         setProcessingFiles(prev => prev.map(pf => 
           pf.name === uploadedFile.name && pf.status === 'processing'
             ? { ...pf, progress: 30 }
@@ -421,7 +407,6 @@ export function ChatInterface({ activeDocument }: ChatInterfaceProps) {
       files: currentFiles,
     };
     chat.message_objects.push(userMsg);
-    // Keep chat-level file list in sync (unique by key+name)
     const existing = chat.fileWithUrl || [];
     const seen = new Map(existing.map(f => [`${f.key || ''}|${f.name}`, f]));
     for (const f of currentFiles) {
@@ -469,72 +454,25 @@ export function ChatInterface({ activeDocument }: ChatInterfaceProps) {
             )
           ) : undefined;
 
-        if (stream) {
-          let fullResponse = "";
-          await sendExternalChatMessage({
-            prompt: promptWithFiles,
-            model,
-            stream: true,
-            documentIds,
-            specificChunks,
-            onStreamChunk: (chunk: string) => {
-              fullResponse += chunk;
-              // Update bot message in chat
-              const updatedChat = getChatById(chatId!);
-              if (!updatedChat) return;
-              const msgIdx = updatedChat.message_objects.findIndex(m => m.message_id === botMsgId);
-              if (msgIdx !== -1) {
-                updatedChat.message_objects[msgIdx].content = fullResponse;
-                updateChat(updatedChat);
-                setChats(getAllChats());
-              }
-            },
-            onStatusChange: (status: any) => {
-              const updatedChat = getChatById(chatId!);
-              if (!updatedChat) return;
-              const msgIdx = updatedChat.message_objects.findIndex(m => m.message_id === botMsgId);
-              if (msgIdx !== -1) {
-                updatedChat.message_objects[msgIdx].content = `__STATUS__:${status}`;
-                updateChat(updatedChat);
-                setChats(getAllChats());
-              }
-            },
-          });
-        } else {
-          const chatResponse = await sendExternalChatMessage({
-            prompt: promptWithFiles,
-            model,
-            stream: false,
-            documentIds,
-            specificChunks,
-            onStatusChange: (status: any) => {
-              // Update bot message with status
-              const updatedChat = getChatById(chatId!);
-              if (!updatedChat) return;
-              const msgIdx = updatedChat.message_objects.findIndex(m => m.message_id === botMsgId);
-              if (msgIdx !== -1) {
-                updatedChat.message_objects[msgIdx].content = `__STATUS__:${status}`;
-                updateChat(updatedChat);
-                setChats(getAllChats());
-              }
-            },
-          });
-          // Update bot message in chat
-          const updatedChat = getChatById(chatId!);
-          if (updatedChat) {
-            const msgIdx = updatedChat.message_objects.findIndex(m => m.message_id === botMsgId);
-            if (msgIdx !== -1) {
-              updatedChat.message_objects[msgIdx].content = chatResponse.response;
-              updatedChat.message_objects[msgIdx].citations = chatResponse.citations || [];
-              updateChat(updatedChat);
-              setChats(getAllChats());
-            }
+        const chatResponse = await sendExternalChatMessage({
+          prompt: promptWithFiles,
+          model,
+          documentIds,
+          specificChunks,
+        });
+        const updatedChat = getChatById(chatId!);
+        if (updatedChat) {
+          const msgIdx = updatedChat.message_objects.findIndex(m => m.message_id === botMsgId);
+          if (msgIdx !== -1) {
+            updatedChat.message_objects[msgIdx].content = chatResponse.response;
+            updatedChat.message_objects[msgIdx].citations = chatResponse.citations || [];
+            updateChat(updatedChat);
+            setChats(getAllChats());
           }
         }
       }
     } catch (error) {
       toast.error(error instanceof Error ? error.message : "Something went wrong");
-      // Optionally remove last user message on error
     }
   };
 
@@ -551,7 +489,6 @@ export function ChatInterface({ activeDocument }: ChatInterfaceProps) {
   };
   return (
     <div className="flex w-full h-full">
-      {/* Processing Dialog */}
       <Dialog open={showProcessingDialog} onOpenChange={setShowProcessingDialog}>
         <DialogContent className="sm:max-w-[600px]">
           <DialogHeader>
@@ -592,7 +529,6 @@ export function ChatInterface({ activeDocument }: ChatInterfaceProps) {
         </DialogContent>
       </Dialog>
 
-      {/* Blocking Overlay */}
       {isProcessing && (
         <div className="fixed inset-0 bg-background/80 backdrop-blur-sm z-40" />
       )}
@@ -605,8 +541,6 @@ export function ChatInterface({ activeDocument }: ChatInterfaceProps) {
         onChatSelect={handleSidebarChatSelect}
         onNewChatStart={handleSidebarNewChat}
         onChatsUpdate={() => setChats(getAllChats())}
-        stream={stream}
-        setStream={setStream}
         onPreviewFile={(f) => setPreviewFile(f)}
         onViewChunks={(docId, docName) => {
           setChunkViewerDocId(docId);
@@ -618,10 +552,14 @@ export function ChatInterface({ activeDocument }: ChatInterfaceProps) {
       <main className="flex-1 flex flex-col h-screen overflow-hidden">
         <div className="flex-1 flex flex-col min-h-0 relative">
           <div className="flex-1 flex flex-col">
-            <div className="h-[calc(100vh-10rem)] w-full pt-5">
+            {currentChat && (
+              <div className="border-b bg-background p-4">
+                <h1 className="text-lg font-semibold">{currentChat.title}</h1>
+              </div>
+            )}
+            <div className="flex-1 w-full pt-5">
               <ScrollArea className="h-full w-full">
                 <div className="space-y-6 p-4 pt-5 max-w-full">
-                  {/* ...existing chat message rendering logic... */}
                   {!currentChatId || !getChatById(currentChatId) || getChatById(currentChatId)!.message_objects.length === 0 ? (
                     <div className="flex flex-col items-center justify-center h-[calc(100vh-10rem)] p-4">
                       <div className="max-w-2xl w-full space-y-6">
@@ -639,11 +577,6 @@ export function ChatInterface({ activeDocument }: ChatInterfaceProps) {
                   ) : (
                     messages.map((message, idx, arr) => {
                       const isLast = idx === arr.length - 1;
-                      const showPulse =
-                        stream &&
-                        isLast &&
-                        message.author === "ai" &&
-                        !message.content;
                       return (
                         <div
                           key={message.message_id}
@@ -653,7 +586,6 @@ export function ChatInterface({ activeDocument }: ChatInterfaceProps) {
                               : "flex-row"
                           }`}
                         >
-                          {/* Avatar */}
                           {message.author === "user" ? (
                             user?.imageUrl ? (
                               /* eslint-disable-next-line @next/next/no-img-element */
@@ -675,7 +607,6 @@ export function ChatInterface({ activeDocument }: ChatInterfaceProps) {
                             </div>
                           )}
 
-                          {/* Message Content */}
                           <div
                             className={`flex flex-col gap-2 max-w-[75%] overflow-hidden`}
                           >
@@ -711,12 +642,7 @@ export function ChatInterface({ activeDocument }: ChatInterfaceProps) {
                                   className="overflow-x-auto max-w-full"
                                   style={{ wordBreak: 'break-word', whiteSpace: 'pre-wrap' }}
                                 >
-                                  {showPulse ? (
-                                    <span className="flex items-center gap-2">
-                                      <span className="text-xs text-muted-foreground">Waiting for response</span>
-                                      <PulseLoader />
-                                    </span>
-                                  ) : message.author === "ai" && message.content.startsWith("__STATUS__:") ? (
+                                  {message.author === "ai" && message.content.startsWith("__STATUS__:") ? (
                                     <span className="flex items-center gap-2">
                                       <PulseLoader />
                                       <span className="text-sm text-muted-foreground">
@@ -792,7 +718,6 @@ export function ChatInterface({ activeDocument }: ChatInterfaceProps) {
                 </div>
               </ScrollArea>
             </div>
-            {/* Chat Input */}
             <ChatInput
               input={input}
               setInput={setInput}

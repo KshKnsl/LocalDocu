@@ -1,4 +1,3 @@
-// Re-export all utility functions from a central location
 export * from "./clipboard";
 export * from "./fileUtils";
 export * from "./dateUtils";

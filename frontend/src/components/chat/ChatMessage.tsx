@@ -16,7 +16,6 @@ import { copyMessage, copyCurrentUrl } from "@/lib/clipboard";
 interface ChatMessageProps {
   message: MessageObject;
   isLast: boolean;
-  stream: boolean;
   userImageUrl?: string;
   userName?: string;
   modelDisplayName?: string;
@@ -26,14 +25,11 @@ interface ChatMessageProps {
 export function ChatMessage({
   message,
   isLast,
-  stream,
   userImageUrl,
   userName,
   modelDisplayName,
   onPreviewFile,
 }: ChatMessageProps) {
-  const showPulse = stream && isLast && message.author === "ai" && !message.content;
-
   const handleCopyMessage = () => copyMessage(message.content);
   const handleCopyLink = () => copyCurrentUrl();
 
@@ -43,7 +39,6 @@ export function ChatMessage({
         message.author === "user" ? "flex-row-reverse" : "flex-row"
       }`}
     >
-      {/* Avatar */}
       {message.author === "user" ? (
         userImageUrl ? (
           /* eslint-disable-next-line @next/next/no-img-element */
@@ -65,7 +60,6 @@ export function ChatMessage({
         </div>
       )}
 
-      {/* Message Content */}
       <div className={`flex flex-col gap-2 max-w-[75%] overflow-hidden`}>
         <Card
           className={cn(
@@ -99,12 +93,7 @@ export function ChatMessage({
               className="overflow-x-auto max-w-full"
               style={{ wordBreak: 'break-word', whiteSpace: 'pre-wrap' }}
             >
-              {showPulse ? (
-                <span className="flex items-center gap-2">
-                  <span className="text-xs text-muted-foreground">Waiting for response</span>
-                  <PulseLoader />
-                </span>
-              ) : message.author === "ai" && message.content.startsWith("__STATUS__:") ? (
+              {message.author === "ai" && message.content.startsWith("__STATUS__:") ? (
                 <span className="flex items-center gap-2">
                   <PulseLoader />
                   <span className="text-sm text-muted-foreground">

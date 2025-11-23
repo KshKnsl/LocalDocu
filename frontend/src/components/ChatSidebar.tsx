@@ -39,8 +39,6 @@ interface ChatSidebarProps {
   onChatSelect?: (chatId?: string) => void;
   onNewChatStart?: () => void;
   onChatsUpdate?: () => void;
-  stream?: boolean;
-  setStream?: (v: boolean) => void;
   onPreviewFile?: (file: FileWithUrl) => void;
   onViewChunks?: (documentId: string, documentName: string) => void;
 }
@@ -54,8 +52,6 @@ export function ChatSidebar({
   onChatSelect,
   onNewChatStart,
   onChatsUpdate,
-  stream = false,
-  setStream,
   onPreviewFile,
   onViewChunks,
 }: ChatSidebarProps) {
@@ -81,16 +77,6 @@ export function ChatSidebar({
     onChatsUpdate?.();
   };
   const isVercel = typeof window !== "undefined" && window.location.hostname.endsWith("vercel.app");
-
-  // Handler for stream toggle
-  const handleStreamToggle = (v: boolean) => {
-    if (v && isVercel) {
-      toast.error("Vercel does not support streaming. Stream has been turned off.");
-      setStream?.(false);
-    } else {
-      setStream?.(v);
-    }
-  };
 
   const filteredChats = chats.filter(chat => {
     const term = search.toLowerCase();
@@ -244,20 +230,9 @@ export function ChatSidebar({
         {isSidebarOpen ? (
           <div className="space-y-3">
             <BackendConfigDialog collapsed={false} />
-             <div className="flex items-center justify-between gap-2">
-              <div className="flex items-center gap-2">
-                <Switch
-                  checked={stream}
-                  onCheckedChange={handleStreamToggle}
-                  id="stream-toggle"
-                  className="mr-2"
-                />
-                <label htmlFor="stream-toggle" className="text-xs text-muted-foreground select-none">Stream</label>
-              </div>
-              <div className="flex items-center gap-2">
-                <ThemeSwitcher />
-                <UserButton afterSwitchSessionUrl="/" />
-              </div>
+            <div className="flex items-center justify-end gap-2">
+              <ThemeSwitcher />
+              <UserButton afterSwitchSessionUrl="/" />
             </div>
           </div>
         ) : (
@@ -265,13 +240,6 @@ export function ChatSidebar({
             <div className="w-full max-w-[200px]">
               <BackendConfigDialog collapsed={true} />
             </div>
-            <Switch
-              checked={stream}
-              onCheckedChange={handleStreamToggle}
-              id="stream-toggle"
-              className="mb-2"
-              title="Stream"
-            />
             <UserButton afterSwitchSessionUrl="/" />
             <ThemeSwitcher />
           </div>

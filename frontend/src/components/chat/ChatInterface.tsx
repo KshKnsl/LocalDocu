@@ -68,14 +68,6 @@ export function ChatInterface({ initialChatId }: ChatInterfaceProps) {
     return true;
   });
 
-  const [stream, setStreamState] = useState(() => {
-    if (typeof window !== "undefined") {
-      const stored = localStorage.getItem("chat_stream_toggle");
-      return stored === null ? false : stored === "true";
-    }
-    return false;
-  });
-
   const messagesEndRef = useRef<HTMLDivElement>(null);
   const { user } = useUser();
 
@@ -146,12 +138,6 @@ export function ChatInterface({ initialChatId }: ChatInterfaceProps) {
     window.addEventListener("resize", handleResize);
     return () => window.removeEventListener("resize", handleResize);
   }, []);
-
-  useEffect(() => {
-    localStorage.setItem("chat_stream_toggle", String(stream));
-  }, [stream]);
-
-  const setStream = (v: boolean) => setStreamState(v);
 
   useEffect(() => {
     messagesEndRef.current?.scrollIntoView({ behavior: "smooth" });
@@ -278,63 +264,20 @@ export function ChatInterface({ initialChatId }: ChatInterfaceProps) {
             )
           ) : undefined;
 
-        if (stream) {
-          let fullResponse = "";
-          await sendExternalChatMessage({
-            prompt: promptWithFiles,
-            model,
-            stream: true,
-            documentIds,
-            specificChunks,
-            onStreamChunk: (chunk: string) => {
-              fullResponse += chunk;
-              const updatedChat = getChatById(chatId!);
-              if (!updatedChat) return;
-              const msgIdx = updatedChat.message_objects.findIndex(m => m.message_id === botMsgId);
-              if (msgIdx !== -1) {
-                updatedChat.message_objects[msgIdx].content = fullResponse;
-                updateChat(updatedChat);
-                setChats(getAllChats());
-              }
-            },
-            onStatusChange: (status: any) => {
-              const updatedChat = getChatById(chatId!);
-              if (!updatedChat) return;
-              const msgIdx = updatedChat.message_objects.findIndex(m => m.message_id === botMsgId);
-              if (msgIdx !== -1) {
-                updatedChat.message_objects[msgIdx].content = `__STATUS__:${status}`;
-                updateChat(updatedChat);
-                setChats(getAllChats());
-              }
-            },
-          });
-        } else {
-          const chatResponse = await sendExternalChatMessage({
-            prompt: promptWithFiles,
-            model,
-            stream: false,
-            documentIds,
-            specificChunks,
-            onStatusChange: (status: any) => {
-              const updatedChat = getChatById(chatId!);
-              if (!updatedChat) return;
-              const msgIdx = updatedChat.message_objects.findIndex(m => m.message_id === botMsgId);
-              if (msgIdx !== -1) {
-                updatedChat.message_objects[msgIdx].content = `__STATUS__:${status}`;
-                updateChat(updatedChat);
-                setChats(getAllChats());
-              }
-            },
-          });
-          const updatedChat = getChatById(chatId!);
-          if (updatedChat) {
-            const msgIdx = updatedChat.message_objects.findIndex(m => m.message_id === botMsgId);
-            if (msgIdx !== -1) {
-              updatedChat.message_objects[msgIdx].content = chatResponse.response;
-              updatedChat.message_objects[msgIdx].citations = chatResponse.citations || [];
-              updateChat(updatedChat);
-              setChats(getAllChats());
-            }
+        const chatResponse = await sendExternalChatMessage({
+          prompt: promptWithFiles,
+          model,
+          documentIds,
+          specificChunks,
+        });
+        const updatedChat = getChatById(chatId!);
+        if (updatedChat) {
+          const msgIdx = updatedChat.message_objects.findIndex(m => m.message_id === botMsgId);
+          if (msgIdx !== -1) {
+            updatedChat.message_objects[msgIdx].content = chatResponse.response;
+            updatedChat.message_objects[msgIdx].citations = chatResponse.citations || [];
+            updateChat(updatedChat);
+            setChats(getAllChats());
           }
         }
       }
@@ -357,7 +300,6 @@ export function ChatInterface({ initialChatId }: ChatInterfaceProps) {
 
   return (
     <div className="flex w-full h-full">
-      {/* Processing Dialog */}
       <Dialog open={showProcessingDialog} onOpenChange={() => {}}>
         <DialogContent className="sm:max-w-[600px]" onInteractOutside={(e) => e.preventDefault()}>
           <DialogHeader>
@@ -386,7 +328,6 @@ export function ChatInterface({ initialChatId }: ChatInterfaceProps) {
         </DialogContent>
       </Dialog>
 
-      {/* Blocking Overlay */}
       {isProcessing && (
         <div className="fixed inset-0 bg-background/80 backdrop-blur-sm z-40" />
       )}
@@ -399,8 +340,6 @@ export function ChatInterface({ initialChatId }: ChatInterfaceProps) {
         onChatSelect={handleSidebarChatSelect}
         onNewChatStart={handleSidebarNewChat}
         onChatsUpdate={() => setChats(getAllChats())}
-        stream={stream}
-        setStream={setStream}
         onPreviewFile={(f) => setPreviewFile(f)}
       />
       <NewChatDialog
@@ -427,7 +366,6 @@ export function ChatInterface({ initialChatId }: ChatInterfaceProps) {
       />
 
       <main className="flex-1 flex flex-col h-screen overflow-hidden">
-        {/* Header with Back Button */}
         <div className="border-b bg-background p-3">
           <div className="flex items-center gap-3">
             <Button
@@ -458,7 +396,6 @@ export function ChatInterface({ initialChatId }: ChatInterfaceProps) {
                           key={message.message_id}
                           message={message}
                           isLast={isLast}
-                          stream={stream}
                           userImageUrl={user?.imageUrl}
                           userName={user?.fullName || user?.username || undefined}
                           modelDisplayName={message.model ? getModelDisplayName(message.model) : undefined}
@@ -471,7 +408,6 @@ export function ChatInterface({ initialChatId }: ChatInterfaceProps) {
                 </div>
               </ScrollArea>
             </div>
-            {/* Chat Input */}
             <ChatInput
               input={input}
               setInput={setInput}

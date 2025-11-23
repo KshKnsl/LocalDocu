@@ -113,7 +113,6 @@ export function ChunkViewer({ isOpen, onClose, documentId, documentName, onApply
           </DialogDescription>
         </DialogHeader>
 
-        {/* Search and Actions Bar */}
         <div className="flex gap-2 items-center">
           <div className="relative flex-1">
             <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
@@ -145,7 +144,6 @@ export function ChunkViewer({ isOpen, onClose, documentId, documentName, onApply
           </Button>
         </div>
 
-        {/* Chunks List */}
         <div className="flex-1 overflow-hidden">
           <ScrollArea className="h-full w-full">
             <div className="pr-4">
@@ -240,7 +238,6 @@ export function ChunkViewer({ isOpen, onClose, documentId, documentName, onApply
           </ScrollArea>
         </div>
 
-        {/* Footer Actions */}
         <div className="flex justify-between items-center pt-4 border-t">
           <div className="text-sm text-muted-foreground">
             {selectedChunks.size > 0 && (

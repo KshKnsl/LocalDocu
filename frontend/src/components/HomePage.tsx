@@ -62,7 +62,6 @@ export default function HomePage() {
         }`}
       >
         <div className="grid grid-cols-1 md:grid-cols-2 gap-8 items-center">
-          {/* Left: Hero copy */}
           <div className="flex flex-col items-start gap-6">
             <Badge
               className="w-fit inline-flex items-center gap-2"
@@ -109,7 +108,6 @@ export default function HomePage() {
             </div>
           </div>
 
-          {/* Right: CTA Card */}
           <Card className="shadow-lg border-gray-100 dark:border-gray-800">
             <CardHeader>
               <CardTitle className="text-base">Quick start</CardTitle>
@@ -147,7 +145,6 @@ export default function HomePage() {
         </div>
       </section>
 
-      {/* Sign In Section */}
       <section
         id="signin"
         className={`mx-auto max-w-7xl px-4 py-8 md:py-10 transition-all duration-300 ease-out ${
@@ -352,7 +349,6 @@ export default function HomePage() {
         </div>
       </section>
 
-      {/* Merged: Challenges & Capabilities (compact) */}
       <section
         id="capabilities"
         className={`mx-auto max-w-7xl px-4 py-8 md:py-10 transition-all duration-300 ease-out ${
@@ -376,7 +372,6 @@ export default function HomePage() {
           }`}
         >
           <div className="grid grid-cols-1 md:grid-cols-2 gap-8 items-center">
-            {/* Left: Hero copy */}
             <div className="flex flex-col items-start gap-6">
               <Badge
                 className="w-fit inline-flex items-center gap-2"
@@ -423,7 +418,6 @@ export default function HomePage() {
               </div>
             </div>
 
-            {/* Right: CTA Card */}
             <Card className="shadow-lg border-gray-100 dark:border-gray-800">
               <CardHeader>
                 <CardTitle className="text-base">Quick start</CardTitle>
@@ -569,7 +563,6 @@ export default function HomePage() {
         </div>
       </section>
 
-      {/* Hidden Placeholder for Hero */}
       <div className="hidden" aria-hidden="true" />
     </main>
   );

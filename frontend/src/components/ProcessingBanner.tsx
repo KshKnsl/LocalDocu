@@ -43,7 +43,6 @@ export function ProcessingBanner({ files, onDismiss }: ProcessingBannerProps) {
         </div>
       )}
 
-        {/* Overall Progress */}
         {!allComplete && (
           <div className="space-y-1">
             <div className="flex justify-between text-sm">
@@ -54,7 +53,6 @@ export function ProcessingBanner({ files, onDismiss }: ProcessingBannerProps) {
           </div>
         )}
 
-        {/* Summary Stats */}
         <div className="flex gap-2 flex-wrap">
           {activeFiles.length > 0 && (
             <Badge variant="outline" className="bg-blue-50 dark:bg-blue-950 border-blue-500">
@@ -76,7 +74,6 @@ export function ProcessingBanner({ files, onDismiss }: ProcessingBannerProps) {
           )}
         </div>
 
-        {/* File List */}
         <div className="space-y-2 max-h-[300px] overflow-y-auto">
           {files.map((file, idx) => (
             <div 
