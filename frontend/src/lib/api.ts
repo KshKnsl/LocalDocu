@@ -68,32 +68,9 @@ export async function processDocument(key?: string, file?: File): Promise<Proces
   const formData = new FormData();
   formData.append("file", file);
 
-  let pollTimer: number | null = null;
-  if (typeof window !== "undefined" && !isUsingCustomBackend()) {
-    pollTimer = window.setInterval(async () => {
-      try {
-        const progress = await getProgress();
-        if (progress === null) {
-          if (pollTimer !== null) {
-            clearInterval(pollTimer);
-            pollTimer = null;
-          }
-          return;
-        }
-      } catch (e) {
-      }
-    }, 1000);
-  }
-
-  try {
-    const res = await fetch(`${getBackendUrl()}/process`, { method: "POST", body: formData });
-    if (!res.ok) throw new Error(await res.text() || "Failed to process document");
-    return res.json();
-  } finally {
-    if (pollTimer !== null) {
-      clearInterval(pollTimer);
-    }
-  }
+  const res = await fetch(`${getBackendUrl()}/process`, { method: "POST", body: formData });
+  if (!res.ok) throw new Error(await res.text() || "Failed to process document");
+  return res.json();
 }
 
 export type DocumentChunk = {

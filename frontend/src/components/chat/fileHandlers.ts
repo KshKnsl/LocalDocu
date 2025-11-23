@@ -1,5 +1,5 @@
 import { FileWithUrl } from "@/components/ui/FileWithUrl";
-import { uploadDocument, processDocument, getProgress, clearProgress, isUsingCustomBackend, ProgressData, ProcessingResult } from "@/lib/api";
+import { uploadDocument, processDocument, isUsingCustomBackend, ProcessingResult } from "@/lib/api";
 import { ProcessingFile } from "./types";
 import { toast } from "sonner";
 
@@ -117,49 +117,11 @@ export async function handleFileUpload(
       if (result?.documentId) {
         documentIdByKey.set(uploadedFile.key, result.documentId);
         
-        let attempts = 0;
-        const maxAttempts = 300; 
-        let lastProgress = 30;
-        
-        while (attempts < maxAttempts) {
-          const progressData = await getProgress(result.documentId) as ProgressData | null;
-          
-          if (progressData) {
-            const progress = progressData.progress || lastProgress;
-            lastProgress = progress;
-            
-            setProcessingFiles(prev => prev.map(pf => 
-              pf.name === uploadedFile.name
-                ? { 
-                    ...pf, 
-                    progress,
-                    chunks: progressData.totalChunks,
-                    currentChunk: progressData.currentChunk,
-                    status: progressData.status === 'complete' ? 'done' as const :
-                           progressData.status === 'failed' ? 'failed' as const : 
-                           'processing' as const
-                  }
-                : pf
-            ));
-            
-            if (progressData.status === 'complete' || progress >= 100) {
-              setProcessingFiles(prev => prev.map(pf => 
-                pf.name === uploadedFile.name
-                  ? { ...pf, status: 'done' as const, progress: 100 }
-                  : pf
-              ));
-              await clearProgress(result.documentId);
-              break;
-            }
-            
-            if (progressData.status === 'failed') {
-              throw new Error('Processing failed');
-            }
-          }
-          
-          await new Promise(resolve => setTimeout(resolve, 100));
-          attempts++;
-        }
+        setProcessingFiles(prev => prev.map(pf => 
+          pf.name === uploadedFile.name
+            ? { ...pf, status: 'done' as const, progress: 100, chunks: result.chunkCount, currentChunk: result.chunkCount }
+            : pf
+        ));
         
         setFiles((prev) => prev.map(f => (f.key === uploadedFile.key && f.chatId === chatId ? { ...f, documentId: result.documentId, processingStatus: 'done', statusMessage: 'Processed' } : f)));
         toast.success(`Document ${uploadedFile.name} processed for RAG`, { duration: 2000 });
