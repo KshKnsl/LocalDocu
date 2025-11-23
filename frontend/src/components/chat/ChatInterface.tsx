@@ -173,7 +173,7 @@ export function ChatInterface({ initialChatId }: ChatInterfaceProps) {
           ...f,
           localUrl: mapping[f.name] || f.localUrl,
           downloadStatus: mapping[f.name] ? 'done' : 'failed',
-          statusMessage: mapping[f.name] ? 'Available' : 'Download failed',
+          statusMessage: mapping[f.name] ? 'Available' : undefined,
         };
       }));
     }

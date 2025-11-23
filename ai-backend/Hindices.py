@@ -177,12 +177,12 @@ def deduplicate_references_and_update_answer(answer: str, references: List[Refer
     # Create unique references and map old IDs to new IDs
     new_id_counter = 1
     for ref in references:
-        if ref.source not in unique_refs:
+        if ref.title not in unique_refs:  
             new_id = str(new_id_counter)
-            unique_refs[ref.source] = Reference(id=new_id, title=ref.title, source=ref.source, page=ref.page, snippet=ref.snippet)
+            unique_refs[ref.title] = Reference(id=new_id, title=ref.title, source=ref.source, page=ref.page, snippet=ref.snippet)
             new_id_counter += 1
 
-        id_mapping[ref.id] = unique_refs[ref.source].id
+        id_mapping[ref.id] = unique_refs[ref.title].id
 
     updated_answer = answer
 
@@ -297,46 +297,6 @@ You are a highly advanced AI research assistant. Your task is to answer the user
 7.  Generate a reference for *every* piece of information you use.
 8.  **DO NOT** make up information. If the documents do not contain the answer, state that.
 
----
-**EXAMPLE OF HOW TO CITE:**
-
-**[Example] Provided Documents:**
-=======================================DOCUMENT METADATA====================================
-Source: https://example.com/ai.pdf
-Title: AI in 2024 (Page 5, Chunk 1)
-============================DOCUMENT PAGE CONTENT CHUNK=====================================
-Page Content Chunk: \n\nArtificial intelligence has seen
-rapid growth, especially in large language models. [1]
-=====================================================================================
-=======================================DOCUMENT METADATA====================================
-Source: https://example.com/ml.pdf
-Title: ML Basics (Page 2, Chunk 4)
-============================DOCUMENT PAGE CONTENT CHUNK=====================================
-Page Content Chunk: \n\nMachine learning is a subset of AI.
-=====================================================================================
-
-**[Example] Expected JSON Output:**
-{{
-  "answer": "Artificial intelligence (AI) has experienced rapid growth, particularly in the realm of large language models [1]. Machine learning is known to be a subset of AI [2].",
-  "references": [
-    {{
-      "id": "1",
-      "title": "AI in 2024 (Page 5, Chunk 1)",
-      "source": "https://example.com/ai.pdf",
-      "page": 5,
-      "snippet": "Artificial intelligence has seen rapid growth, especially in large language models."
-    }},
-    {{
-      "id": "2",
-      "title": "ML Basics (Page 2, Chunk 4)",
-      "source": "https://example.com/ml.pdf",
-      "page": 2,
-      "snippet": "Machine learning is a subset of AI."
-    }}
-  ]
-}}
----
-
 **ACTUAL TASK:**
 
 **USER QUERY:** {question}
@@ -413,7 +373,7 @@ class HierarchicalRAGService:
                     print(f"[PDF] Extracted and summarized image {img_id} from page {page_num + 1}")
                 except Exception as e:
                     print(f"[PDF] Failed to extract image {img_index} from page {page_num}: {e}")
-            images_per_page[page_num + 1] = page_images
+            images_per_page[page_num] = page_images
         pdf.close()
         os.remove(path)
         print(f"[PDF] Completed image extraction, found images on {len([p for p in images_per_page.values() if p])} pages")
@@ -422,7 +382,7 @@ class HierarchicalRAGService:
         # Assign images to documents based on page, and ensure all are Document objects
         new_docs = []
         for doc in docs:
-            page_num = getattr(doc, 'metadata', {}).get('page', 1) if hasattr(doc, 'metadata') else 1
+            page_num = getattr(doc, 'metadata', {}).get('page', 0) if hasattr(doc, 'metadata') else 0
             images = images_per_page.get(page_num, [])
             # If doc is not a Document, convert it
             if not isinstance(doc, Document):
@@ -431,6 +391,7 @@ class HierarchicalRAGService:
             if not hasattr(doc, 'metadata') or not isinstance(doc.metadata, dict):
                 doc.metadata = {}
             doc.metadata["images"] = images
+            doc.metadata["page"] = page_num + 1
             new_docs.append(doc)
 
         print("[PDF] Splitting documents into semantic chunks...")
@@ -454,21 +415,7 @@ class HierarchicalRAGService:
             print("[SUMMARY] No chunks provided for summary")
             return "No text content found."
 
-        print(f"[SUMMARY] Processing chunks in batches of 5...")
-        async def summarize_chunk_async(chunk_text: str) -> str:
-            prompt = f"Summarize the following text chunk in 2-3 key bullet points:\n\n{chunk_text}\n\nSummary:"
-            return await asyncio.to_thread(generate_with_llm, prompt, model_name)
-
-        intermediate_summaries = []
-        batch_count = (len(chunks) + 4) // 5  # Ceiling division
-        for i in range(0, len(chunks), 5):
-            batch_num = i // 5 + 1
-            print(f"[SUMMARY] Processing batch {batch_num}/{batch_count}")
-            batch = chunks[i:i+5]
-            tasks = [asyncio.create_task(summarize_chunk_async(c.page_content)) for c in batch]
-            batch_summaries = await asyncio.gather(*tasks)
-            intermediate_summaries.extend(batch_summaries)
-            print(f"[SUMMARY] Completed batch {batch_num}, {len(batch_summaries)} summaries generated")
+        intermediate_summaries = [chunk.metadata.get("summary", "") for chunk in chunks if hasattr(chunk, 'metadata') and isinstance(chunk.metadata, dict)]
 
         print(f"[SUMMARY] Synthesizing {len(intermediate_summaries)} intermediate summaries...")
         combined_summaries = "\n".join(intermediate_summaries)
@@ -503,6 +450,32 @@ class HierarchicalRAGService:
 
         print(f"[RAG] Successfully split into {len(chunks)} chunks")
         post_progress(doc_id, "chunking", 20, message=f"Split into {len(chunks)} chunks", totalChunks=len(chunks))
+
+        print("[RAG] Generating chunk summaries...")
+        post_progress(doc_id, "summarizing_chunks", 30, message="Generating chunk summaries...", totalChunks=len(chunks))
+        async def generate_chunk_summaries():
+            batch_count = (len(chunks) + 4) // 5
+            for i in range(0, len(chunks), 5):
+                batch_num = i // 5 + 1
+                print(f"[SUMMARY] Processing batch {batch_num}/{batch_count}")
+                batch = chunks[i:i+5]
+                tasks = []
+                for c in batch:
+                    async def safe_generate(c):
+                        try:
+                            return await asyncio.to_thread(generate_with_llm, f"Summarize this text in one sentence: {c.page_content[:500]}", model_name)
+                        except Exception as e:
+                            print(f"[SUMMARY] Failed to generate summary for chunk: {e}")
+                            return "Summary generation failed."
+                    tasks.append(asyncio.create_task(safe_generate(c)))
+                batch_summaries = await asyncio.gather(*tasks, return_exceptions=True)
+                for j, summary in enumerate(batch_summaries):
+                    if isinstance(summary, Exception):
+                        summary = "Summary generation failed."
+                    chunks[i + j].metadata["summary"] = summary
+                print(f"[SUMMARY] Completed batch {batch_num}, {len(batch_summaries)} summaries generated")
+        await generate_chunk_summaries()
+        print(f"[RAG] Generated summaries for {len(chunks)} chunks")
 
         # Safely resolve source filename
         if chunks and hasattr(chunks[0], 'metadata') and isinstance(chunks[0].metadata, dict):
@@ -648,9 +621,7 @@ class HierarchicalRAGService:
         context_string = _format_chunks_for_prompt(relevant_chunks)
         final_prompt = build_advanced_rag_prompt(question, context_string)
 
-        llm_name_for_rag = model_name
-        if model_name.lower() not in ["gemma3:1b", "llama3"]:
-            llm_name_for_rag = "gemma3:1b"
+        llm_name_for_rag = model_name or "gemma3:1b"
 
         try:
             llm = get_llm(llm_name_for_rag)
@@ -781,6 +752,7 @@ async def get_chunks(request: Request):
     if not document_id: raise HTTPException(status_code=400, detail="documentId is required")
     chunks = rag_service.get_chunks_by_doc_id(document_id)
     if not chunks: raise HTTPException(status_code=404, detail=f"No chunks found for documentId {document_id}")
+    
     def _parse_images_field(md):
         try:
             if not md: return []
@@ -806,6 +778,7 @@ async def get_chunks(request: Request):
             {
                 "id": i,
                 "content": chunk.page_content,
+                "summary": chunk.metadata.get("summary", "") if hasattr(chunk, 'metadata') and isinstance(chunk.metadata, dict) else "",
                 "metadata": chunk.metadata if hasattr(chunk, 'metadata') and isinstance(chunk.metadata, dict) else {},
                 "images": _parse_images_field(chunk.metadata if hasattr(chunk, 'metadata') and isinstance(chunk.metadata, dict) else {})
             }
@@ -846,7 +819,8 @@ async def generate_text(request: Request):
             top_k=max_citations
         )
         
-        num_citations = random.randint(2, 3)
+        # Ensure we have at least 2-3 citations if available
+        num_citations = min(random.randint(2, 3), len(citations))
         citations = citations[:num_citations]
         return JSONResponse(content={"response": response_text, "citations": citations})
 
@@ -888,7 +862,7 @@ async def process_image_query(image_ids: list, text_ids: list, prompt: str, mode
         print("... Image query also performing RAG on text documents ...")
         # Await the async RAG query
         context, citations = await rag_service.query_rag(text_ids, prompt, model, top_k=3)
-        num_citations = random.randint(2, 3)
+        num_citations = min(random.randint(2, 3), len(citations))
         citations = citations[:num_citations]
         additional_context = f"\n\nAdditional context from documents:\n{context}"
 

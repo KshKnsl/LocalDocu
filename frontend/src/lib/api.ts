@@ -76,6 +76,7 @@ export async function processDocument(key?: string, file?: File): Promise<Proces
 export type DocumentChunk = {
   id: number;
   content: string;
+  summary: string;
   metadata: Record<string, any>;
   images?: Array<{
     id: string;

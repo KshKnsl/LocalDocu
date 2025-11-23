@@ -105,7 +105,7 @@ export function ChunkViewer({ isOpen, onClose, documentId, documentName, onApply
 
   return (
     <Dialog open={isOpen} onOpenChange={onClose}>
-      <DialogContent className="max-w-[95vw] sm:max-w-4xl max-h-[90vh] flex flex-col">
+      <DialogContent className="max-w-[95vw] sm:max-w-4xl h-[90vh] flex flex-col">
         <DialogHeader>
           <DialogTitle>View & Select Chunks</DialogTitle>
           <DialogDescription>
@@ -186,6 +186,9 @@ export function ChunkViewer({ isOpen, onClose, documentId, documentName, onApply
                           </span>
                         )}
                       </div>
+                      {chunk.summary && (
+                        <p className="text-sm text-muted-foreground mb-2">{chunk.summary}</p>
+                      )}
                       <p className={`text-sm whitespace-pre-wrap break-words ${expandedChunks.has(chunk.id) ? '' : 'line-clamp-3'}`}>
                         {chunk.content}
                       </p>
