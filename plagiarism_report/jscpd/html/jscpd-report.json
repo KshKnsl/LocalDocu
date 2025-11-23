@@ -2344,7 +2344,7 @@
     {
       "format": "tsx",
       "lines": 16,
-      "fragment": ">\r\n          <DialogHeader>\r\n            <DialogTitle className=\"flex items-center gap-2\">\r\n              {processingFiles.every(f => f.status === 'done' || f.status === 'failed') ? (\r\n                <>\r\n                  <span className=\"text-green-600\">✓</span>\r\n                  Processing Complete\r\n                </>\r\n              ) : (\r\n                <>\r\n                  <div className=\"animate-spin rounded-full h-4 w-4 border-b-2 border-primary\" />\r\n                  Processing {processingFiles.length} {processingFiles.length === 1 ? 'Document' : 'Documents'}\r\n                </>\r\n              )}\r\n            </DialogTitle>\r\n            <",
+      "fragment": ">\r\n          <DialogHeader>\r\n            <DialogTitle className=\"flex items-center gap-2\">\r\n              {processingFiles.every(f => f.status === 'done' || f.status === 'failed') ? (\r\n                <>\r\n                  <span className=\"text-green-600\"></span>\r\n                  Processing Complete\r\n                </>\r\n              ) : (\r\n                <>\r\n                  <div className=\"animate-spin rounded-full h-4 w-4 border-b-2 border-primary\" />\r\n                  Processing {processingFiles.length} {processingFiles.length === 1 ? 'Document' : 'Documents'}\r\n                </>\r\n              )}\r\n            </DialogTitle>\r\n            <",
       "tokens": 0,
       "firstFile": {
         "name": "frontend\\src\\components\\ChatInterface.tsx",

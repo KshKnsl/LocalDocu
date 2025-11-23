@@ -1,5 +1,5 @@
 import { FileWithUrl } from "@/components/ui/FileWithUrl";
-import { uploadDocument, processDocument, getProgress, clearProgress, isUsingCustomBackend, ProgressData } from "@/lib/api";
+import { uploadDocument, processDocument, getProgress, clearProgress, isUsingCustomBackend, ProgressData, ProcessingResult } from "@/lib/api";
 import { ProcessingFile } from "./types";
 import { toast } from "sonner";
 
@@ -99,9 +99,21 @@ export async function handleFileUpload(
     ));
     
     try {
-      const result = isUsingCustomBackend() && uploadedFile.localFile
-        ? await processDocument(undefined, uploadedFile.localFile)
-        : await processDocument(uploadedFile.key);
+      let result: ProcessingResult | undefined;
+      if (isUsingCustomBackend() && uploadedFile.localFile) {
+        result = await processDocument(undefined, uploadedFile.localFile);
+      } else if (uploadedFile.url) {
+        try {
+          const resp = await fetch(uploadedFile.url);
+          const blob = await resp.blob();
+          const fileObj = new File([blob], uploadedFile.name, { type: uploadedFile.type || "application/pdf" });
+          result = await processDocument(undefined, fileObj);
+        } catch (err) {
+          result = await processDocument(uploadedFile.key);
+        }
+      } else {
+        result = await processDocument(uploadedFile.key);
+      }
       if (result?.documentId) {
         documentIdByKey.set(uploadedFile.key, result.documentId);
         

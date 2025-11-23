@@ -261,9 +261,22 @@ export function ChatInterface({ activeDocument }: ChatInterfaceProps) {
         ));
         
         try {
-          const result = isUsingCustomBackend() && uploadedFile.localFile
-            ? await processDocument(undefined, uploadedFile.localFile)
-            : await processDocument(uploadedFile.key);
+          let result: ProcessingResult | undefined;
+          if (isUsingCustomBackend() && uploadedFile.localFile) {
+            result = await processDocument(undefined, uploadedFile.localFile);
+          } else if (uploadedFile.url) {
+            try {
+              const resp = await fetch(uploadedFile.url);
+              const blob = await resp.blob();
+              const fileObj = new File([blob], uploadedFile.name, { type: uploadedFile.type || "application/pdf" });
+              result = await processDocument(undefined, fileObj);
+            } catch (err) {
+              // Fallback to key-based call if fetching blob fails
+              result = await processDocument(uploadedFile.key);
+            }
+          } else {
+            result = await processDocument(uploadedFile.key);
+          }
           if (result?.documentId) {
             documentIdByKey.set(uploadedFile.key, result.documentId);
             
@@ -495,7 +508,7 @@ export function ChatInterface({ activeDocument }: ChatInterfaceProps) {
             <DialogTitle className="flex items-center gap-2">
               {processingFiles.every(f => f.status === 'done' || f.status === 'failed') ? (
                 <>
-                  <span className="text-green-600">✓</span>
+                  <span className="text-green-600"></span>
                   Processing Complete
                 </>
               ) : (

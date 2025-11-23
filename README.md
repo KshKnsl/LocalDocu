@@ -4,7 +4,7 @@ A **100% private, fully local** AI-powered document summarization and Q&A platfo
 
 ![Project Banner](https://img.shields.io/badge/Status-Active-green) ![License](https://img.shields.io/badge/License-MIT-blue) ![Privacy](https://img.shields.io/badge/Privacy-Local--First-orange)
 
-## 🔒 Privacy-First Design
+## Privacy-First Design
 
 - **Zero Cloud Dependencies** - All processing happens on your local hardware
 - **No Data Collection** - No tracking, logging, or external API calls
@@ -12,7 +12,7 @@ A **100% private, fully local** AI-powered document summarization and Q&A platfo
 - **GDPR Compliant** - Your data stays on your machine
 - **Open Source** - Transparent and auditable codebase
 
-## 🚀 Quick Start
+## Quick Start
 
 ### Prerequisites
 
@@ -74,7 +74,7 @@ pnpm dev
 
 Open [http://localhost:3000](http://localhost:3000) in your browser.
 
-## 🏗️ Architecture
+## Architecture
 
 ```
 ┌─────────────────┐    ┌─────────────────┐    ┌─────────────────┐
@@ -98,14 +98,14 @@ Open [http://localhost:3000](http://localhost:3000) in your browser.
                        └─────────────────┘
 ```
 
-## ✨ Features
+## Features
 
 ### Core Capabilities
-- **📄 PDF Processing** - Extract and analyze PDF documents
-- **🖼️ Image Understanding** - Q&A with images using LLaVA
-- **💬 Interactive Chat** - Ask questions about your documents
-- **📚 Citation Tracking** - Source attribution for all answers
-- **🔄 Real-time Progress** - Live updates during processing
+- **PDF Processing** - Extract and analyze PDF documents
+- **Image Understanding** - Q&A with images using LLaVA
+- **Interactive Chat** - Ask questions about your documents
+- **Citation Tracking** - Source attribution for all answers
+- **Real-time Progress** - Live updates during processing
 
 ### Advanced RAG Features
 - **Hierarchical Retrieval** - Two-tier vector search (summary + detailed)
@@ -120,7 +120,7 @@ Open [http://localhost:3000](http://localhost:3000) in your browser.
 - **Efficient Storage** - ChromaDB for fast vector operations
 - **Streaming Responses** - Real-time answer generation
 
-## 📁 Project Structure
+## Project Structure
 
 ```
 LocalDocu/
@@ -148,7 +148,7 @@ LocalDocu/
 └── README.md               # This file
 ```
 
-## 🛠️ Tech Stack
+## Tech Stack
 
 ### Backend
 - **FastAPI** - High-performance async web framework
@@ -169,7 +169,7 @@ LocalDocu/
 - **HuggingFace Embeddings** - all-MiniLM-L6-v2
 - **FlashRank** - Re-ranking for better retrieval
 
-## 🔧 Configuration
+## Configuration
 
 ### Environment Variables
 
@@ -202,7 +202,7 @@ You can change models by:
 2. Updating `OLLAMA_MODEL` in `.env`
 3. Restarting the backend
 
-## 🚀 Deployment
+## Deployment
 
 ### Local Development
 ```bash
@@ -231,7 +231,7 @@ Download from [Releases](https://github.com/KshKnsl/LocalDocu/releases)
 ### Docker (Future)
 Docker support planned for easier deployment.
 
-## 📊 API Reference
+## API Reference
 
 ### Core Endpoints
 
@@ -280,7 +280,7 @@ Query documents with RAG.
 }
 ```
 
-## 🔍 Troubleshooting
+## Troubleshooting
 
 ### Common Issues
 
@@ -315,7 +315,7 @@ ollama list
 - Keep ChromaDB stores on fast drives
 - Use smaller embedding models for better speed
 
-## 🤝 Contributing
+## Contributing
 
 We welcome contributions! This project focuses on privacy and local processing.
 
@@ -332,18 +332,18 @@ We welcome contributions! This project focuses on privacy and local processing.
 - Comprehensive testing
 - Clear documentation
 
-## 📄 License
+## License
 
 MIT License - see [LICENSE](LICENSE) file for details.
 
-## 🙏 Acknowledgments
+## Acknowledgments
 
 - **Ollama** - For making local LLMs accessible
 - **LangChain** - For RAG framework
 - **ChromaDB** - For vector storage
 - **SurfSense** - Inspiration for hierarchical RAG
 
-## 📞 Support
+## Support
 
 - **Issues**: [GitHub Issues](https://github.com/KshKnsl/LocalDocu/issues)
 - **Discussions**: [GitHub Discussions](https://github.com/KshKnsl/LocalDocu/discussions)
@@ -351,4 +351,4 @@ MIT License - see [LICENSE](LICENSE) file for details.
 
 ---
 
-**Built with ❤️ for privacy and local AI processing**
+**Built with for privacy and local AI processing**

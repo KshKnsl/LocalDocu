@@ -1,7 +1,7 @@
 # ==============================================================================
 # 0. INSTALLS (Colab only - comment out for local use)
 # ==============================================================================
-# Uncomment the following lines if running in Google Colab:
+# Uncomment the following lines if running in Google Colab or hosted environment:
 # !curl -fsSL https://ollama.com/install.sh | sh
 # !pip install fastapi uvicorn pyngrok requests boto3 python-multipart aiofiles langchain langchain-community chromadb sentence-transformers PyMuPDF langchain-huggingface langchain-chroma langchain-ollama langchain-experimental flashrank pydantic python-dotenv
 
@@ -511,7 +511,7 @@ class HierarchicalRAGService:
             print(f"[RAG] First chunk missing metadata, using fallback source filename")
             source_filename = f"doc_{doc_id}"
 
-        print("📝 [RAG] Generating document summary...")
+        print("[RAG] Generating document summary...")
         post_progress(doc_id, "summarizing", 40, message="Generating document summary...", totalChunks=len(chunks))
         summary_text = await self._generate_summary_for_ingestion(chunks, model_name)
         print(f"[RAG] Summary generated: {len(summary_text)} characters")
@@ -657,7 +657,7 @@ class HierarchicalRAGService:
             json_prompt = final_prompt + """\n\nReturn JSON: {"answer": "...", "references": [{"id": "1", "title": "...", "source": "...", "page": 1, "snippet": "..."}]}"""
             raw_response = await asyncio.to_thread(llm.invoke, json_prompt)
             raw_response_content = getattr(raw_response, "content", str(raw_response))
-            print(f"✓ LLM response received (length: {len(raw_response_content)} chars)")
+            print(f"LLM response received (length: {len(raw_response_content)} chars)")
             print(f"Raw response preview: {raw_response_content[:300]}...")
 
             import json, re
@@ -725,7 +725,15 @@ async def lifespan(app: FastAPI):
     yield
     # Shutdown code (if needed)
 
-app = FastAPI(title="🦙 Hierarchical RAG API with Structured Citations", lifespan=lifespan)
+app = FastAPI(title="Hierarchical RAG API with Structured Citations", lifespan=lifespan)
+
+app.add_middleware(
+    CORSMiddleware,
+    allow_origins=["*"],  
+    allow_credentials=True,
+    allow_methods=["*"],
+    allow_headers=["*"],
+)
 
 @app.get("/health")
 def health_check():
@@ -744,24 +752,24 @@ async def process(file: UploadFile):
         doc_id = f"img_{uuid4().hex}"
         image_path = os.path.join(IMAGE_STORE, f"{doc_id}{Path(file.filename).suffix}")
         with open(image_path, "wb") as f: f.write(await file.read())
-        print(f"✅ [PROCESS] Image saved: {image_path}")
+        print(f"[PROCESS] Image saved: {image_path}")
         return {"documentId": doc_id, "status": "image_saved", "isImage": True, "imagePath": image_path}
 
-    print("📄 [PROCESS] Processing as PDF document")
+    print("[PROCESS] Processing as PDF document")
     doc_id = f"doc_{uuid4().hex}"
-    print(f"🆔 [PROCESS] Generated document ID: {doc_id}")
+    print(f"[PROCESS] Generated document ID: {doc_id}")
 
     try:
-        print("📖 [PROCESS] Reading PDF bytes...")
+        print("[PROCESS] Reading PDF bytes...")
         pdf_bytes = await file.read()
-        print(f"📊 [PROCESS] Read {len(pdf_bytes)} bytes")
+        print(f"[PROCESS] Read {len(pdf_bytes)} bytes")
 
-        print("🔄 [PROCESS] Calling add_document_to_stores...")
+        print("[PROCESS] Calling add_document_to_stores...")
         chunk_count = await rag_service.add_document_to_stores(pdf_bytes, doc_id, OLLAMA_MODEL)
-        print(f"✅ [PROCESS] Successfully processed document with {chunk_count} chunks")
+        print(f"[PROCESS] Successfully processed document with {chunk_count} chunks")
         return {"documentId": doc_id, "status": "embeddings_created", "chunkCount": chunk_count, "isImage": False}
     except Exception as e:
-        print(f"❌ [PROCESS] Error processing document: {e}")
+        print(f"[PROCESS] Error processing document: {e}")
         return JSONResponse(status_code=500, content={"error": "Failed to process document", "message": str(e)})
 
 @app.post("/get_chunks")
@@ -916,6 +924,10 @@ async def pull_model(request: Request):
 # ==============================================================================
 
 try:
+    # Pull models first before starting service
+    print("Pulling required models...")
+    os.system("ollama pull gemma3:1b")
+    os.system("ollama pull llava")
     start_ollama_service()
     os.system("ollama pull gemma3:1b && ollama pull llava")
 except Exception as e:

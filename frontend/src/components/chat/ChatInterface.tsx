@@ -306,7 +306,7 @@ export function ChatInterface({ initialChatId }: ChatInterfaceProps) {
             <DialogTitle className="flex items-center gap-2">
               {processingFiles.every(f => f.status === 'done' || f.status === 'failed') ? (
                 <>
-                  <span className="text-green-600">✓</span>
+                  <span className="text-green-600"></span>
                   Processing Complete
                 </>
               ) : (

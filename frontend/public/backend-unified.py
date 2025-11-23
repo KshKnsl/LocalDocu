@@ -294,6 +294,7 @@ def exec_backend_code():
     
     from fastapi import FastAPI, UploadFile, Form, Request, HTTPException
     from fastapi.responses import JSONResponse, StreamingResponse, FileResponse
+    from fastapi.middleware.cors import CORSMiddleware
     import uvicorn
     from pyngrok import ngrok
     
@@ -890,6 +891,14 @@ def exec_backend_code():
     print("Starting FastAPI app...")
     
     app = FastAPI(title="Hierarchical RAG API with Structured Citations")
+    
+    app.add_middleware(
+        CORSMiddleware,
+        allow_origins=["*"],
+        allow_credentials=True,
+        allow_methods=["*"],
+        allow_headers=["*"],
+    )
     
     try:
         rag_service = HierarchicalRAGService(
