@@ -72,12 +72,12 @@ export default function Home() {
           </Card>
           <Card className="p-4 mb-0"><CardHeader className="p-0 mb-0"><CardTitle className="text-base">Privacy-First Benefits</CardTitle><CardDescription>Why go local matters</CardDescription></CardHeader>
             <CardContent className="text-sm text-muted-foreground grid gap-3 mb-0">
-              <div className="flex items-start gap-2"><Badge variant="outline" className="bg-green-50 dark:bg-green-950 border-green-500">Private</Badge><p className="m-0">Documents processed entirely on your hardware.</p></div>
-              <div className="flex items-start gap-2"><Badge variant="outline" className="bg-green-50 dark:bg-green-950 border-green-500">Offline</Badge><p className="m-0">Works without internet. Perfect for sensitive or confidential documents.</p></div>
-              <div className="flex items-start gap-2"><Badge variant="outline" className="bg-green-50 dark:bg-green-950 border-green-500">Open Source</Badge><p className="m-0">Uses Ollama with models like Mistral, Llama. Fully transparent AI.</p></div>
-              <div className="flex items-start gap-2"><Badge variant="outline" className="bg-green-50 dark:bg-green-950 border-green-500">Free</Badge><p className="m-0">No API costs. No per-document fees. Unlimited processing on your machine.</p></div>
-              <div className="flex items-start gap-2"><Badge variant="outline" className="bg-green-50 dark:bg-green-950 border-green-500">Control</Badge><p className="m-0">You own the models, data, and infrastructure. No vendor lock-in.</p></div>
-              <div className="flex items-start gap-2"><Badge variant="outline" className="bg-green-50 dark:bg-green-950 border-green-500">Fast</Badge><p className="m-0">Local processing with GPU acceleration. No network latency.</p></div>
+              <div className="flex items-start gap-2"><Badge variant="outline" className="bg-green-50 dark:bg-green-950 border-green-500 text-green-700 dark:text-green-300">Private</Badge><p className="m-0">Documents processed entirely on your hardware.</p></div>
+              <div className="flex items-start gap-2"><Badge variant="outline" className="bg-green-50 dark:bg-green-950 border-green-500 text-green-700 dark:text-green-300">Offline</Badge><p className="m-0">Works without internet. Perfect for sensitive or confidential documents.</p></div>
+              <div className="flex items-start gap-2"><Badge variant="outline" className="bg-green-50 dark:bg-green-950 border-green-500 text-green-700 dark:text-green-300">Open Source</Badge><p className="m-0">Uses Ollama with models like Mistral, Llama. Fully transparent AI.</p></div>
+              <div className="flex items-start gap-2"><Badge variant="outline" className="bg-green-50 dark:bg-green-950 border-green-500 text-green-700 dark:text-green-300">Free</Badge><p className="m-0">No API costs. No per-document fees. Unlimited processing on your machine.</p></div>
+              <div className="flex items-start gap-2"><Badge variant="outline" className="bg-green-50 dark:bg-green-950 border-green-500 text-green-700 dark:text-green-300">Control</Badge><p className="m-0">You own the models, data, and infrastructure. No vendor lock-in.</p></div>
+              <div className="flex items-start gap-2"><Badge variant="outline" className="bg-green-50 dark:bg-green-950 border-green-500 text-green-700 dark:text-green-300">Fast</Badge><p className="m-0">Local processing with GPU acceleration. No network latency.</p></div>
             </CardContent>
           </Card>
         </div>

@@ -835,8 +835,8 @@ def exec_backend_code():
             final_prompt = build_advanced_rag_prompt(question, context_string)
     
             llm_name_for_rag = model_name
-            if model_name.lower() not in ["mistral", "llama3"]:
-                llm_name_for_rag = "mistral"
+            if model_name.lower() not in ["gemma3:1b", "llama3"]:
+                llm_name_for_rag = "gemma3:1b"
     
             try:
                 llm = get_llm(llm_name_for_rag)
@@ -932,7 +932,7 @@ def exec_backend_code():
         doc_id = f"doc_{uuid4().hex}"
         try:
             pdf_bytes = await file.read()
-            chunk_count = await rag_service.add_document_to_stores(pdf_bytes, doc_id, "mistral") # Use fast model for ingestion
+            chunk_count = await rag_service.add_document_to_stores(pdf_bytes, doc_id, "gemma3:1b") # Use fast model for ingestion
             return {"documentId": doc_id, "status": "embeddings_created", "chunkCount": chunk_count, "isImage": False}
         except Exception as e:
             print(f"Error processing document: {e}")
@@ -1063,6 +1063,7 @@ def exec_backend_code():
                     data = f.read()
                 return Response(data, media_type=f"image/{ext[1:]}")
         raise HTTPException(status_code=404, detail="Image not found")
+    
     @app.post("/pull")
     async def pull_model(request: Request):
         try:

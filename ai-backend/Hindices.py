@@ -23,6 +23,7 @@ from fastapi.responses import JSONResponse, StreamingResponse, FileResponse
 from fastapi.middleware.cors import CORSMiddleware
 import uvicorn
 from pyngrok import ngrok
+from contextlib import asynccontextmanager
 
 # --- LangChain Core ---
 from langchain.docstore.document import Document
@@ -34,6 +35,7 @@ from langchain_experimental.text_splitter import SemanticChunker
 from langchain_huggingface import HuggingFaceEmbeddings
 from langchain_chroma import Chroma
 from langchain_ollama.llms import OllamaLLM
+from langchain.globals import set_verbose
 from pydantic import BaseModel, Field
 import fitz
 
@@ -209,15 +211,15 @@ def stream_logs(proc, name):
 def start_ollama_service():
     ollama_proc = subprocess.Popen(["ollama", "serve"], stdout=subprocess.PIPE, stderr=subprocess.PIPE)
     threading.Thread(target=stream_logs, args=(ollama_proc, "Ollama"), daemon=True).start()
-    print("🦙 Starting Ollama service...")
+    print("Starting Ollama service...")
     for _ in range(40):
         try:
             if requests.get(OLLAMA_URL).status_code == 200:
-                print("✅ Ollama is running locally!\n")
+                print("Ollama is running locally!\n")
                 return True
         except:
             time.sleep(2)
-    raise RuntimeError("❌ Ollama failed to start in time.")
+    raise RuntimeError("Ollama failed to start in time.")
 
 def generate_image_summary(image_path: str, model: str = "llava") -> str:
     """Generate a detailed description of an image using a vision model."""
@@ -369,14 +371,21 @@ class HierarchicalRAGService:
 
     # --- Ingestion Logic (Unchanged) ---
     def _load_and_split_pdf(self, pdf_bytes: bytes) -> List[Document]:
+        print("[PDF] Creating temporary PDF file...")
         with tempfile.NamedTemporaryFile(delete=False, suffix=".pdf") as tmp:
             tmp.write(pdf_bytes)
             path = tmp.name
+
+        print("[PDF] Loading PDF with PyMuPDF...")
         docs = PyMuPDFLoader(path).load()
+        print(f"[PDF] Loaded {len(docs)} pages from PDF")
+
         if not docs:
+            print("[PDF] No documents loaded from PDF")
             os.remove(path)
             return []
 
+        print("[PDF] Extracting images from PDF...")
         pdf = fitz.open(path)
         images_per_page = {}
         for page_num in range(len(pdf)):
@@ -401,12 +410,15 @@ class HierarchicalRAGService:
                         "page": page_num + 1,
                         "ext": image_ext
                     })
+                    print(f"[PDF] Extracted and summarized image {img_id} from page {page_num + 1}")
                 except Exception as e:
-                    pass
+                    print(f"[PDF] Failed to extract image {img_index} from page {page_num}: {e}")
             images_per_page[page_num + 1] = page_images
         pdf.close()
         os.remove(path)
+        print(f"[PDF] Completed image extraction, found images on {len([p for p in images_per_page.values() if p])} pages")
 
+        print("[PDF] Assigning images to documents and converting to Document objects...")
         # Assign images to documents based on page, and ensure all are Document objects
         new_docs = []
         for doc in docs:
@@ -421,8 +433,11 @@ class HierarchicalRAGService:
             doc.metadata["images"] = images
             new_docs.append(doc)
 
+        print("[PDF] Splitting documents into semantic chunks...")
         splitter = SemanticChunker(self.embeddings, breakpoint_threshold_type="percentile")
         chunks = splitter.split_documents(new_docs)
+        print(f"[PDF] Split into {len(chunks)} semantic chunks")
+
         # Ensure all chunks are Document objects
         safe_chunks = []
         for c in chunks:
@@ -430,69 +445,96 @@ class HierarchicalRAGService:
                 safe_chunks.append(c)
             else:
                 safe_chunks.append(Document(page_content=str(c), metadata={}))
+        print(f"[PDF] Final chunk count: {len(safe_chunks)}")
         return safe_chunks
 
     async def _generate_summary_for_ingestion(self, chunks: List[Document], model_name: str) -> str:
-        if not chunks: return "No text content found."
+        print(f"[SUMMARY] Starting summary generation for {len(chunks)} chunks")
+        if not chunks:
+            print("[SUMMARY] No chunks provided for summary")
+            return "No text content found."
+
+        print(f"[SUMMARY] Processing chunks in batches of 5...")
         async def summarize_chunk_async(chunk_text: str) -> str:
             prompt = f"Summarize the following text chunk in 2-3 key bullet points:\n\n{chunk_text}\n\nSummary:"
             return await asyncio.to_thread(generate_with_llm, prompt, model_name)
+
         intermediate_summaries = []
+        batch_count = (len(chunks) + 4) // 5  # Ceiling division
         for i in range(0, len(chunks), 5):
+            batch_num = i // 5 + 1
+            print(f"[SUMMARY] Processing batch {batch_num}/{batch_count}")
             batch = chunks[i:i+5]
             tasks = [asyncio.create_task(summarize_chunk_async(c.page_content)) for c in batch]
             batch_summaries = await asyncio.gather(*tasks)
             intermediate_summaries.extend(batch_summaries)
+            print(f"[SUMMARY] Completed batch {batch_num}, {len(batch_summaries)} summaries generated")
+
+        print(f"[SUMMARY] Synthesizing {len(intermediate_summaries)} intermediate summaries...")
         combined_summaries = "\n".join(intermediate_summaries)
         synthesis_prompt = (
             f"Create a single, concise paragraph summarizing the key themes "
             f"from the following list of chunk summaries.\n\nSummaries:\n{combined_summaries}\n\nOverall Summary Paragraph:"
         )
         final_summary = await asyncio.to_thread(generate_with_llm, synthesis_prompt, model_name)
+        print(f"[SUMMARY] Final summary generated: {len(final_summary)} characters")
         return final_summary
 
     async def add_document_to_stores(self, pdf_bytes: bytes, doc_id: str, model_name: str):
+        print(f"[RAG] Starting document ingestion for doc_id: {doc_id}")
         post_progress(doc_id, "loading", 5, message="Loading PDF...")
 
+        print("[RAG] Loading and splitting PDF...")
         chunks = self._load_and_split_pdf(pdf_bytes)
+        print(f"[RAG] Split into {len(chunks)} chunks")
+
         # Diagnostic logging: ensure chunks is a list of Document objects
         try:
-            print(f"DEBUG: Received {len(chunks)} chunks from splitter")
-            for i, c in enumerate(chunks[:5]):
-                print(f"DEBUG chunk {i}: type={type(c)}, has_metadata={hasattr(c, 'metadata')}, metadata_type={type(getattr(c, 'metadata', None))}")
+            print(f"[RAG] Chunk diagnostics: {len(chunks)} total chunks")
+            for i, c in enumerate(chunks[:3]):
+                print(f"[RAG] Chunk {i}: type={type(c)}, has_metadata={hasattr(c, 'metadata')}")
         except Exception as e:
-            print(f"DEBUG: Could not inspect chunks: {e}")
+            print(f"[RAG] Could not inspect chunks: {e}")
+
         if not chunks:
+            print("[RAG] No text content found in document")
             post_progress(doc_id, "failed", 0, message="No text content found")
             raise ValueError("No text content found in the document")
 
+        print(f"[RAG] Successfully split into {len(chunks)} chunks")
         post_progress(doc_id, "chunking", 20, message=f"Split into {len(chunks)} chunks", totalChunks=len(chunks))
 
         # Safely resolve source filename
         if chunks and hasattr(chunks[0], 'metadata') and isinstance(chunks[0].metadata, dict):
             source_filename = chunks[0].metadata.get("source", f"doc_{doc_id}")
         else:
-            print(f"Warning: first chunk missing metadata or invalid type ({type(chunks[0])}), using fallback source filename")
+            print(f"[RAG] First chunk missing metadata, using fallback source filename")
             source_filename = f"doc_{doc_id}"
 
+        print("📝 [RAG] Generating document summary...")
         post_progress(doc_id, "summarizing", 40, message="Generating document summary...", totalChunks=len(chunks))
         summary_text = await self._generate_summary_for_ingestion(chunks, model_name)
+        print(f"[RAG] Summary generated: {len(summary_text)} characters")
 
+        print("[RAG] Creating summary embeddings...")
         post_progress(doc_id, "embedding_summary", 60, message="Creating summary embeddings...", totalChunks=len(chunks))
         summary_doc = Document(
             page_content=summary_text,
             metadata={"doc_id": doc_id, "source": source_filename, "title": f"Summary for {source_filename}"}
         )
         self.summary_store.add_documents([summary_doc], ids=[doc_id])
+        print("[RAG] Summary embeddings created and stored")
 
+        print("[RAG] Creating chunk embeddings...")
         post_progress(doc_id, "embedding_chunks", 75, message="Creating chunk embeddings...", totalChunks=len(chunks))
         current_index = 0
         for i in range(0, len(chunks), 5):
             batch = chunks[i:i+5]
+            print(f"[RAG] Processing batch {i//5 + 1}/{(len(chunks) + 4)//5}")
             for chunk in batch:
                 # Defensive conversion: ensure chunk is Document and has dict metadata
                 if not isinstance(chunk, Document):
-                    print(f"Converting non-Document chunk at index {current_index} of type {type(chunk)} to Document")
+                    print(f"[RAG] Converting non-Document chunk at index {current_index}")
                     chunk = Document(page_content=str(chunk), metadata={})
                     chunks[current_index] = chunk
                 if not hasattr(chunk, 'metadata') or not isinstance(chunk.metadata, dict):
@@ -503,19 +545,15 @@ class HierarchicalRAGService:
                     # san is sanitized so lists/dicts converted to strings
                     chunk.metadata = sanitize_metadata(chunk.metadata)
                 except Exception as e:
-                    print(f"Warning: sanitize_metadata failed for chunk {current_index}: {e}; using unfiltered metadata")
+                    print(f"[RAG] sanitize_metadata failed for chunk {current_index}: {e}")
                 current_index += 1
             progress = 75 + int(current_index / len(chunks) * 20)
             post_progress(doc_id, "embedding_chunks", progress,
                         message=f"Embedding chunk {current_index}/{len(chunks)}...",
                         currentChunk=current_index, totalChunks=len(chunks))
+            print(f"[RAG] Completed batch, {current_index}/{len(chunks)} chunks processed")
 
-        # Final diagnostic: print first few sanitized metadata keys to confirm
-        try:
-            for i,c in enumerate(chunks[:5]):
-                print(f"DEBUG before add_documents chunk {i} metadata types: {[type(v) for v in c.metadata.values()]} keys={list(c.metadata.keys())}")
-        except Exception as e:
-            print(f"DEBUG: failed to print chunk metadata diagnostics: {e}")
+        print("[RAG] Final metadata sanitization...")
         # Final sanitization before sending to Chroma: ensure every metadata value is primitive
         for i, ch in enumerate(chunks):
             if not hasattr(ch, 'metadata') or not isinstance(ch.metadata, dict):
@@ -523,22 +561,20 @@ class HierarchicalRAGService:
             try:
                 ch.metadata = sanitize_metadata(ch.metadata)
             except Exception as e:
-                print(f"Warning: final sanitize_metadata failed for chunk {i}: {e}; using empty metadata")
+                print(f"[RAG] Final sanitize_metadata failed for chunk {i}: {e}")
                 ch.metadata = {}
+
+        print("[RAG] Adding chunks to detailed store...")
         chunk_ids = [f"{doc_id}_{i}" for i in range(len(chunks))]
         try:
             self.detailed_store.add_documents(chunks, ids=chunk_ids)
+            print(f"[RAG] Successfully added {len(chunks)} chunks to detailed store")
         except Exception as e:
-            print("ERROR: adding documents to detailed_store failed", e)
-            # Print diagnostic metadata content and types for first few chunks
-            try:
-                for i, ch in enumerate(chunks[:10]):
-                    print(f"DEBUG add failure chunk {i} metadata types: {[type(v) for v in ch.metadata.values()]} metadata_preview={json.dumps(ch.metadata)[:200]}")
-            except Exception:
-                pass
+            print(f"[RAG] Failed to add documents to detailed_store: {e}")
             post_progress(doc_id, "failed", 0, message=f"Failed to add documents: {e}")
             raise
 
+        print(f"[RAG] Document processing complete! {len(chunks)} chunks processed")
         post_progress(doc_id, "complete", 100, message="Document processing complete!", totalChunks=len(chunks))
         return len(chunks)
 
@@ -613,8 +649,8 @@ class HierarchicalRAGService:
         final_prompt = build_advanced_rag_prompt(question, context_string)
 
         llm_name_for_rag = model_name
-        if model_name.lower() not in ["mistral", "llama3"]:
-            llm_name_for_rag = "mistral"
+        if model_name.lower() not in ["gemma3:1b", "llama3"]:
+            llm_name_for_rag = "gemma3:1b"
 
         try:
             llm = get_llm(llm_name_for_rag)
@@ -622,7 +658,7 @@ class HierarchicalRAGService:
             raw_response = await asyncio.to_thread(llm.invoke, json_prompt)
             raw_response_content = getattr(raw_response, "content", str(raw_response))
             print(f"✓ LLM response received (length: {len(raw_response_content)} chars)")
-            print(f"📄 Raw response preview: {raw_response_content[:300]}...")
+            print(f"Raw response preview: {raw_response_content[:300]}...")
 
             import json, re
             json_match = re.search(r'```(?:json)?\s*(\{.*?\})\s*```', raw_response_content, re.DOTALL) or re.search(r'\{.*"answer".*"references".*\}', raw_response_content, re.DOTALL)
@@ -674,30 +710,22 @@ class HierarchicalRAGService:
 
 print("Starting FastAPI app...")
 
-app = FastAPI(title="🦙 Hierarchical RAG API with Structured Citations")
+@asynccontextmanager
+async def lifespan(app: FastAPI):
+    global rag_service
+    try:
+        rag_service = HierarchicalRAGService(
+            summary_path=SUMMARY_STORE_PATH,
+            detailed_path=DETAILED_STORE_PATH,
+            embeddings=EMBEDDINGS_MODEL
+        )
+    except Exception as e:
+        print(f"FATAL: Could not initialize RAG Service: {e}")
+        rag_service = None
+    yield
+    # Shutdown code (if needed)
 
-app.add_middleware(
-    CORSMiddleware,
-    allow_origins=["*"], 
-    allow_credentials=True,
-    allow_methods=["*"],
-    allow_headers=["*"],
-)
-
-try:
-    rag_service = HierarchicalRAGService(
-        summary_path=SUMMARY_STORE_PATH,
-        detailed_path=DETAILED_STORE_PATH,
-        embeddings=EMBEDDINGS_MODEL
-    )
-except Exception as e:
-    print(f"FATAL: Could not initialize RAG Service: {e}")
-    rag_service = None
-
-@app.on_event("startup")
-async def startup_event():
-    if rag_service is None:
-        pass
+app = FastAPI(title="🦙 Hierarchical RAG API with Structured Citations", lifespan=lifespan)
 
 @app.get("/health")
 def health_check():
@@ -705,21 +733,35 @@ def health_check():
 
 @app.post("/process")
 async def process(file: UploadFile):
-    if rag_service is None: raise HTTPException(status_code=500, detail="RAG Service is not operational.")
+    print("[PROCESS] Starting document processing...")
+    if rag_service is None:
+        print("[PROCESS] RAG Service is not operational")
+        raise HTTPException(status_code=500, detail="RAG Service is not operational.")
+
+    print(f"[PROCESS] Received file: {file.filename}")
     if is_image_file(file.filename):
+        print("[PROCESS] Detected image file")
         doc_id = f"img_{uuid4().hex}"
         image_path = os.path.join(IMAGE_STORE, f"{doc_id}{Path(file.filename).suffix}")
         with open(image_path, "wb") as f: f.write(await file.read())
-        print(f"🖼️ Image saved: {image_path}")
+        print(f"✅ [PROCESS] Image saved: {image_path}")
         return {"documentId": doc_id, "status": "image_saved", "isImage": True, "imagePath": image_path}
 
+    print("📄 [PROCESS] Processing as PDF document")
     doc_id = f"doc_{uuid4().hex}"
+    print(f"🆔 [PROCESS] Generated document ID: {doc_id}")
+
     try:
+        print("📖 [PROCESS] Reading PDF bytes...")
         pdf_bytes = await file.read()
-        chunk_count = await rag_service.add_document_to_stores(pdf_bytes, doc_id, OLLAMA_MODEL) 
+        print(f"📊 [PROCESS] Read {len(pdf_bytes)} bytes")
+
+        print("🔄 [PROCESS] Calling add_document_to_stores...")
+        chunk_count = await rag_service.add_document_to_stores(pdf_bytes, doc_id, OLLAMA_MODEL)
+        print(f"✅ [PROCESS] Successfully processed document with {chunk_count} chunks")
         return {"documentId": doc_id, "status": "embeddings_created", "chunkCount": chunk_count, "isImage": False}
     except Exception as e:
-        print(f"Error processing document: {e}")
+        print(f"❌ [PROCESS] Error processing document: {e}")
         return JSONResponse(status_code=500, content={"error": "Failed to process document", "message": str(e)})
 
 @app.post("/get_chunks")

@@ -23,6 +23,9 @@ jobs:
         sudo rm -rf /opt/ghc
         sudo rm -rf /usr/local/share/boost
         sudo rm -rf "$AGENT_TOOLSDIRECTORIES"
+        sudo rm -rf /usr/local/lib/android
+        sudo rm -rf /opt/hostedtoolcache/CodeQL
+        sudo rm -rf /usr/local/.ghcup
         sudo apt-get clean
         sudo rm -rf /var/lib/apt/lists/*
         df -h
@@ -33,7 +36,7 @@ jobs:
         pip install fastapi==0.115.0 uvicorn[standard]==0.32.0 pyngrok==7.2.0 requests==2.32.3 boto3==1.35.66 python-multipart==0.0.12 aiofiles==24.1.0 langchain==0.3.7 langchain-community==0.3.7 chromadb==0.5.20 sentence-transformers==3.2.1 PyMuPDF==1.24.13 langchain-huggingface==0.1.2 langchain-chroma==0.1.4 langchain-ollama==0.2.0 langchain-experimental==0.3.3 flashrank pydantic==2.9.2 python-dotenv==1.0.1 psutil==6.0.0
     - name: Build executable
       run: |
-        pyinstaller --onedir --name backend-unified frontend/public/backend-unified.py
+        pyinstaller --onefile --clean --exclude-module matplotlib --exclude-module tkinter --exclude-module PyQt5 --name backend-unified frontend/public/backend-unified.py
     - name: Clean up build files
       run: |
         rm -rf build/
@@ -42,7 +45,7 @@ jobs:
     - name: Create zip archive
       run: |
         cd dist
-        zip -r backend-unified.zip backend-unified/
+        zip backend-unified.zip backend-unified
     - name: Upload artifact
       uses: actions/upload-artifact@v4
       with:

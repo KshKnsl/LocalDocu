@@ -32,17 +32,6 @@ export function ProcessingBanner({ files, onDismiss }: ProcessingBannerProps) {
 
   return (
     <div className="space-y-4">
-      {onDismiss && (
-        <div className="flex justify-end">
-          <button 
-            onClick={onDismiss}
-            className="text-sm text-muted-foreground hover:text-foreground hover:underline"
-          >
-            Close
-          </button>
-        </div>
-      )}
-
         {!allComplete && (
           <div className="space-y-1">
             <div className="flex justify-between text-sm">
@@ -55,19 +44,19 @@ export function ProcessingBanner({ files, onDismiss }: ProcessingBannerProps) {
 
         <div className="flex gap-2 flex-wrap">
           {activeFiles.length > 0 && (
-            <Badge variant="outline" className="bg-blue-50 dark:bg-blue-950 border-blue-500">
+            <Badge variant="outline" className="bg-blue-50 dark:bg-blue-950 border-blue-500 text-blue-700 dark:text-blue-300">
               <Loader2 className="w-3 h-3 mr-1 animate-spin" />
               {activeFiles.length} Processing
             </Badge>
           )}
           {completedFiles.length > 0 && (
-            <Badge variant="outline" className="bg-green-50 dark:bg-green-950 border-green-500">
+            <Badge variant="outline" className="bg-green-50 dark:bg-green-950 border-green-500 text-green-700 dark:text-green-300">
               <CheckCircle2 className="w-3 h-3 mr-1" />
               {completedFiles.length} Complete
             </Badge>
           )}
           {failedFiles.length > 0 && (
-            <Badge variant="outline" className="bg-red-50 dark:bg-red-950 border-red-500">
+            <Badge variant="outline" className="bg-red-50 dark:bg-red-950 border-red-500 text-red-700 dark:text-red-300">
               <AlertCircle className="w-3 h-3 mr-1" />
               {failedFiles.length} Failed
             </Badge>

@@ -277,7 +277,7 @@ export default function HomePage() {
               <div className="flex items-start gap-2">
                 <Badge
                   variant="outline"
-                  className="bg-green-50 dark:bg-green-950 border-green-500"
+                  className="bg-green-50 dark:bg-green-950 border-green-500 text-green-700 dark:text-green-300"
                 >
                   Private
                 </Badge>
@@ -288,7 +288,7 @@ export default function HomePage() {
               <div className="flex items-start gap-2">
                 <Badge
                   variant="outline"
-                  className="bg-green-50 dark:bg-green-950 border-green-500"
+                  className="bg-green-50 dark:bg-green-950 border-green-500 text-green-700 dark:text-green-300"
                 >
                   Offline
                 </Badge>
@@ -300,7 +300,7 @@ export default function HomePage() {
               <div className="flex items-start gap-2">
                 <Badge
                   variant="outline"
-                  className="bg-green-50 dark:bg-green-950 border-green-500"
+                  className="bg-green-50 dark:bg-green-950 border-green-500 text-green-700 dark:text-green-300"
                 >
                   Open Source
                 </Badge>
@@ -312,7 +312,7 @@ export default function HomePage() {
               <div className="flex items-start gap-2">
                 <Badge
                   variant="outline"
-                  className="bg-green-50 dark:bg-green-950 border-green-500"
+                  className="bg-green-50 dark:bg-green-950 border-green-500 text-green-700 dark:text-green-300"
                 >
                   Free
                 </Badge>
@@ -324,7 +324,7 @@ export default function HomePage() {
               <div className="flex items-start gap-2">
                 <Badge
                   variant="outline"
-                  className="bg-green-50 dark:bg-green-950 border-green-500"
+                  className="bg-green-50 dark:bg-green-950 border-green-500 text-green-700 dark:text-green-300"
                 >
                   Control
                 </Badge>
@@ -336,7 +336,7 @@ export default function HomePage() {
               <div className="flex items-start gap-2">
                 <Badge
                   variant="outline"
-                  className="bg-green-50 dark:bg-green-950 border-green-500"
+                  className="bg-green-50 dark:bg-green-950 border-green-500 text-green-700 dark:text-green-300"
                 >
                   Fast
                 </Badge>
