@@ -144,7 +144,7 @@ export function ChunkViewer({ isOpen, onClose, documentId, documentName, onApply
           </Button>
         </div>
 
-        <div className="flex-1 overflow-hidden">
+        <div className="flex-1 overflow-hidden min-h-0">
           <ScrollArea className="h-full w-full">
             <div className="pr-4">
               {loading ? (

@@ -240,7 +240,7 @@ export function ChatInterface({ initialChatId }: ChatInterfaceProps) {
         const botMsg: MessageObject = {
           message_id: botMsgId,
           author: "ai",
-          content: "",
+          content: "__STATUS__:Generating response...",
           created_at: new Date().toISOString(),
           files: [],
           model: model,

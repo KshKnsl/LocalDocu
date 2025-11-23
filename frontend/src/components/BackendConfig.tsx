@@ -291,8 +291,8 @@ export function BackendConfigDialog({ collapsed = false }: { collapsed?: boolean
   return (
     <Dialog>
       <DialogTrigger asChild>
-        <Button variant="outline" size="sm" className={`w-full gap-2 justify-start ${collapsed ? 'px-2' : ''}`}>
-          <div className={`w-2 h-2 rounded-full ${statusColor}`} />
+        <Button variant="outline" size="sm" className={`w-full gap-2 justify-start ${collapsed ? 'px-1 min-w-[20px]' : ''}`}>
+          <div className={`rounded-full ${collapsed ? 'w-2 h-2' : 'w-2 h-2'} ${statusColor}`} />
           {!collapsed && <Server className="w-4 h-4" />}
           {!collapsed && (
             <>

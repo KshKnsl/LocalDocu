@@ -31,7 +31,7 @@ export const FileCard: React.FC<FileCardProps> = ({ file, onPreview, onRemove, o
   return (<>
   <div className="flex items-center gap-1 bg-background/50 border rounded-lg px-2 py-1 text-sm shrink-0 hover:bg-accent/50 transition-colors">
     <div className="flex items-center truncate max-w-[120px]">
-      <StatusDot status={file.processingStatus || file.uploadStatus || file.downloadStatus} />
+      <StatusDot status={file.processingStatus || file.uploadStatus} />
       <a href={file.localUrl} target="_blank" rel="noopener noreferrer" className="truncate underline decoration-dotted">
         {file.name}
       </a>
