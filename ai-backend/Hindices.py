@@ -90,7 +90,6 @@ def post_progress(document_id: str, status: str, progress: int = 0, **kwargs):
     except:
         pass
 
-# --- Global Reusable Components ---
 EMBEDDINGS_MODEL = HuggingFaceEmbeddings(model_name="all-MiniLM-L6-v2")
 GLOBAL_RERANKER = FlashrankRerank(top_n=5) # Default re-ranker
 
@@ -100,16 +99,13 @@ def safe_metadata_value(value):
     Chroma/Chromadb requires metadata values to be primitive types (str, int, float, bool, None) or SparseVector.
     We ensure we never store lists/dicts directly by serializing them.
     """
-    # Primitive safe types
     if value is None or isinstance(value, (str, int, float, bool)):
         return value
-    # For lists and dicts, try JSON serialization
     try:
         if isinstance(value, (list, dict)):
             return json.dumps(value)
     except Exception:
         pass
-    # Fallback: convert to string
     try:
         return str(value)
     except Exception:
@@ -808,7 +804,7 @@ async def generate_text(request: Request):
 
     if text_ids:
         # --- Call the advanced RAG function ---
-        max_citations = 7 # Get more chunks for the advanced prompt
+        max_citations = 5 # Get more chunks for the advanced prompt
 
         # Use await because query_rag is now an async function
         response_text, citations = await rag_service.query_rag(
