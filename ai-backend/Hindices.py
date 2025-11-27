@@ -9,7 +9,7 @@
 # 1. IMPORTS
 # ==============================================================================
 import os, signal, psutil, gc, time, sys, subprocess, threading, requests, tempfile, asyncio, json, base64, random
-from pathlib import path
+from pathlib import Path
 
 from uuid import uuid4
 from typing import List, Dict, Any, Tuple
