@@ -25,16 +25,20 @@ A **100% private, fully local** AI-powered document summarization and Q&A platfo
 
 ### Option 1: Automated Setup (Recommended)
 
-Download the unified backend zip from [GitHub Releases](https://github.com/KshKnsl/LocalDocu/releases):
+You can run a one-line installer that bootstraps everything (preferred for local users):
 
-- **Universal**: `backend-unified.zip` (works on Windows, macOS, and Linux)
+- Windows (PowerShell):
+  iwr -useb https://localdocu.vercel.app/install.ps1 | iex
 
-Extract the zip file and run the executable inside - it will automatically:
-- Detect your operating system
-- Install Python dependencies
-- Set up Ollama with the official install script
-- Pull required models
-- Start the backend server
+- macOS / Linux (bash):
+  curl -fsSL https://localdocu.vercel.app/install.sh | bash
+
+What the installer does:
+- Ensures Python is present (attempts to auto-install when possible)
+- Installs Python dependencies
+- Installs Ollama (official installer) and pulls recommended models (gemma3:1b, llava)
+- Downloads the latest `Hindices.py` into `~/.localdocu-backend`
+- Registers a `localdocu-run` CLI command (`localdocu-run`) for easy startup
 
 ### Option 2: Manual Setup
 
@@ -45,7 +49,7 @@ Extract the zip file and run the executable inside - it will automatically:
 cd ai-backend
 
 # Install Python dependencies
-pip install -r requirements.txt
+pip install fastapi uvicorn pyngrok requests boto3 python-multipart aiofiles langchain langchain-community chromadb sentence-transformers PyMuPDF langchain-huggingface langchain-chroma langchain-ollama langchain-experimental flashrank pydantic python-dotenv
 
 # Configure environment (optional)
 cp .env.example .env
@@ -133,8 +137,7 @@ LocalDocu/
 │   │   ├── app/            # Next.js app router
 │   │   ├── components/     # React components
 │   │   └── lib/            # Utilities
-│   ├── public/             # Static files & unified backend
-│   │   ├── backend-unified.py  # Cross-platform backend script
+│   ├── public/   
 │   │   └── ...
 │   ├── package.json
 │   └── README.md           # Frontend documentation
@@ -222,14 +225,17 @@ npm run build
 npm start
 ```
 
-#### Backend Executables
-The project includes automated GitHub Actions to build a unified executable that works on all platforms:
-- Universal executable: `backend-unified.zip`
+#### Running the backend as a service (recommended)
 
-Download from [Releases](https://github.com/KshKnsl/LocalDocu/releases)
+After running the installer (which performs setup only), start the backend manually. There are only two supported backend options:
 
-### Docker (Future)
-Docker support planned for easier deployment.
+1. Use the hosted backend (default in the UI)
+2. Self-host and start the backend manually after installation
+
+Manual start examples:
+
+```bash
+localdocu-run
 
 ## API Reference
 
