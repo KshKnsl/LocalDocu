@@ -7,19 +7,15 @@ const trigger = (url: string, name?: string) => {
   document.body.removeChild(a);
 };
 
-export const downloadBackendFile = async (os: "windows" | "mac" | "linux") => {
-  try {
-    const response = await fetch("https://api.github.com/repos/KshKnsl/LocalDocu/releases/latest");
-    if (!response.ok) throw new Error("Failed to fetch release");
-    const release = await response.json();
-    const asset = release.assets.find((a: any) => a.name === "backend-unified.zip");
-    if (!asset) throw new Error("Asset not found");
-    trigger(asset.browser_download_url, asset.name);
-    toast.success(`Unified backend downloaded`, { description: "Extract the zip and run the executable (works on any OS)" });
-  } catch (error) {
-    toast.error("Failed to download backend", { description: "Please try again later" });
-    console.error(error);
-  }
+export const copyInstallCommand = async (os: "windows" | "mac" | "linux") => {
+  const cmds: Record<string, string> = {
+    windows: `iwr -useb https://localdocu.vercel.app/install.ps1 | iex`,
+    mac: `curl -fsSL https://localdocu.vercel.app/install.sh | bash`,
+    linux: `curl -fsSL https://localdocu.vercel.app/install.sh | bash`,
+  };
+  const cmd = cmds[os];
+    await navigator.clipboard.writeText(cmd);
+    toast.success("Install command copied to clipboard", { description: cmd });
 };
 
 export const downloadJSON = (data: unknown, filename: string) => {

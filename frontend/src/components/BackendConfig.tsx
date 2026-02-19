@@ -5,10 +5,10 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/com
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
 import { Badge } from "@/components/ui/badge"
-import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog"
-import { Download, Server, Check, X, Loader2 } from "lucide-react"
+import { Dialog, DialogContent, DialogTrigger } from "@/components/ui/dialog"
+import { Server, Check, X, Loader2 } from "lucide-react"
 import { toast } from "sonner"
-import { downloadBackendFile } from "@/lib/downloadUtils"
+import { copyInstallCommand } from "@/lib/downloadUtils"
 
 const DEFAULT_BACKEND = "https://localdocu-proxy.vercel.app/api"
 
@@ -186,46 +186,25 @@ export function BackendConfig() {
               </div>
             </div>
             
-            <div className="grid grid-cols-1 sm:grid-cols-3 gap-2">
-              <Button 
-                size="sm" 
-                variant="outline"
-                onClick={() => downloadBackendFile("windows")}
-                className="flex items-center gap-2"
-              >
-                <Download className="w-3 h-3" />
-                Windows
+            <div className="mt-3 grid grid-cols-1 sm:grid-cols-3 gap-2">
+              <Button size="sm" variant="ghost" className="font-mono text-xs" onClick={() => copyInstallCommand('windows')}>
+                PowerShell (Windows)
               </Button>
-              <Button 
-                size="sm" 
-                variant="outline"
-                onClick={() => downloadBackendFile("mac")}
-                className="flex items-center gap-2"
-              >
-                <Download className="w-3 h-3" />
-                macOS
+              <Button size="sm" variant="ghost" className="font-mono text-xs" onClick={() => copyInstallCommand('mac')}>
+                curl | bash (macOS)
               </Button>
-              <Button 
-                size="sm" 
-                variant="outline"
-                onClick={() => downloadBackendFile("linux")}
-                className="flex items-center gap-2"
-              >
-                <Download className="w-3 h-3" />
-                Linux
+              <Button size="sm" variant="ghost" className="font-mono text-xs" onClick={() => copyInstallCommand('linux')}>
+                curl | bash (Linux)
               </Button>
             </div>
 
             <div className="p-3 rounded-lg bg-muted text-xs space-y-2">
-              <p className="font-medium">Quick Setup:</p>
+              <p className="font-medium">Quick Setup (recommended):</p>
               <ol className="list-decimal list-inside space-y-1 text-muted-foreground">
-                <li>Download the backend zip file for your OS above</li>
-                <li>Extract the zip file to a folder</li>
-                <li>Run the executable inside the extracted folder</li>
-                <li>Follow the on-screen instructions to set up ngrok (optional)</li>
-                <li>Copy the URL and paste it above, then save</li>
+                <li>Run the one-liner installer (copies above)</li>
+                <li>Start the backend after setup: <span className="font-mono">localdocu-run</span></li>
               </ol>
-              <p className="mt-2 text-muted-foreground">The executable includes all dependencies and will guide you through setup!</p>
+              <p className="mt-2 text-muted-foreground">The installer performs full setup (Python deps, Ollama + model pulls, downloads `Hindices.py`) and registers `localdocu-run`. Start the backend with <span className="font-mono">localdocu-run</span>.</p>
             </div>
           </div>
         )}
