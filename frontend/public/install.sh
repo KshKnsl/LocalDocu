@@ -17,33 +17,55 @@ run_bootstrap_direct() {
     return 1
   fi
 
-  info "Using $PY_CMD — installing Python deps, ensuring Ollama and downloading Hindices.py"
-  $PY_CMD -m pip install --upgrade pip setuptools wheel || true
-  $PY_CMD -m pip install fastapi uvicorn pyngrok requests boto3 python-multipart aiofiles langchain langchain-community chromadb sentence-transformers PyMuPDF langchain-huggingface langchain-chroma langchain-ollama langchain-experimental flashrank pydantic python-dotenv || true
+  info "Using $PY_CMD - creating an isolated virtual environment and installing pinned Python dependencies"
+  VENV_DIR="$INSTALL_DIR/venv"
+  if [ ! -d "$VENV_DIR" ]; then
+    info "Creating virtual environment at $VENV_DIR"
+    if ! $PY_CMD -m venv "$VENV_DIR"; then
+      info "python -m venv failed - trying virtualenv via pip"
+      $PY_CMD -m pip install --user virtualenv || true
+      $PY_CMD -m virtualenv "$VENV_DIR" || err "Failed to create virtualenv"
+    fi
+  fi
+  PY_VENV="$VENV_DIR/bin/python"
+  info "Upgrading pip, setuptools, wheel in the virtualenv..."
+  "$PY_VENV" -m pip install --upgrade pip setuptools wheel
+
+  info "Installing pinned Python packages from requirements.txt"
+  curl -fsSL https://raw.githubusercontent.com/KshKnsl/LocalDocu/main/ai-backend/requirements.txt -o "$INSTALL_DIR/requirements.txt" || err "Failed to download requirements.txt"
+  "$PY_VENV" -m pip install -r "$INSTALL_DIR/requirements.txt" || err "pip install -r requirements.txt failed"
+
+  info "Checking for Ollama"
   if ! command -v ollama >/dev/null 2>&1; then
     info "Installing Ollama (official script)"
-    if curl -fsSL https://ollama.com/install.sh | sh; then
-      info "Ollama installed"
+    if curl -fL https://ollama.com/install.sh | sh; then
+      succ "Ollama installer finished"
     else
       err "Ollama install failed or requires manual intervention"
     fi
   fi
   if command -v ollama >/dev/null 2>&1; then
-    ollama pull gemma3:1b || true
-    ollama pull llava || true
+    info "Pulling Ollama models (gemma3:1b, llava) - this may take a while"
+    ollama pull gemma3:1b || err "gemma3 pull failed (ok to ignore)"
+    ollama pull llava || err "llava pull failed (ok to ignore)"
   fi
 
   # download the latest Hindices.py for manual run
-  curl -fsSL https://raw.githubusercontent.com/KshKnsl/LocalDocu/main/ai-backend/Hindices.py -o "$INSTALL_DIR/Hindices.py"
+  info "Downloading Hindices.py to $INSTALL_DIR/Hindices.py"
+  curl -fL https://raw.githubusercontent.com/KshKnsl/LocalDocu/main/ai-backend/Hindices.py -o "$INSTALL_DIR/Hindices.py" --progress-bar || err "Failed to download Hindices.py"
+  succ "Downloaded Hindices.py"
 
+  info "Creating localdocu-run shim in $HOME/.local/bin" 
   BIN_DIR="$HOME/.local/bin"
   mkdir -p "$BIN_DIR"
   cat > "$BIN_DIR/localdocu-run" <<'EOF'
 #!/usr/bin/env bash
-# localdocu-run — starts the Hindices.py backend
-exec python "$HOME/.localdocu-backend/Hindices.py" "$@"
+# localdocu-run - starts the Hindices.py backend (uses isolated venv)
+exec "$HOME/.localdocu-backend/venv/bin/python" "$HOME/.localdocu-backend/Hindices.py" "$@"
 EOF
   chmod +x "$BIN_DIR/localdocu-run"
+  succ "Created shim: $BIN_DIR/localdocu-run"
+
   if ! echo ":$PATH:" | grep -q ":$BIN_DIR:"; then
     PROFILE_FILE="$HOME/.profile"
     if [ -n "${ZSH_VERSION-}" ] && [ -f "$HOME/.zshrc" ]; then
@@ -82,8 +104,8 @@ if run_bootstrap_direct; then
   succ "Setup completed — dependencies installed and Hindices.py downloaded"
   echo
   echo "Start the backend manually with:"
-  echo "  localdocu-run"
-  echo "  (or: python $INSTALL_DIR/Hindices.py)"
+  echo "  localdocu-run  (uses isolated venv at $INSTALL_DIR/venv)"
+  echo "  (or: $INSTALL_DIR/venv/bin/python $INSTALL_DIR/Hindices.py)"
   echo
   exit 0
 fi
@@ -96,8 +118,8 @@ if try_install_python; then
     succ "Setup completed after installing Python"
     echo
     echo "Start the backend manually with:"
-    echo "  localdocu-run"
-    echo "  (or: python $INSTALL_DIR/Hindices.py)"
+    echo "  localdocu-run  (uses isolated venv at $INSTALL_DIR/venv)"
+    echo "  (or: $INSTALL_DIR/venv/bin/python $INSTALL_DIR/Hindices.py)"
     echo
     exit 0
   fi
