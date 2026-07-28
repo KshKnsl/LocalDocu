@@ -3,8 +3,10 @@
 # ==============================================================================
 # Uncomment the following lines if running in Google Colab or hosted environment:
 # !curl -fsSL https://ollama.com/install.sh | sh
-# !pip install fastapi uvicorn pyngrok requests boto3 python-multipart aiofiles langchain langchain-community chromadb sentence-transformers PyMuPDF langchain-huggingface langchain-chroma langchain-ollama langchain-experimental flashrank pydantic python-dotenv
+# !pip install fastapi u`vicorn pyngrok requests boto3 python-multipart aiofiles langchain langchain-community chromadb sentence-transformers PyMuPDF langchain-huggingface langchain-chroma langchain-ollama langchain-experimental flashrank pydantic python-dotenv
 
+# pip compatibility note: If you encounter issues with langchain or chromadb, ensure you have compatible versions:
+# py -3.10 "USER PATH".localdocu-backend\Hindices.py
 # ==============================================================================
 # 1. IMPORTS
 # ==============================================================================
@@ -18,7 +20,8 @@ from dotenv import load_dotenv
 # Load environment variables from .env file
 load_dotenv()
 
-# --- FastAPI & Server ---
+# --- FastAPI & Serv    
+# er ---
 from fastapi import FastAPI, UploadFile, Form, Request, HTTPException
 from fastapi.responses import JSONResponse, StreamingResponse, FileResponse
 from fastapi.middleware.cors import CORSMiddleware
